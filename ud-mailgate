@@ -352,6 +352,9 @@ try:
    if Sender == None:
       raise Error, "Unable to determine the sender's address";
 
+   if (string.find(GetAttr(Attrs[0],"userPassword"),"*LK*")  != -1):
+      raise Error, "This account is locked";
+
    # Formulate a reply
    Date = time.strftime("%a, %d %b %Y %H:%M:%S +0000",time.gmtime(time.time()));
    Reply = "To: %s\nReply-To: %s\nDate: %s\n" % (Sender,ReplyTo,Date);

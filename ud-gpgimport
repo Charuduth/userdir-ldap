@@ -159,6 +159,7 @@ Keys = os.popen(string.join(Args," "),"r");
 # Loop over the GPG key file
 Outstanding = 0;
 Ignored = 0;
+SeenKeys = {};
 while(1):
    Line = Keys.readline();
    if Line == "":
@@ -179,6 +180,11 @@ while(1):
    if Line2 == "":
       break;
 
+   if SeenKeys.has_key(Split2[9]):
+      print "Dup key 0x",Split2[9],"belonging to",KeyMap[Split2[9]][0];
+      continue;
+   SeenKeys[Split2[9]] = None;
+
    if KeyMap.has_key(Split2[9]):
       Ignored = Ignored + 1;
       # print "Ignoring keyID",Split2[9],"belonging to",KeyMap[Split2[9]][0];
@@ -197,7 +203,7 @@ while(1):
 
    Rec = [(ldap.MOD_ADD,"keyfingerprint",Split2[9])];
    Dn = "uid=" + UID + "," + BaseDn;
-   print "Adding keyID",Split2[9],"to",UID;
+   print "Adding key 0x",Split2[9],"to",UID;
    if KeyCount.has_key(UID):
       KeyCount[UID] = KeyCount[UID] + 1;
    else:
@@ -223,7 +229,7 @@ print Ignored,"keys already in the directory (ignored)";
 # Look for unmatched keys
 for x in KeyMap.keys():
    if KeyMap[x][1] == 0:
-      print "keyID",x,"belonging to",KeyMap[x][0],"removed";
+      print "key 0x",x,"belonging to",KeyMap[x][0],"removed";
       if KeyCount.has_key(KeyMap[x][0]) :
          KeyCount[KeyMap[x][0]] = KeyCount[KeyMap[x][0]] - 1
          if KeyCount[KeyMap[x][0]] <= 0:

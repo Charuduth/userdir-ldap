@@ -138,6 +138,12 @@ are password equivelents, whoever has the private half of the key can use it
 to login to any machine, but not affect changes to the LDAP entry. SSH
 authentication keys are kept private.
 
+manpagesection(NOTES)
+To lock out an account take the password and prepend *LK* before the hash
+and after the {crypt} this is understood by ssh, shadow and the mailgateway to
+indicate a disabled account. No manipulations what so ever will be permitted.
+
+
 manpageoptions()
 startdit()
 dit(bf(-a))
