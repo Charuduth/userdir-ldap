@@ -1,0 +1,238 @@
+#!/usr/bin/env python
+# -*- mode: python -*-
+# Imports passwd, shadow and group files into the directory.
+# You should cleanse the files of anything you do not want to add to the
+# directory.
+#
+# The first step is to call this script to import the passwd file and
+# create all the new entries. This should be done on an empty freshly 
+# initialized directory with the rootdn/password set in the server.
+# The command to execute is
+#   ldapimport -a -p ~/passwd
+# The -a tells the script to add all the entries it finds, it should be
+# used only once.
+#
+# The next step is to import the shadow file and group, no clensing need be 
+# done for 
+# this as any entries that do not exist will be ignored (silently)
+#  ldapimport -s /etc/shadow -g /etc/group
+# 
+
+import string, re, time, ldap, getopt, sys;
+from userdir_ldap import *;
+
+DoAdd = 0;
+WritePasses = 1;
+Passwd = "";
+Shadow = "";
+Group = "";
+
+# This parses a gecos field and returns a tuple containing the new normalized
+# field and the first, middle and last name of the user. Gecos is formed
+# in the standard debian manner with 5 feilds seperated by commas
+def ParseGecos(Field):
+   Gecos = re.split("[,:]",Field);
+   cn = "";
+   mn = "";
+   sn = "";
+   if (len(Gecos) >= 1):
+      (cn,mn,sn) = NameSplit(Gecos[0]);
+
+      # Normalize the gecos field
+      if (len(Gecos) > 5):
+         Gecos = Gecos[0:4];
+      else:
+         while (len(Gecos) < 5):
+            Gecos.append("");
+   else:
+      Gecos = ["","","","",""];
+
+   # Reconstruct the gecos after mauling it
+   Field = Gecos[0] + "," + Gecos[1] + "," + Gecos[2] + "," + \
+           Gecos[3] + "," + Gecos[4];
+   return (Field,cn,mn,sn);
+
+# Check if a number string is really a number
+def CheckNumber(Num):
+   for x in Num:
+      string.index(string.digits,x);
+
+# Read the passwd file into the database
+def DoPasswd(l,Passwd):
+   # Read the passwd file and import it
+   Passwd = open(Passwd,"r");
+   Outstanding = 0;
+   while(1):
+      Line = Passwd.readline();
+      if Line == "":
+         break;
+
+      Split = re.split("[:\n]",Line);
+      (Split[4],cn,mn,sn) = ParseGecos(Split[4]);
+      CheckNumber(Split[2]);
+      CheckNumber(Split[3]);
+      Rec = [(ldap.MOD_REPLACE,"uid",Split[0]),
+             (ldap.MOD_REPLACE,"uidNumber",Split[2]),
+             (ldap.MOD_REPLACE,"gidNumber",Split[3]),
+             (ldap.MOD_REPLACE,"gecos",Split[4]),
+             (ldap.MOD_REPLACE,"homeDirectory",Split[5]),
+             (ldap.MOD_REPLACE,"loginShell",Split[6]),
+	     (ldap.MOD_REPLACE,"cn",cn),
+	     (ldap.MOD_REPLACE,"mn",mn),
+	     (ldap.MOD_REPLACE,"sn",sn)];
+
+      Dn = "uid=" + Split[0] + "," + BaseDn;
+      print "Importing",Dn,
+      sys.stdout.flush();
+
+      # Unfortunately add_s does not take the same args as modify :|
+      if (DoAdd == 1):
+         try:
+            l.add_s(Dn,[("uid",Split[0]),
+                        ("objectclass","top"),
+                        ("objectclass","account"),
+                        ("objectclass","posixAccount"),
+                        ("objectclass","shadowAccount"),
+                        ("objectclass","debiandeveloper")]);
+         except ldap.ALREADY_EXISTS:
+            print "exists",;
+
+      # Send the modify request
+      l.modify(Dn,Rec);
+      Outstanding = Outstanding + 1;
+      Outstanding = FlushOutstanding(l,Outstanding,1);
+      print "done";
+   FlushOutstanding(l,Outstanding);
+
+# Read the shadow file into the database
+def DoShadow(l,Shadow):
+   # Read the passwd file and import it
+   Shadow = open(Shadow,"r");
+   Outstanding = 0;
+   while(1):
+      Line = Shadow.readline();
+      if Line == "":
+         break;
+
+      Split = re.split("[:\n]",Line);
+      
+      # Ignore system accounts with no password, they do not belong in the
+      # directory.
+      if (Split[1] == 'x' or Split[1] == '*'):
+         print "Ignoring system account,",Split[0];
+         continue;
+
+      for x in range(2,8):
+         CheckNumber(Split[x]);
+
+      Rec = [(ldap.MOD_REPLACE,"shadowLastChange",Split[2]),
+             (ldap.MOD_REPLACE,"shadowMin",Split[3]),
+             (ldap.MOD_REPLACE,"shadowMax",Split[4]),
+             (ldap.MOD_REPLACE,"shadowWarning",Split[5]),
+             (ldap.MOD_REPLACE,"shadowInactive",Split[6]),
+             (ldap.MOD_REPLACE,"shadowExpire",Split[7])];
+      if (WritePasses == 1):
+         Rec.append((ldap.MOD_REPLACE,"userPassword","{crypt}"+Split[1]));
+
+      Dn = "uid=" + Split[0] + "," + BaseDn;
+      print "Importing",Dn,
+      sys.stdout.flush();
+
+      # Send the modify request
+      l.modify(Dn,Rec);
+      Outstanding = Outstanding + 1;
+      print "done";
+      Outstanding = FlushOutstanding(l,Outstanding,1);
+   FlushOutstanding(l,Outstanding);
+
+# Read the group file into the database
+def DoGroup(l,Group):
+   # Read the passwd file and import it
+   Group = open(Group,"r");
+   Outstanding = 0;
+   while(1):
+      Line = Group.readline();
+      if Line == "":
+         break;
+
+      # Split up the group information
+      Split = re.split("[:\n]",Line);
+      Members = re.split("[, ]*",Split[3]);
+      CheckNumber(Split[2]);
+
+      # Iterate over the membership list and add the membership information
+      # To the directory
+      Rec = [(ldap.MOD_ADD,"supplementarygid",Split[0])];
+      Counter = 0;
+      for x in Members:
+	 if x == "":
+            continue;
+	    
+         Dn = "uid=" + x + "," + BaseDn;
+         print "Adding",Dn,"to group",Split[0];
+	 Counter = Counter+1;
+
+         # Send the modify request
+         l.modify(Dn,Rec);
+         Outstanding = Outstanding + 1;
+         Outstanding = FlushOutstanding(l,Outstanding,1);
+	 
+      if Counter == 0:
+         continue;
+
+      Rec = [(ldap.MOD_REPLACE,"gid",Split[0]),
+             (ldap.MOD_REPLACE,"gidNumber",Split[2])];
+
+      Dn = "gid=" + Split[0] + "," + BaseDn;
+      print "Importing",Dn,
+      sys.stdout.flush();
+
+      # Unfortunately add_s does not take the same args as modify :|
+      if (DoAdd == 1):
+         try:
+            l.add_s(Dn,[("gid",Split[0]),
+                        ("objectclass","top"),
+                        ("objectclass","posixGroup")]);
+         except ldap.ALREADY_EXISTS:
+            print "exists",;
+
+      # Send the modify request
+      l.modify(Dn,Rec);
+      Outstanding = Outstanding + 1;
+      print ".";
+
+   FlushOutstanding(l,Outstanding);
+
+# Process options
+(options, arguments) = getopt.getopt(sys.argv[1:], "ap:s:g:xu:")
+for (switch, val) in options:
+   if (switch == '-a'):
+      DoAdd = 1;
+   if (switch == '-x'):
+      WritePasses = 0;
+   elif (switch == '-p'):
+      Passwd = val
+   elif (switch == '-s'):
+      Shadow = val
+   elif (switch == '-g'):
+      Group = val
+   elif (switch == '-u'):
+      AdminUser = val
+
+# Main program starts here
+print "Accessing LDAP directory as '" + AdminUser + "'";
+Password = getpass(AdminUser + "'s password: ");
+
+# Connect to the ldap server
+l = ldap.open(LDAPServer);
+UserDn = "uid=" + AdminUser + "," + BaseDn;
+l.simple_bind_s(UserDn,Password);
+
+if (Passwd != ""):
+   DoPasswd(l,Passwd);
+
+if (Shadow != ""):
+   DoShadow(l,Shadow);
+
+if (Group != ""):
+   DoGroup(l,Group);

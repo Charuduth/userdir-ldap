@@ -1,0 +1,47 @@
+#!/usr/bin/env python
+# -*- mode: python -*-
+# Checks the passwd file to make sure all entries are in the directory
+
+import string, ldap, getopt, sys, os;
+from userdir_ldap import *;
+
+def PassCheck(l,File,HomePrefix):
+   F = open(File,"r");
+   
+   # Fetch all the users and generate a map out of them
+   Attrs = l.search_s(BaseDn,ldap.SCOPE_ONELEVEL,"uid=*",\
+           ["uid","uidnumber","gidnumber","loginshell"]);
+   UIDMap = {};
+   for x in Attrs:
+      if x[1].has_key("uid") == 0:
+         continue;
+      UIDMap[x[1]["uid"][0]] = x[1];
+   
+   # Iterate over every user in the passwd file
+   while(1):
+      Line = F.readline();
+      if Line == "":
+         break;
+      
+      Split = string.split(Line,":");
+      if UIDMap.has_key(Split[0]) == 0:
+         print Line,
+	 continue;
+
+      Ats = UIDMap[Split[0]];
+      Miss = [];
+      if Ats.has_key("uidnumber") and Ats["uidnumber"][0] != Split[2]: 
+	  Miss.append("UID");
+      if Ats.has_key("uidnumber") and Ats["gidnumber"][0] != Split[3]: 
+	  Miss.append("GID");
+      if Ats.has_key("homedirectory") and \
+         split[5] != HomePrefix + Split[0]:
+         Miss.append("Home");
+      if len(Miss) != 0:
+         print "mismatch",Split[0],Miss;
+
+# Connect to the ldap server
+l = ldap.open(LDAPServer);
+l.simple_bind_s("","");
+
+PassCheck(l,sys.argv[1],sys.argv[2]);

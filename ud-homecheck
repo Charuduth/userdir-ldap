@@ -1,0 +1,16 @@
+#!/usr/bin/env python
+# -*- mode: python -*-
+# Checks a directory against the passwd file assuming it is the home
+# directory directory
+
+import string, ldap, getopt, sys, os, pwd;
+
+for x in os.listdir(sys.argv[1]):
+   try:
+      User = pwd.getpwnam(x);
+      st = os.stat(sys.argv[1]+x);
+      if User[2] != st[4] or User[3] != st[5]:
+         print "Bad ownership",x;
+   except:
+      print "Failed",x,"==> %s: %s" %(sys.exc_type,sys.exc_value);
+      

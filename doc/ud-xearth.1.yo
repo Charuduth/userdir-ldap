@@ -1,0 +1,34 @@
+mailto(admin@db.debian.org)
+manpage(ud-xearth)(1)(17 Sep 1999)(userdir-ldap)()
+manpagename(ud-xearth)(Extracts the XEarth marker database)
+
+manpagesynopsis()
+  ud-xearth [options]
+
+manpagedescription()
+ud-xearth simply extracts the lat/long information from the directory and
+formats it in a form suitable for use by XEarth or XPlanet. The program
+takes the lat/long coords stored in the directory and converts them to a
+decimal degrees format and then outputs a file containing the UID of the
+user and their coordinates as well as their full email address in a comment.
+The output is place in a file called ./markers.dat
+
+Since lat/long information is restricted to developers only a valid login is
+required to extract the information. 
+
+manpageoptions()
+startdit()
+dit(bf(-u))
+Set the authentication user. This is the user who's authority is used when 
+accessing the LDAP directory. The default is to use the current system user
+name.
+enddit()
+
+manpagefiles()
+itemize(
+  it() /etc/userdir-ldap/userdir-ldap.conf
+  Configuration variables to select what server and what base DN to use.
+)
+	
+manpageauthor()
+userdir-ldap was written by Jason Gunthorpe <jgg@debian.org>.

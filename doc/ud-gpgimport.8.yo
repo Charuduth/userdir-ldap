@@ -1,0 +1,67 @@
+mailto(admin@db.debian.org)
+manpage(ud-gpgimport)(8)(17 Sep 1999)(userdir-ldap)()
+manpagename(ud-gpgimport)(Key Ring Syncronization utility)
+
+manpagesynopsis()
+  ud-gpgimport [options] [keyrings]
+   
+manpagedescription()
+ud-gpgimport maintains the key fingerprint to user ID mapping in the
+directory. It takes as input a set of keyrings that represent all keys
+belonging to all users in the directory. It then reads each key and attempts
+to match it up to a user already in the directory. This matching process has
+several steps:
+
+1) If the key fingerprint already exists in the directory then the key is
+assumed to be already assigned so it is ignored
+
+2) If the key email address is in the override table then the key is
+assigned to the user in the override table
+
+3) An exact match of first name + last name from the key's primary UID is 
+performed against the directory. If a single hit is found then the key is
+assigned to that user
+
+4) If the email address in the key is within the debian.org domain then the
+key is assigned to the to the mentioned user if the last name from the
+directory appears some place in the key UID. This is called an bf(EmailAppend)
+hit.
+
+5) Nothing is done, but a soundex matcher is invoked to give some suggestions 
+on who the key may belong to.
+
+An override table is used to deal with keys that do not exactly match any
+user in the directory. The override table takes the email address that
+appears on a key and maps it to a uid in the directory.
+
+By default the matcher only generates a report on what it would do but makes
+no changes. The -a option must be given and an password entered to allow
+modification.
+
+GnuPG must be properly installed in the system to extract the key
+information from the key rings.
+
+manpageoptions()
+startdit()
+dit(bf(-a))
+Enable modification of the directory.
+
+dit(bf(-u))
+Set the authentication user. This is the user who's authority is used when 
+accessing the LDAP directory. The default is to use the current system user
+name.
+
+dit(bf(-m))
+Set the override file to use. The format of the override file is a map of key
+email address to uid, eg verb(foo@bar.com: baz)
+enddit()
+
+manpagefiles()
+itemize(
+  it() /etc/userdir-ldap/userdir-ldap.conf
+  Configuration variables to select what server and what base DN to use.
+)
+	
+manpageauthor()
+userdir-ldap was written by Jason Gunthorpe <jgg@debian.org>.
+

@@ -1,0 +1,80 @@
+#!/usr/bin/env python
+# -*- mode: python -*-
+# Generate an xearth database from the LDAP entries
+# LDAP entires for lat/long can be in one of 3 different formats
+#    1) Decimal Degrees
+#        +-DDD.DDDDDDDDDDDDDDD
+#    2) Degrees Minutes (DGM), common output from GPS units
+#        +-DDDMM.MMMMMMMMMMMMM
+#    3) Degrees Minutes Seconds (DGMS)
+#        +-DDDMMSS.SSSSSSSSSSS
+# Decimal Degrees is the most basic format, but to have good accuracy it
+# needs a large number of decimals. The other formats are all derived from it:
+#  DGM -> DD   DDD + (MM.MMMMMMMM)/60
+#  DGMS -> DD  DDD + (MM + (SS.SSSSSS)/60)/60
+# For Latitude + is North, for Longitude + is East
+
+import string, re, time, ldap, getopt, sys, pwd, posix;
+from userdir_ldap import *;
+
+# This needs to check for leading 0 to disambiguate some things
+def DecDegree(Attr,Type):
+  Parts = re.match('[+-]?(\d*)\\.?(\d*)?',GetAttr(Attr,Type)).groups();
+  Val = string.atof(GetAttr(Attr,Type));
+
+  if (abs(Val) >= 1806060.0):
+     raise ValueError,"Too Big";
+
+  # Val is in DGMS
+  if abs(Val) >= 18060.0 or len(Parts[0]) > 5:
+     Val = Val/100.0;
+     Secs = Val - long(Val);
+     Val = long(Val)/100.0;
+     Min = Val - long(Val);
+     Val = long(Val) + (Min*100.0 + Secs*100.0/60.0)/60.0;
+
+  # Val is in DGM
+  elif abs(Val) >= 180 or len(Parts[0]) > 3:
+     Val = Val/100.0;
+     Min = Val - long(Val);
+     Val = long(Val) + Min*100.0/60.0;
+     
+  if Val >= 0:
+     return "+" + str(Val);
+  return str(Val);
+
+# Main program starts here
+User = pwd.getpwuid(posix.getuid())[0];
+BindUser = User;
+(options, arguments) = getopt.getopt(sys.argv[1:], "u:")
+for (switch, val) in options:
+   if (switch == '-u'):
+      User = val
+
+# Connect to the ldap server
+l = ldap.open(LDAPServer);
+print "Accessing LDAP directory as '" + User + "'";
+Password = getpass(User + "'s password: ");
+UserDn = "uid=" + User + "," + BaseDn;
+l.simple_bind_s(UserDn,Password);
+
+Attrs = l.search_s(BaseDn,ldap.SCOPE_ONELEVEL,"latitude=*",\
+         ["uid","cn","mn","sn","latitude","longitude"]);
+
+#ttrs = [('uid=bma,ou=users,dc=debian,dc=org', {'longitude': ['-0771426.059'], 'sn': ['Almeida'], 'cn': ['Brian'], 'latitude': ['0384514.263'], 'uid': ['bma']}), ('uid=jgg,ou=users,dc=debian,dc=org', {'longitude': ['-11328'], 'sn': ['Gunthorpe'], 'cn': ['Jason'], 'latitude': ['+5333'], 'uid': ['jgg']})]
+Attrs.sort();
+
+print "Markers file will be written to markers.dat,",
+sys.stdout.flush();
+F = open("markers.dat","w");
+Count = 0;
+for x in Attrs:
+   if x[1].has_key("latitude") == 0 or x[1].has_key("longitude") == 0:
+      continue;
+   Count = Count + 1;
+   try:
+      F.write("%16s %16s \"%s\" \t# %s\n"%(DecDegree(x,"latitude"),DecDegree(x,"longitude"),GetAttr(x,"uid"),EmailAddress(x)));
+   except:
+      F.write("# Failed %s => %s: %s\n" %(x[0],sys.exc_type,sys.exc_value));
+F.close();
+print Count,"entries.";

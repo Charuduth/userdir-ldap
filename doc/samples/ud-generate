@@ -1,0 +1,2 @@
+# Cron tab for the generate operation, 15 min cycle. Put it in /etc/cron.d/
+08,23,38,53 *     * * *     sshdist  if [ -x /usr/bin/ud-generate ]; then /usr/bin/ud-generate; fi

@@ -1,0 +1,359 @@
+#!/usr/bin/env python
+# -*- mode: python -*-
+# This script is an interactive way to manipulate fields in the LDAP directory.
+# When run it connects to the directory using the current users ID and fetches
+# all the attributes for that user. It then formats them nicely and allows
+# the user to change them.
+# It is possible to authenticate as someone differnt than you are viewing/changing
+# this allows administrative functions and also allows users to view 
+# restricted information about others, such as phone numbers and addresses.
+#
+#  Usage: userinfo -a <user> -u <user> -c <user> -r
+#    -a    Set the authentication user (the user whose password you are 
+#          going to enter)
+#    -u    Set the user to display
+#    -c    Set both -a and -u, use this if your login uid is not in the 
+#          database
+#    -r    Enable 'root' functions, do this if your uid has access to
+#          restricted variables.
+#
+# http://www.geocode.com/eagle.html-ssi
+
+import string, time, posix, pwd, sys, getopt, ldap, crypt, whrandom, readline, copy;
+from userdir_ldap import *;
+
+RootMode = 0;
+AttrInfo = {"cn": ["First Name", 101],
+            "mn": ["Middle Name", 102],
+            "sn": ["Surname", 103],
+	    "c": ["Country Code",1],
+	    "l": ["Locality",2],
+	    "ou": ["Membership",0],
+	    "facsimiletelephonenumber": ["Fax Phone Number",3],
+	    "telephonenumber": ["Phone Number",4],
+	    "postaladdress": ["Mailing Address",5],
+	    "postalcode": ["Postal Code",6],
+	    "uid": ["Unix User ID",0],
+	    "loginshell": ["Unix Shell",7],
+	    "supplementarygid": ["Unix Groups",0],
+	    "emailforward": ["Email Forwarding",8],
+	    "ircnick": ["IRC Nickname",9],
+	    "onvacation": ["Vacation Message",10],
+	    "labeledurl": ["Home Page",11],
+	    "latitude": ["Latitude",12],
+	    "longitude": ["Longitude",13],
+	    "comment": ["Comment",114],
+	    "userpassword": ["Crypted Password",115]};
+
+AttrPrompt = {"cn": ["Common name or first name"],
+              "mn": ["Middle name (or initial if it ends in a dot)"],
+              "sn": ["Surname or last name"],
+              "c": ["ISO 2 letter country code, such as US, DE, etc"],
+              "l": ["City name, State/Provice (Locality)\n e.g. Dallas, Texas"],
+              "facsimiletelephonenumber": ["Fax phone number, with area code and country code"],
+              "telephonenumber": ["Voice phone number"],
+	      "postaladdress": ["Complete mailing address including postal codes and country designations\nSeperate lines using a $ character"],
+	      "postalcode": ["Postal Code or Zip Code"],
+              "loginshell": ["Login shell with full path (no check is done for validity)"],
+	      "emailforward": ["EMail address to send all mail to or blank to disable"],
+	      "ircnick": ["IRC nickname if you use IRC"],
+	      "onvacation": ["A message if on vaction, indicating the time of departure and return"],
+              "userpassword": ["The users Crypt'd password"],
+              "comment": ["Admin Comment about the account"],
+              "supplementarygid": ["Groups the user is in"],
+	      "latitude": ["XEarth latitude in ISO 6709 format - see /usr/share/zoneinfo/zone.tab or etak.com"],
+	      "longitude": ["XEarth latitude in ISO 6709 format - see /usr/share/zoneinfo/zone.tab or etak.com"],
+              "labeledurl": ["Web home page"]};
+
+# Create a map of IDs to desc,value,attr
+OrderedIndex = {};
+for at in AttrInfo.keys():
+   if (AttrInfo[at][1] != 0):
+      OrderedIndex[AttrInfo[at][1]] = [AttrInfo[at][0], "", at];
+OrigOrderedIndex = copy.deepcopy(OrderedIndex);
+
+# Show shadow information
+def PrintShadow(Attrs):
+   Changed = int(GetAttr(Attrs,"shadowlastchange","0"));
+   MinDays = int(GetAttr(Attrs,"shadowmin","0"));
+   MaxDays = int(GetAttr(Attrs,"shadowmax","0"));
+   WarnDays = int(GetAttr(Attrs,"shadowwarning","0"));
+   InactDays = int(GetAttr(Attrs,"shadowinactive","0"));
+   Expire = int(GetAttr(Attrs,"shadowexpire","0"));
+
+   print "%-24s:" % ("Password last changed"),
+   print time.strftime("%a %d/%m/%Y %Z",time.localtime(Changed*24*60*60));
+   if (Expire > 0):
+      print "%-24s:" % ("Account expires on"),
+      print time.strftime("%a %d/%m/%Y %Z",time.localtime(Expire*24*60*60));
+   if (InactDays >= 0 and MaxDays < 99999):
+      print "Account aging is active, you must change your password every", MaxDays, "days."
+
+# Print out the automatic time stamp information
+def PrintModTime(Attrs):
+   Stamp = GetAttr(Attrs,"modifytimestamp","");
+   if len(Stamp) >= 13:
+      Time = (int(Stamp[0:4]),int(Stamp[4:6]),int(Stamp[6:8]),
+              int(Stamp[8:10]),int(Stamp[10:12]),int(Stamp[12:14]),0,0,-1);
+      print "%-24s:" % ("Record last modified on"), time.strftime("%a %d/%m/%Y %X UTC",Time),
+      print "by",ldap.explode_dn(GetAttr(Attrs,"modifiersname"),1)[0];
+
+   Stamp = GetAttr(Attrs,"createtimestamp","");
+   if len(Stamp) >= 13:
+      Time = (int(Stamp[0:4]),int(Stamp[4:6]),int(Stamp[6:8]),
+              int(Stamp[8:10]),int(Stamp[10:12]),int(Stamp[12:14]),0,0,-1);
+      print "%-24s:" % ("Record created on"), time.strftime("%a %d/%m/%Y %X UTC",Time);
+
+# Print the PGP key for a user
+def PrintKeys(Attrs):
+   if Attrs[1].has_key("keyfingerprint") == 0:
+      return;
+   First = 0;
+   for x in Attrs[1]["keyfingerprint"]:
+      if First == 0:
+         print "%-24s:" % ("PGP/GPG Key Fingerprints"),
+         First = 1;
+      else:
+         print "%-24s:" % (""),
+
+      # PGP Print
+      if (len(x) == 32):
+         I = 0;
+         while (I < len(x)):
+            print x[I]+x[I+1],
+            I = I + 2;
+            if I == 32/2:
+               print "",
+      elif (len(x) == 40):
+         # GPG Print
+         I = 0;
+         while (I < len(x)):
+            print x[I]+x[I+1]+x[I+2]+x[I+3],
+            I = I + 4;
+            if I == 40/2:
+               print "",
+      else:
+         print x,
+      print;
+
+# Display all of the attributes in a numbered list
+def ShowAttrs(Attrs):
+   print;
+   print EmailAddress(Attrs);   
+   PrintModTime(Attrs);
+   PrintShadow(Attrs);
+   PrintKeys(Attrs);
+
+   for at in Attrs[1].keys():
+      if AttrInfo.has_key(at):
+         if AttrInfo[at][1] == 0:
+            print "      %-18s:" % (AttrInfo[at][0]),
+	    for x in Attrs[1][at]:
+	       print "'%s'" % (x),
+	    if at == "uid":
+	       print "(id=%s, gid=%s)" % (GetAttr(Attrs,"uidnumber","-1"),GetAttr(Attrs,"gidnumber","-1")),
+            print;
+         else:
+            OrderedIndex[AttrInfo[at][1]][1] = Attrs[1][at];
+				       
+   Keys = OrderedIndex.keys();
+   Keys.sort();
+   for at in Keys:
+      if at < 100 or RootMode != 0:
+         print " %3u) %-18s: " % (at,OrderedIndex[at][0]),
+         for x in OrderedIndex[at][1]:
+            print "'%s'" % (re.sub('[\n\r]','?',x)),
+         print;
+
+# Change a single attribute
+def ChangeAttr(Attrs,Attr):
+   if (Attr == "supplementarygid"):
+      return MultiChangeAttr(Attrs,Attr);
+
+   print "Old value: '%s'" % (GetAttr(Attrs,Attr,""));
+   print "Press enter to leave unchanged and a single space to set to empty";
+   NewValue = raw_input("New? ");
+  
+   # Empty string
+   if (NewValue == ""):
+      print "Leaving unchanged.";
+      return;
+
+   # Single space designates delete, trap the delete error
+   if (NewValue == " "):
+      print "Deleting.",;
+      try:
+         l.modify_s(UserDn,[(ldap.MOD_DELETE,Attr,None)]);
+      except ldap.NO_SUCH_ATTRIBUTE:
+         pass;
+
+      print;
+      Attrs[1][Attr] = [""];
+      return;
+
+   # Set a new value
+   print "Setting.",;
+   l.modify_s(UserDn,[(ldap.MOD_REPLACE,Attr,NewValue)]);
+   Attrs[1][Attr] = [NewValue];
+   print;
+
+def MultiChangeAttr(Attrs,Attr):
+   # Make sure that we have an entry
+   if not Attrs[1].has_key(Attr):
+      Attrs[1][Attr] = [];
+
+   Attrs[1][Attr].sort();
+   print "Old values: ",Attrs[1][Attr];
+
+   Mode = string.upper(raw_input("[D]elete or [A]dd? "));
+   if (Mode != 'D' and Mode != 'A'):
+      return;
+
+   NewValue = raw_input("Value? ");
+   # Empty string
+   if (NewValue == ""):
+      print "Leaving unchanged.";
+      return;
+   
+   # Delete   
+   if (Mode == "D"):
+      print "Deleting.",;
+      try:
+         l.modify_s(UserDn,[(ldap.MOD_DELETE,Attr,NewValue)]);
+      except ldap.NO_SUCH_ATTRIBUTE:
+         print "Failed";
+
+      print;
+      Attrs[1][Attr].remove(NewValue);
+      return;
+
+   # Set a new value
+   print "Setting.",;
+   l.modify_s(UserDn,[(ldap.MOD_ADD,Attr,NewValue)]);
+   Attrs[1][Attr].append(NewValue);
+   print;
+
+# Main program starts here
+User = pwd.getpwuid(posix.getuid())[0];
+BindUser = User;
+# Process options
+(options, arguments) = getopt.getopt(sys.argv[1:], "nu:c:a:r")
+for (switch, val) in options:
+   if (switch == '-u'):
+      User = val;
+   elif (switch == '-a'):
+      BindUser = val;
+   elif (switch == '-c'):
+      BindUser = val;
+      User = val;
+   elif (switch == '-r'):
+      RootMode = 1;
+   elif (switch == '-n'):
+      BindUser = "";
+
+if (BindUser != ""):
+   print "Accessing LDAP entry for '" + User + "'",
+if (BindUser != User):
+   if (BindUser != ""):
+      print "as '" + BindUser + "'";
+else:
+   print;
+if (BindUser != ""):
+   Password = getpass(BindUser + "'s password: ");
+
+# Connect to the ldap server
+l = ldap.open(LDAPServer);
+UserDn = "uid=" + BindUser + "," + BaseDn;
+if (BindUser != ""):
+   l.simple_bind_s(UserDn,Password);
+else:
+   l.simple_bind_s("","");
+UserDn = "uid=" + User + "," + BaseDn;
+
+# Enable changing of supplementary gid's
+if (RootMode == 1):
+   AttrInfo["supplementarygid"][1] = 100;
+   OrderedIndex[AttrInfo["supplementarygid"][1]] = [AttrInfo["supplementarygid"][0], "","supplementarygid"];
+   OrigOrderedIndex[AttrInfo["supplementarygid"][1]] = [AttrInfo["supplementarygid"][0], "","supplementarygid"];
+
+# Query the server for all of the attributes
+Attrs = l.search_s(BaseDn,ldap.SCOPE_ONELEVEL,"uid=" + User);
+
+# repeatedly show the account configuration
+while(1):
+   ShowAttrs(Attrs[0]);
+   if (BindUser == ""):
+      sys.exit(0);
+
+   if RootMode == 1:
+      print "   a) Arbitary Change";
+   print "   p) Change Password";
+   print "   u) Switch Users";
+   print "   x) Exit";
+   
+   # Prompt
+   Response = raw_input("Change? ");
+   if (Response == "x" or Response == "X" or Response == "q" or 
+       Response == "quit" or Response == "exit"):
+      break;
+
+   # Change who we are looking at
+   if (Response == 'u' or Response == 'U'):
+      NewUser = raw_input("User? ");
+      if NewUser == "":
+         continue;
+      User = NewUser;
+      UserDn = "uid=" + User + "," + BaseDn;
+      Attrs = l.search_s(BaseDn,ldap.SCOPE_ONELEVEL,"uid=" + User);
+      OrderedIndex = copy.deepcopy(OrigOrderedIndex);
+      continue;
+
+   # Handle changing the password
+   if (Response == "p"):
+      print "Please enter a new password. Your password can be of unlimited length,";
+      print "contain spaces and other special characters. No checking is done on the";
+      print "strength of the passwords so pick good ones please!";
+
+      Pass1 = getpass(User + "'s new password: ");
+      Pass2 = getpass(User + "'s new password again: ");
+      if Pass1 != Pass2:
+         print "Passwords did not match";
+         raw_input("Press a key");
+         continue;
+
+      # Hash it telling glibc to use the MD5 algorithm - if you dont have
+      # glibc then just change Salt = "$1$" to Salt = "";
+      SaltVals = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ/.";
+      Salt  = "$1$";
+      for x in range(0,10):
+         Salt = Salt + SaltVals[whrandom.randint(0,len(SaltVals)-1)];
+      Pass = crypt.crypt(Pass1,Salt);
+      if len(Pass) < 14:
+         print "Caution! MD5 Password hashing failed, not changing password!";
+         raw_input("Press a key");
+         continue;
+
+      print "Setting password..";
+      Pass = "{crypt}" + Pass;
+      l.modify_s(UserDn,[(ldap.MOD_REPLACE,"userpassword",Pass)]);
+      continue;
+
+   # Handle changing an arbitary value
+   if (Response == "a"):
+      Attr = raw_input("Attr? ");
+      ChangeAttr(Attrs[0],Attr);
+      continue;
+
+   # Convert the integer response
+   try:
+      ID = int(Response);
+      if (not OrderedIndex.has_key(ID) or (ID > 100 and RootMode == 0)):
+         raise ValueError;
+   except ValueError:
+      print "Invalid";
+      continue;
+
+   # Print the what to do prompt
+   print "Changing LDAP entry '%s' (%s)" % (OrderedIndex[ID][0],OrderedIndex[ID][2]);
+   print AttrPrompt[OrderedIndex[ID][2]][0];
+   ChangeAttr(Attrs[0],OrderedIndex[ID][2]);

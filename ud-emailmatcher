@@ -1,0 +1,172 @@
+#!/usr/bin/env python
+# -*- mode: python -*-
+# This script tries to match a list of email addresses to the ldap database
+# uids. It makes use of the PGP key ring to determine matches
+
+import string, re, time, ldap, getopt, sys;
+from userdir_ldap import *;
+from userdir_gpg import *;
+
+AddressSplit = re.compile("(.*).*<([^@]*)@([^>]*)>");
+
+# Import an an forward file
+def ImportForward(File,EmailMap):
+   F = open(File,"r");
+   while(1):
+      Line = string.strip(F.readline());
+      if Line == "":
+         break;
+      Split = string.split(Line,":");
+      if len(Split) != 2:
+         continue;
+   
+      Addr = string.strip(Split[1]);
+      if EmailMap.has_key(Addr) and  EmailMap[Addr] != Split[0]:
+         print "Dup Over Emap",Line,Split
+      else:
+         EmailMap[Addr] = Split[0];
+   F.close();
+
+# Import an override file
+def ImportOverride(File,OverMap):
+   F = open(File,"r");
+   while(1):
+      Line = F.readline();
+      if Line == "":
+         break;
+      Line = string.strip(Line);
+
+      Split = string.split(Line,":");
+      if len(Split) != 2:
+         continue;
+      OverMap[Split[0]] = string.strip(Split[1]);
+   F.close();
+
+(options, arguments) = getopt.getopt(sys.argv[1:], "o:f:")
+
+# Popen GPG with the correct magic special options
+Args = [GPGPath] + GPGBasicOptions + GPGKeyRings;
+for x in arguments:
+   Args.append("--keyring");
+   Args.append(x);
+Args = Args + GPGSearchOptions + [" 2> /dev/null"]
+Keys = os.popen(string.join(Args," "),"r");
+
+l = ldap.open(LDAPServer);
+l.simple_bind_s("","");
+
+# Fetch the key list and map to email address
+PasswdAttrs = l.search_s(BaseDn,ldap.SCOPE_ONELEVEL,"keyfingerprint=*",\
+                ["uid","keyfingerprint"]);
+KFMap = {}
+for x in PasswdAttrs:
+   if x[1].has_key("keyfingerprint") == 0 or x[1].has_key("uid") == 0:
+      continue;
+   for I in x[1]["keyfingerprint"]:
+      KFMap[I] = x[1]["uid"][0];
+   
+# Loop over the GPG key file mapping addresses to uids
+Outstanding = 0;
+Ignored = 0;
+Emails = [];
+EmailMap = {};
+UIDMap = {};
+UID = None;
+FingerPrint = None;
+print "Reading keyrings",
+sys.stdout.flush();
+while(1):
+   Line = Keys.readline();
+   if Line == "":
+      break;
+   
+   Split = string.split(Line,":");
+   if len(Split) >= 8 and Split[0] == "pub":
+      if FingerPrint != None and UID != None:
+         for x in Emails:
+            Match = AddressSplit.match(x);
+            if Match == None:
+              continue;
+            Groups = Match.groups();
+	    Email = Groups[1]+'@'+Groups[2];
+	    if UIDMap.has_key(Groups[1]):
+	       UIDMap[Groups[1]].append(Email);
+            else:
+	       UIDMap[Groups[1]] = [Email];
+	    if EmailMap.has_key(Email) and EmailMap[Email] != UID:
+	       print "Dup Emap",Email
+            else:
+	       EmailMap[Email] = UID;
+      Emails = [Split[9]];
+      continue;
+   if len(Split) >= 11 and Split[0] == "fpr":
+      FingerPrint = Split[9];
+      if KFMap.has_key(FingerPrint) == 0:
+         print "Failed",FingerPrint;
+	 UID = None;
+         continue;
+      UID = KFMap[FingerPrint];
+   if len(Split) >= 9 and Split[0] == "uid":
+      Emails.append(Split[9]);
+print;
+
+# Process the override files
+for (switch, val) in options:
+   if (switch == '-f'):
+      ImportForward(val,EmailMap);
+      BindUser = val;
+   elif (switch == '-o'):
+      ImportOverride(val,EmailMap);
+
+# Map the input
+FinalMap = {};
+while(1):
+   Line = sys.stdin.readline();
+   if Line == "":
+      break;
+   Line = string.strip(Line);
+
+   Split = string.split(Line,"@");
+   if len(Split) != 2:
+      continue;
+
+   # The address is in our domain, go directly
+   if Split[1] == EmailAppend:
+      if FinalMap.has_key(Line):
+        print "Dup",Line
+      Split2 = string.split(Split[0],"-");
+      FinalMap[Line] = Split2[0];
+      continue;
+
+   # Exists in the email map..
+   if EmailMap.has_key(Line):
+      if FinalMap.has_key(Line):
+        print "Dup",Line
+      FinalMap[Line] = EmailMap[Line];
+      continue;
+
+   # Try again splitting off common address appendage modes
+   Split2 = string.split(Split[0],"-");
+   Addr = Split2[0]+'@'+Split[1];
+   if EmailMap.has_key(Addr):
+      if FinalMap.has_key(Addr):
+        print "Dup",Addr
+      FinalMap[Line] = EmailMap[Addr];
+      continue;
+
+    # Failed 
+   if UIDMap.has_key(Split[0]):
+      print Line,UIDMap[Split[0]];
+   print Line;
+print "-----";
+
+# Generate a reverse map and check for duplicates
+Back = {};
+for x in FinalMap.keys():
+   if Back.has_key(FinalMap[x]):
+      print "Dup",x,FinalMap[x],Back[FinalMap[x]];
+   Back[FinalMap[x]] = x;
+   
+# Print the forward map
+for x in Back.keys():
+   print "%s: %s" % (x,Back[x]);

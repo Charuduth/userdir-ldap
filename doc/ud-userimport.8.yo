@@ -1,0 +1,76 @@
+mailto(admin@db.debian.org)
+manpage(ud-userimport)(1)(17 Sep 1999)(userdir-ldap)()
+manpagename(ud-userimport)(Perform initial import of date)
+
+manpagesynopsis()
+  ud-userimport [options]
+   
+manpagedescription()
+
+ud-userimport is the utility that is used to initially load data into the
+directory. It takes as input a set of normal unix password, group and shadow
+files and loads their contents. Also it provide enough functionality to
+allow simple additions at a later date. 
+
+Before attempting to import the data the passwd file should be sanitized
+of any system entries and the GECOs fields should be cleaned of any
+strangeness users may have inserted.
+
+Next the passwd file alone should be added using the command
+verb(ud-userimport -a -p passwd)
+The passwd file will be loaded into the
+empty directory and new entries created for all the users.
+
+The shadow file does not have to be santized, importing it without the -a
+option will automatically skip any records that are not needed.
+The command to use is verb(ud-userimport -s shadow)
+
+Like the passwd file the group file needs to be cleaned of system groups and
+groups that are no longer needed. It is not necessary to remove non-existant
+users from the group lists, they will be automatically ignored. Like for
+the shadow file the command is verb(ud-userimport -a -g group)
+
+After the initial import is completed the ud-info tool can be used to
+manipulate the user records, however new groups can most easially be created 
+by giving a file containing only a single group (and its initial membership)
+to ud-userimport.
+
+The importer is optimized to get good speed on updates through the use
+of the async ldap mechanism. If errors are found in the import of the 
+passwd file or shadow file it is possible to re-run the import command 
+(without the -a option) to freshen the data set.
+
+Aside from the evident transformations, the splitter also processes the 
+unix gecos field into split first/last/middle names and it also sanitizes
+the gecos field to follow normal Debian convetions.
+
+manpageoptions()
+startdit()
+dit(bf(-u))
+Set the authentication user. This is the user who's authority is used when 
+accessing the LDAP directory. The default is to use the current system user
+name.
+
+dit(bf(-x))
+Do not write new passwords into the directory. This is usefull if other
+information is being freshened but users have changed their passwords.
+
+dit(bf(-p))
+Specify the passwd file to import.
+
+dit(bf(-g))
+Specify the group file to import.
+
+dit(bf(-s))
+Specify the shadow file to import.
+enddit()
+
+manpagefiles()
+itemize(
+  it() /etc/userdir-ldap/userdir-ldap.conf
+  Configuration variables to select what server and what base DN to use.
+)
+	
+manpageauthor()
+userdir-ldap was written by Jason Gunthorpe <jgg@debian.org>.
+

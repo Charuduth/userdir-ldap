@@ -1,0 +1,170 @@
+#!/usr/bin/env python
+# -*- mode: python -*-
+import userdir_gpg, userdir_ldap, sys, traceback, time, ldap, posix;
+import string, pwd
+from userdir_gpg import *;
+from userdir_ldap import *;
+
+# Error codes from /usr/include/sysexits.h
+ReplyTo = ConfModule.replyto;
+PingFrom = ConfModule.pingfrom;
+ChPassFrom = ConfModule.chpassfrom;
+ReplayCacheFile = ConfModule.replaycachefile;
+
+EX_TEMPFAIL = 75;
+EX_PERMFAIL = 65;      # EX_DATAERR
+Error = 'Message Error';
+
+# Handle ping handles an email sent to the 'ping' address (ie this program
+# called with a ping argument) It replies with a dump of the public records.
+def HandlePing(Reply,DnRecord,Key):
+   Subst = {};
+   Subst["__FROM__"] = PingFrom;
+   Subst["__EMAIL__"] = EmailAddress(DnRecord);
+   Subst["__LDAPFIELDS__"] = PrettyShow(Attrs[0]);
+   Subst["__ADMIN__"] = ReplyTo;
+
+   return Reply + TemplateSubst(Subst,open(TemplatesDir+"ping-reply","r").read());
+
+# Handle a change password email sent to the change password address
+# (this program called with the chpass argument)
+def HandleChPass(Reply,DnRecord,Key):
+   # Generate a random password
+   Password = GenPass();
+   Pass = HashPass(Password);
+      
+   # Use GPG to encrypt it      
+   Message = GPGEncrypt("Your new password is '" + Password + "'\n",\
+                        "0x"+Key[1],Key[4]);
+   Password = None;
+
+   if Message == None:
+      raise Error, "Unable to generate the encrypted reply, gpg failed.";
+
+   if (Key[4] == 1):
+      Type = "Your message was encrypted using PGP 2.x\ncompatibility mode.";
+   else:
+      Type = "Your message was encrypted using GPG (OpenPGP)\ncompatibility "\
+             "mode, without IDEA. This message cannot be decoded using PGP 2.x";
+   
+   Subst = {};
+   Subst["__FROM__"] = ChPassFrom;
+   Subst["__EMAIL__"] = EmailAddress(DnRecord);
+   Subst["__CRYPTTYPE__"] = Type;
+   Subst["__PASSWORD__"] = Message;
+   Subst["__ADMIN__"] = ReplyTo;
+   Reply = Reply + TemplateSubst(Subst,open(TemplatesDir+"passwd-changed","r").read());
+   
+   # Connect to the ldap server
+   l = ldap.open(LDAPServer);
+   F = open(PassDir+"/pass-"+pwd.getpwuid(posix.getuid())[0],"r");
+   AccessPass = string.split(string.strip(F.readline())," ");
+   F.close();
+
+   # Modify the password
+   l.simple_bind_s("uid="+AccessPass[0]+","+BaseDn,AccessPass[1]);
+   Rec = [(ldap.MOD_REPLACE,"userPassword","{crypt}"+Pass)];
+   Dn = "uid=" + GetAttr(DnRecord,"uid") + "," + BaseDn;
+   l.modify_s(Dn,Rec);
+   
+   return Reply;
+      
+# Start of main program
+ErrMsg = "Indeterminate Error";
+ErrType = EX_TEMPFAIL;
+try:
+   # Startup the replay cache
+   ErrType = EX_TEMPFAIL;
+   ErrMsg = "Failed to initialize the replay cache:";
+   RC = ReplayCache(ReplayCacheFile);
+   RC.Clean();
+
+   # Get the email 
+   ErrType = EX_PERMFAIL;
+   ErrMsg = "Failed to understand the email or find a signature:";
+   Email = mimetools.Message(sys.stdin,0);
+   Msg = GetClearSig(Email);
+
+   # Check the signature   
+   ErrMsg = "Unable to check the signature or the signature was invalid:";
+   Res = GPGCheckSig(Msg[0]);
+
+   if Res[0] != None:
+      raise Error, Res[0];
+      
+   if Res[3] == None:
+      raise Error, "Null signature text";
+
+   # Extract the plain message text in the event of mime encoding
+   ErrMsg = "Problem stripping MIME headers from the decoded message"
+   if Msg[1] == 1:
+      try:
+         Index = string.index(Res[3],"\n\n") + 2;
+      except ValueError:
+         Index = string.index(Res[3],"\n\r\n") + 3;
+      PlainText = Res[3][Index:];
+   else:
+      PlainText = Res[3];   
+
+   # Check the signature against the replay cache
+   ErrMsg = "The replay cache rejected your message. Check your clock!";
+   Rply = RC.Check(Res[1]);
+   if Rply != None:
+      raise Error, Rply;
+   RC.Add(Res[1]);
+
+   # Connect to the ldap server
+   ErrType = EX_TEMPFAIL;
+   ErrMsg = "An error occured while performing the LDAP lookup";
+   l = ldap.open(LDAPServer);
+   l.simple_bind_s("","");
+
+   # Search for the matching key fingerprint
+   Attrs = l.search_s(BaseDn,ldap.SCOPE_ONELEVEL,"keyfingerprint=" + Res[2][1]);
+   if len(Attrs) == 0:
+      raise Error, "Key not found"
+   if len(Attrs) != 1:
+      raise Error, "Oddly your key fingerprint is assigned to more than one account.."
+
+   # Determine the sender address
+   ErrType = EX_PERMFAIL;
+   ErrMsg = "A problem occured while trying to formulate the reply";
+   Sender = Email.getheader("Reply-To");
+   if Sender == None:
+      Sender = Email.getheader("From");
+   if Sender == None:
+      raise Error, "Unable to determine the sender's address";
+
+   # Formulate a reply
+   Date = time.strftime("%a, %d %b %Y %H:%M:%S +0000",time.gmtime(time.time()));
+   Reply = "To: %s\nReply-To: %s\nDate: %s\n" % (Sender,ReplyTo,Date);
+
+   # Dispatch
+   if sys.argv[1] == "ping":
+      Reply = HandlePing(Reply,Attrs[0],Res[2]);
+   elif sys.argv[1] == "chpass":
+      if string.find(string.strip(PlainText),"Please change my Debian password") != 0:
+         raise Error,"Please send a signed message where the first line of text is the string 'Please change my Debian password'";
+      Reply = HandleChPass(Reply,Attrs[0],Res[2]);
+   else:
+      print sys.argv;
+      raise Error, "Incorrect Invokation";
+
+   # Send the message through sendmail      
+   ErrMsg = "A problem occured while trying to send the reply";
+   Child = posix.popen("/usr/sbin/sendmail -t","w");
+#   Child = posix.popen("cat","w");
+   Child.write(Reply);
+   if Child.close() != None:
+      raise Error, "Sendmail gave a non-zero return code";
+
+except:
+   print ErrMsg;
+   print "==> %s: %s" %(sys.exc_type,sys.exc_value);
+   List = traceback.extract_tb(sys.exc_traceback);
+   if len(List) > 1:
+      print "Trace: ";
+      for x in List:
+         print "   %s %s:%u: %s" %(x[2],x[0],x[1],x[3]);
+   sys.exit(ErrType);
+   

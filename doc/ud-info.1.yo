@@ -1,0 +1,151 @@
+mailto(admin@db.debian.org)
+manpage(ud-info)(1)(17 Sep 1999)(userdir-ldap)()
+manpagename(ud-info)(Command line LDAP user record manipulator)
+
+manpagesynopsis()
+  ud-info [options]
+   
+manpagedescription()
+
+ud-info is the command-line tool for end users to manipulate their own
+database information and to view other users information. It also provides
+root functions which when combined with sufficient LDAP privilages allow
+an administrator to completely manipulate a users record.
+
+The defined fields are:
+itemize(
+  it() cn - Common (first) name. [root]
+  it() mn - Middle name or initial. [root]
+  it() sn - Surname (last name). [root]
+  it() cn - ISO 3166 country code, see file(/usr/share/zoneinfo/iso3166.tab)
+            Should be upper case.
+  it() ircnick - IRC nickname.
+  it() l - City name, state/province. The part of a mailing address that is
+           not the street address. e.g.: Dallas, Texas
+  it() postalcode - Postal Code or ZIP Code 
+  it() postaladdress - Complete mailing address including postal codes and
+           country designations. Newlines are seperated by a $ character. The
+	   address should be formed exactly as it would appear on a parcel.
+  it() latitude/longitude - The physical latitude and longitude. This 
+           information is typically used to generate an xearth marker file. 
+	   See the discussion below on position formats.
+  it() facsimiletelephonenumber - FAX phone number, do not forget to specify a
+           country code [North Armerica is +1].
+  it() telephonenumber - Voice phone number. 
+  it() loginshell - Full path to the prefered Unix login shell. e.g. file(/bin/bash)
+  it() emailforward - Destination email address.
+  it() userpassword - Encrypted version of the password. [root]
+  it() supplementarygid - A list of group names that the user belongs.
+           This field emulates the functionality of the traditional Unix group
+	   file. [root]
+  it() onvacation - A message indicating that the user is on vacation. The
+           time of departure and expected return date should be included as
+           well as any special instructions.
+  it() comment - Administrative comment about the account. [root]
+  it() labeledurl - User's web site.
+)  
+
+When prompted for a password it is possible to enter a blank password and
+access the database anonymously. This is useful to check PGP key
+fingerprints, for instance.
+
+manpagesection(SECURITY AND PRIVACY)
+Three levels of information security are provided by the database. The first
+is completely public information that anyone can see either by issuing an
+LDAP query or by visiting the web site. The next level is "maintainer-only"
+information that requires authentication to the directory before it can be
+accessed. The final level is admin-only or user-only information; this
+information can only be viewed by the user or an administrator. 
+
+Maintainer-only information includes precise location information
+[postalcode, postal address, lat/long] telephone numbers, and the vacation
+message.
+
+Admin-only/maintainer-only information includes email forwarding and the 
+encrypted password. Note that email forwarding is necessarily publicly viewable 
+from accounts on the actual machines.
+
+manpagesection(LAT/LONG POSITION)
+There are three possible formats for giving position information and several
+online sites that can give an accurate position fix based on mailing address.
+
+startdit()
+dit(Decimal Degrees)
+The format is +-DDD.DDDDDDDDDDDDDDD. This is the format programs like
+bf(xearth)
+use and the format that many positioning web sites use. However typically
+the precision is limited to 4 or 5 decimals.
+
+dit(Degrees Minutes (DGM))
+The format is +-DDDMM.MMMMMMMMMMMMM. It is not an arithmetic type, but a
+packed representation of two seperate units, degrees and minutes. This
+output is common from some types of hand held GPS units and from NMEA format
+GPS messages.
+
+dit(Degrees Minutes Seconds (DGMS))
+The format is +-DDDMMSS.SSSSSSSSSSS. Like DGM, it is not an arithmetic type but
+a packed representation of three seperate units, degrees minutes and
+seconds. This output is typically derived from web sites that give 3 values
+for each position. For instance 34:50:12.24523 North might be the position
+given, in DGMS it would be +0345012.24523.
+enddit()
+
+For Latitude + is North, for Longitude + is East. It is important to specify
+enough leading zeros to dis-ambiguate the format that is being used if your
+position is less than 2 degrees from a zero point.
+
+So locations to find positioning information are:
+
+itemize(
+ it() Good starting point - http://www.ckdhr.com/dns-loc/finding.html
+ it() AirNav - GPS locations for airports around the world http://www.airnav.com/
+ it() GeoCode - US index by ZIP Code http://www.geocode.com/eagle.html-ssi
+ it() Map Blast! Canadian, US and some European maps - http://www.mapblast.com/
+ it() Australian Database http://www.environment.gov.au/database/MAN200R.html
+ it() Canadian Database http://GeoNames.NRCan.gc.ca/
+ it() GNU Timezone database, organized partially by country /usr/share/zoneinfo/zone.tab
+)
+
+Remember that we are after reasonable coordinates for drawing an xearth
+graph and looking for people to sign keys, not for coordinates accurate
+enough to land an ICBM on your doorstop!
+
+manpagesection(Editing Supplemental GIDs)
+When the root function is activated then the supplemental GIDs can be
+manipulated as a list of items. It is possible to add and remove items from
+the list by name. Proper prompts are given.
+
+manpageoptions()
+startdit()
+dit(bf(-a))
+Set the authentication user. This is the user whose authority is used when 
+accessing the LDAP directory. The default is to use the current system user
+name.
+
+dit(bf(-u))
+Select the user whose fields will be displayed/edited. The default is to use
+the current system user name.
+
+dit(bf(-c))
+Set both the authentication user and the target user. This option is useful
+if the login name does not match the user who is operating the program.
+
+dit(bf(-r))
+Enable root functions. This enables more options to allow changing
+any entry in the directory. This function only has meaning if the
+authentication user has the necessary permissions at the LDAP server.
+
+dit(bf(-n))
+No actions. Anonymously bind and show the information for the user and then
+exit.
+enddit()
+
+manpagefiles()
+itemize(
+  it() /etc/userdir-ldap/userdir-ldap.conf
+  Configuration variables to select what server and what base DN to use.
+)
+	
+manpageauthor()
+userdir-ldap was written by Jason Gunthorpe <jgg@debian.org>.
+

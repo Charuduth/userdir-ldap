@@ -1,0 +1,107 @@
+mailto(admin@db.debian.org)
+manpage(ud-useradd)(8)(17 Sep 1999)(userdir-ldap)()
+manpagename(ud-useradd)(Interactive user addition program)
+
+manpagesynopsis()
+  ud-useradd [options]
+   
+manpagedescription()
+ud-uaseradd is an interactive program for adding new users to the directory. 
+It takes care of all steps of user addition including generating a random
+new password and sending a greeting form letter.
+
+The operator is taken through a set of prompts to determine the data to be
+loaded into the directory:
+
+startdit()
+dit(PGP Key Fingerprint)
+The first prompt is to determine the user's PGP key. For this to be
+successfull the key must have already been loaded into a keyring referenced
+by the GPG configuration file. The search specification is passed directly
+to GPG and then the results are presented, when a single match is found then
+it is taken as the correct key.
+
+dit(Account Name)
+This is the UID of the user, their login name and email local part. If the
+name already exists then it is possible to update the account directly. This
+feature should probably be used very infrequently as ud-info can adjust
+all of the values.
+
+dit(First, Last and Middle Name)
+The proper name of the user, split into three components. The name
+name attached to the PGP key is provided as a default. In most cases this
+should be adaquate and correct.
+
+dit(Email Forwarding Address)
+The address that all general email should be forwarded to. This is analogous 
+to a .forward file in the users home directory except that it applies
+globally to all machines. The email address attached to the PGP key is
+provided as a default.
+
+dit(Debian-Private Subscription)
+The address the user should be subscribed to debian-private with. Currently
+this sets the field in the DB and emails a subscription form to the
+list server.
+
+dit(Group ID Number)
+Main group the user will be part of. The group the user is assigned to
+determines which welcome form they are sent. The default is taken from
+the global configuration file
+
+dit(UID)
+The uid is selected automatically based on the first found free UID.
+
+dit(Password)
+The password can be specified if the user is not legaly able to use
+encryption (they live in France for instance) otherwise pressing enter at 
+this prompt will generate a random new password. The password to be entered
+is the plain text version, the script will crypt it automatically.
+enddit()
+
+After the information has been collected a summary is displayed and
+confirmation is required to proceed. Once confirmed the script will create a
+new entry and fill it with the given values. Then it will open the greeting
+form bf(/etc/userdir-ldap/templates/welcome-message-<GID>) and perform a
+variable substitution before sending it. Then the debian-private subscription
+form is sent.
+
+It is expected that the PGP key of the user has already been inserted into a
+local keyring known to GPG.
+
+manpagesection(Substitution Variables)
+A number of values are provided as substitution variables for the greeting
+and subscription message, they are:
+
+itemize(
+  it() __REALNAME__ The combined First/Middle/Last name
+  it() __WHOAMI__ The invoking user ID [unix ID]
+  it() __DATE__ The current date in RFC 822 form
+  it() __LOGIN__ The new users login ID
+  it() __PRIVATE__ The address to subscribe to debian-private
+  it() __EMAIL__ The normal email address of the user
+  it() __PASSWORD__ An ascii armored PGP packet containing the users 
+       password.
+  it() __LISTPASS__ The contents of the file ~/.debian-lists_passwd
+)
+
+manpageoptions()
+startdit()
+dit(bf(-u))
+Set the authentication user. This is the user who's authority is used when 
+accessing the LDAP directory. The default is to use the current system user
+name.
+enddit()
+
+manpagefiles()
+itemize(
+  it() /etc/userdir-ldap/userdir-ldap.conf
+  Configuration variables to select what server and what base DN to use.
+  it() /etc/userdir-ldap/templates/welcome-message-<GID>
+  The welcoming message to send to the user. Each primary group has its
+  own message
+  it() ~/.debian-lists_passwd
+  Authentication password for the list server
+)
+
+manpageauthor()
+userdir-ldap was written by Jason Gunthorpe <jgg@debian.org>.

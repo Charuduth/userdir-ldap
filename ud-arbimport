@@ -1,0 +1,46 @@
+#!/usr/bin/env python
+# -*- mode: python -*-
+# This script imports arbitary lists of data. The input is a file with 
+# the form of:
+#  uid: <data>
+
+import string, re, time, ldap, getopt, sys;
+from userdir_ldap import *;
+
+# Process options
+(options, arguments) = getopt.getopt(sys.argv[1:], "u:m:n")
+for (switch, val) in options:
+   if (switch == '-u'):
+      AdminUser = val
+   elif (switch == '-m'):
+       LoadOverride(val);
+   elif (switch == '-n'):
+       NoAct = 1;
+if len(arguments) == 0:
+   print "Give the key to assignt to then the file to import";
+   os.exit(0);
+
+# Main program starts here
+print "Accessing LDAP directory as '" + AdminUser + "'";
+Password = getpass(AdminUser + "'s password: ");
+
+# Connect to the ldap server
+l = ldap.open(LDAPServer);
+UserDn = "uid=" + AdminUser + "," + BaseDn;
+l.simple_bind_s(UserDn,Password);
+
+# Read the override file into the unknown map. The override file is a list
+# of colon delimited entires mapping PGP email addresess to local users
+List = open(arguments[1],"r");
+while(1):
+   Line = List.readline();
+   if Line == "":
+      break;
+   Split = re.split("[:\n]",Line);
+   
+   Rec = [(ldap.MOD_REPLACE,arguments[0],string.strip(Split[1]))];
+   Dn = "uid=" + Split[0] + "," + BaseDn;
+   try:
+      l.modify_s(Dn,Rec);
+   except:
+      print "Failed",Dn;

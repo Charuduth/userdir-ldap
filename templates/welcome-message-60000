@@ -1,0 +1,37 @@
+To: "__REALNAME__" <__EMAIL__>
+Subject: Debian Guest Account for __REALNAME__
+Cc: debian-admin@lists.debian.org
+Reply-To: debian-admin@lists.@debian.org
+Date: __DATE__
+User-Agent: Script run by __WHOAMI__
+
+Dear __REALNAME__!
+
+An account has been created for you on the Debian machine cluster. You can
+use this account to help make software run properly on the Debian GNU/Linux
+distribution. The username for this account is '__LOGIN__'. The password can
+be found encrypted with your PGP key and appended to this message.
+
+The following machines are accesible:
+  faure.debian.org    Alpha running unstable
+  albert.debian.org   Alpha running stable  [slow]
+  kubrick.dbian.org   Sparc running unstable
+  debussy.debian.org  ARM running unstable
+
+Requests for Debian software to be installed should be directed at
+debian-admin@lists.debian.org. Please note that not all software is available
+on all architectures.
+
+You should use ssh to log into the machines instead of regular telnet or 
+rlogin.  We have installed ~/.ssh directories and empty authorized_keys
+files with appropriate permissions on each machine.If you want to ssh to them
+without typing the password, run ssh-keygen on your machine and add the 
+contents of ~/.ssh/identity.pub into the authorized_keys files in ~/.ssh. But 
+please be aware of the security implications of doing this.
+
+After a short while of inactivity this account will be expired.
+
+-- 
+Debian Administration
+
+__PASSWORD__

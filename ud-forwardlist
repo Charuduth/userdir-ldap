@@ -1,0 +1,68 @@
+#!/usr/bin/env python
+# -*- mode: python -*-
+# This script takes a list of .forward files and generates a list of colon
+# delimited fields for import into a ldap directory. The fields represent
+# the user and their email forwarding.
+#
+# A sample invokation..
+#   cd /home
+#   find -name ".foward" -maxdepth 2 | mkforwardlist | sort | less
+# Then correct any invalid forward files if possible. After that stash the
+# output in a file, remove the invalid lines and import it.
+#
+# It also understand .qmail type files
+
+import string, re, time, getopt, os, sys, pwd, stat;
+
+AddressSplit = re.compile("<(.*)>");
+
+while (1):
+   File = string.strip(sys.stdin.readline());
+   if File == "":
+      break;
+
+   # Attempt to determine the UID   
+   try:
+      User = pwd.getpwuid(os.stat(File)[stat.ST_UID])[0];
+   except KeyError:
+      print "Invalid0", File;
+      continue;
+
+   # Read the first two non comment non empty lines
+   Forward = open(File,"r");
+   Line = None;
+   while (1):
+      Line2 = string.strip(Forward.readline());
+      if Line2 == "":
+         break;
+      if Line2[0] == '#' or Line2[0] == '\n':
+         continue;
+      if Line == None:
+         Line = Line2;
+      else:
+         break;
+
+   # If we got more than one line or no lines at all it is invalid
+   if Line == None or Line == "" or Line2 != "":
+      print "Invalid1", File;
+      continue;
+
+   # Abort for funky things like pipes or directions to mailboxes
+   if Line[0] == '/' or Line[0] == '|' or Line[0] == '.' or Line[-1] == '/' or \
+      string.find(Line,'@') == -1:
+      print "Invalid2", File;
+      continue;
+
+   # Split off the address part
+   Address = AddressSplit.match(Line);
+   if Address == None: 
+      # Or parse a qmail adddress..
+      Address = Line;
+      if Address[0] == '&':
+         Address = Address[1:];
+
+   if Address == "":
+      print "Invalid3", File;
+      continue;
+
+   print User + ":",Address;

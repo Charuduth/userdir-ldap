@@ -1,0 +1,15 @@
+To setup apache for use with the web database access scripts use:
+
+<VirtualHost myip>
+  ServerAdmin webmaster@mydomain.com
+  DocumentRoot /var/www/userdir-ldap
+  ServerName db.mydomain.com
+  DirectoryIndex /search.cgi
+</VirtualHost>
+	
+<directory /var/www/userdir-ldap>
+  Options +ExecCGI
+  AllowOverride All
+  AddHandler cgi-script .cgi     
+</directory>
+	      

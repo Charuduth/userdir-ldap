@@ -1,0 +1,48 @@
+mailto(admin@db.debian.org)
+manpage(ud-generate)(1)(17 Sep 1999)(userdir-ldap)()
+manpagename(ud-generate)(Produce machine specific formatted version of the
+directory)
+
+manpagesynopsis()
+  ud-generate
+
+manpagedescription()
+
+ud-generate prouces machine specific versions of the directory in the
+following formats:
+
+itemize(
+  it() passwd file [in normal and DB form]
+  it() shadow file [in normal and DB form]
+  it() group file [in normal and DB form]
+  it() Exim forwarding file
+)
+
+Generation of the files is controlled by the configuration file
+bf(/etc/userdir-ldap/ud-generate.conf). The output is placed in
+bf(/var/cache/userdir-ldap/hosts/<hostname>/). Each host listed in the
+configuration file has its own home dir path and its own list of groups that
+are allowed to login to the machine.
+
+The format of the configuration file is a one line per host with these fields:
+verb(host homedirpath group1 group2 ...)
+Only users who are a member of the named groups are emitted to the output
+files.
+
+Authorization to read protected entries from the directory is achieved by
+reading a username and password from the pass- file in the userdir-ldap
+directory.
+
+manpagefiles()
+itemize(
+  it() /etc/userdir-ldap/userdir-ldap.conf
+  Configuration variables to select what server and what base DN to use.
+  it() /etc/userdir-ldap/ud-generate.conf
+  Configuration variables to determine how hosts are generated.
+  it() /etc/userdir-ldap/pass-<uid>
+  Directory authentication credentials
+)
+
+manpageauthor()
+userdir-ldap was written by Jason Gunthorpe <jgg@debian.org>.
+

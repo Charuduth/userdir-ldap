@@ -1,0 +1,11 @@
+From: __FROM__
+Subject: Pring Reply
+
+Hello __EMAIL__!
+
+Here is a list of all the public fields associated with your LDAP entry:
+
+__LDAPFIELDS__
+
+Please email __ADMIN__ if you have any questions.
+

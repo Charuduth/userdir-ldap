@@ -1,0 +1,253 @@
+#!/usr/bin/env python
+# -*- mode: python -*-
+# Generates passwd, shadow and group files from the ldap directory.
+
+import string, re, time, ldap, getopt, sys, os, posix, pwd;
+from userdir_ldap import *;
+
+PasswdAttrs = None;
+GroupIDMap = {};
+
+# See if this user is in the group list
+def IsInGroup(DnRecord,Allowed):
+  # See if the primary group is in the list
+  if Allowed.has_key(GetAttr(DnRecord,"gidnumber")) != 0:
+     return 1;
+
+  # See if there are supplementary groups
+  if DnRecord[1].has_key("supplementarygid") == 0:
+     return 0;
+
+  # Check the supplementary groups
+  for I in DnRecord[1]["supplementarygid"]:
+     if Allowed.has_key(I):
+        return 1;
+  return 0;
+
+def Die(F,Fdb):
+   if F != None:
+      F.close();
+   if Fdb != None:
+      Fdb.close();
+   try: os.remove(File + ".tmp");
+   except: pass;
+   try: os.remove(File + ".tdb.tmp");
+   except: pass;
+
+def Done(File,F,Fdb):
+  if F != None:
+    F.close();
+    os.rename(File + ".tmp",File);
+  if Fdb != None:
+    Fdb.close();
+    os.rename(File + ".tdb.tmp",File+".tdb");
+  
+# Generate the password list
+def GenPasswd(l,File,HomePrefix,Allowed):
+  F = None;
+  Fdb = None;
+  try:
+   F = open(File + ".tmp","w");
+   Fdb = open(File + ".tdb.tmp","w");
+
+   # Fetch all the users
+   global PasswdAttrs;
+   if PasswdAttrs == None:
+      raise "No Users";
+
+   I = 0;
+   for x in PasswdAttrs:
+      if x[1].has_key("uidnumber") == 0 or IsInGroup(x,Allowed) == 0:
+         continue;
+	    
+      Line = "%s:x:%s:%s:%s:%s%s:%s\n" % (GetAttr(x,"uid"),\
+              GetAttr(x,"uidnumber"),GetAttr(x,"gidnumber"),\
+              GetAttr(x,"gecos"),HomePrefix,GetAttr(x,"uid"),\
+              GetAttr(x,"loginshell"));
+      F.write(Line);
+      Fdb.write("0%u %s" % (I,Line));
+      Fdb.write(".%s %s" % (GetAttr(x,"uid"),Line));
+      Fdb.write("=%s %s" % (GetAttr(x,"uidnumber"),Line));
+      I = I + 1;
+
+  # Oops, something unspeakable happened.
+  except:
+   Die(F,Fdb);
+   raise;
+  Done(File,F,Fdb);
+
+# Generate the shadow list
+def GenShadow(l,File,Allowed):
+  F = None;
+  Fdb = None;
+  try:
+   OldMask = os.umask(0077);
+   F = open(File + ".tmp","w",0600);
+   Fdb = open(File + ".tdb.tmp","w",0600);
+   os.umask(OldMask);
+
+   # Fetch all the users
+   global PasswdAttrs;
+   if PasswdAttrs == None:
+      raise "No Users";
+
+   I = 0;
+   for x in PasswdAttrs:
+      if x[1].has_key("uidnumber") == 0 or IsInGroup(x,Allowed) == 0:
+         continue;
+	 
+      Pass = GetAttr(x,"userpassword");
+      if Pass[0:7] != "{crypt}":
+         Pass = '*';
+      else:
+         Pass = Pass[7:];
+      Line = "%s:%s:%s:%s:%s:%s:%s:%s:\n" % (GetAttr(x,"uid"),\
+              Pass,GetAttr(x,"shadowlastchange"),\
+              GetAttr(x,"shadowmin"),GetAttr(x,"shadowmax"),\
+              GetAttr(x,"shadowwarning"),GetAttr(x,"shadowinactive"),\
+              GetAttr(x,"shadowexpire"));
+      F.write(Line);
+      Fdb.write("0%u %s" % (I,Line));
+      Fdb.write(".%s %s" % (GetAttr(x,"uid"),Line));
+      I = I + 1;
+
+  # Oops, something unspeakable happened.
+  except:
+   Die(F,Fdb);
+   raise;
+  Done(File,F,Fdb);
+
+# Generate the group list
+def GenGroup(l,File,Allowed):
+  F = None;
+  Fdb = None;
+  try:
+   F = open(File + ".tmp","w");
+   Fdb = open(File + ".tdb.tmp","w");
+
+   # Generate the GroupMap
+   GroupMap = {};
+   for x in GroupIDMap.keys():
+      GroupMap[x] = [];
+      
+   # Fetch all the users
+   global PasswdAttrs;
+   if PasswdAttrs == None:
+      raise "No Users";
+
+   # Sort them into a list of groups having a set of users
+   for x in PasswdAttrs:
+      if x[1].has_key("uidnumber") == 0 or IsInGroup(x,Allowed) == 0:
+         continue;
+      if x[1].has_key("supplementarygid") == 0:
+         continue;
+	 
+      for I in x[1]["supplementarygid"]:
+         if GroupMap.has_key(I):
+	    GroupMap[I].append(GetAttr(x,"uid"));
+	 else:
+	    GroupMap[I] = [GetAttr(x,"uid")];
+	    
+   # Output the group file.
+   Counter = 0; 
+   for x in GroupMap.keys():
+      Line = "%s:x:%u:" % (x,GroupIDMap[x]);
+      Comma = '';
+      for I in GroupMap[x]:
+        Line = Line + ("%s%s" % (Comma,I));
+        Comma = ',';
+      Line = Line + '\n';
+      F.write(Line);
+      Fdb.write("0%u %s" % (Counter,Line));
+      Fdb.write(".%s %s" % (x,Line));
+      Fdb.write("=%u %s" % (GroupIDMap[x],Line));
+      Counter = Counter + 1;
+      
+  # Oops, something unspeakable happened.
+  except:
+   Die(F,Fdb);
+   raise;
+  Done(File,F,Fdb);
+
+# Generate the email forwarding list
+def GenForward(l,File,Allowed):
+  F = None;
+  Fdb = None;
+  try:
+   F = open(File + ".tmp","w");
+   Fdb = None;
+
+   # Fetch all the users
+   global PasswdAttrs;
+   if PasswdAttrs == None:
+      raise "No Users";
+
+   # Write out the email address for each user
+   for x in PasswdAttrs:
+      if x[1].has_key("emailforward") == 0 or IsInGroup(x,Allowed) == 0:
+         continue;
+      Line = "%s: %s\n" % (GetAttr(x,"uid"),GetAttr(x,"emailforward"));
+      F.write(Line);
+      
+  # Oops, something unspeakable happened.
+  except:
+   Die(F,Fdb);
+   raise;
+  Done(File,F,Fdb);
+
+# Connect to the ldap server
+l = ldap.open(LDAPServer);
+F = open(PassDir+"/pass-"+pwd.getpwuid(posix.getuid())[0],"r");
+Pass = string.split(string.strip(F.readline())," ");
+F.close();
+l.simple_bind_s("uid="+Pass[0]+","+BaseDn,Pass[1]);
+
+# Fetch all the groups
+GroupIDMap = {};
+Attrs = l.search_s(BaseDn,ldap.SCOPE_ONELEVEL,"gid=*",\
+                  ["gid","gidnumber"]);
+
+# Generate the GroupMap and GroupIDMap
+for x in Attrs:
+   if x[1].has_key("gidnumber") == 0:
+      continue;
+   GroupIDMap[x[1]["gid"][0]] = int(x[1]["gidnumber"][0]);
+
+# Fetch all the users
+PasswdAttrs = l.search_s(BaseDn,ldap.SCOPE_ONELEVEL,"uid=*",\
+                ["uid","uidnumber","gidnumber","supplementarygid",\
+                 "gecos","loginshell","userpassword","shadowlastchange",\
+                 "shadowmin","shadowmax","shadowwarning","shadowinactive",
+	         "shadowexpire","emailforward"]);
+
+# Open the control file
+if len(sys.argv) == 1:
+   F = open(GenerateConf,"r");
+else:
+   F = open(sys.argv[1],"r")
+while(1):
+   Line = F.readline();
+   if Line == "":
+      break;
+   Line = string.strip(Line);
+   if Line == "":
+      continue;
+   if Line[0] == '#':
+      continue;
+
+   Split = string.split(Line," ");
+   OutDir = GenerateDir + '/' + Split[0] + '/';
+   try: os.mkdir(OutDir);
+   except: pass;
+
+   # Get the group list and convert any named groups to numerics
+   GroupList = {};
+   for I in Split[2:]:
+      GroupList[I] = None;
+      if GroupIDMap.has_key(I):
+         GroupList[str(GroupIDMap[I])] = None;
+
+   GenPasswd(l,OutDir+"passwd",Split[1],GroupList);
+   GenGroup(l,OutDir+"group",GroupList);
+   GenShadow(l,OutDir+"shadow",GroupList);
+   GenForward(l,OutDir+"forward-alias",GroupList);
