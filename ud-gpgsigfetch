@@ -1,0 +1,108 @@
+#!/usr/bin/env python
+# -*- mode: python -*-
+# This script tries to match key fingerprints from a keyring with user
+# name in a directory. When an unassigned key is found a heuristic match
+# against the keys given cn/sn and the directory is performed to try to get
+# a matching. Generally this works about 90% of the time, matching is fairly
+# strict. In the event a non-match a fuzzy sounds-alike search is performed
+# and the results printed to aide the user.
+#
+# GPG is automatically invoked with the correct magic special options,
+# pass the names of all the valid key rings on the command line.
+#
+# The output report will list what actions were taken. Keys that are present
+# in the directory but not in the key ring will be removed from the 
+# directory. 
+
+import string, re, time, ldap, getopt, sys, pwd, posix;
+from userdir_gpg import *;
+Output = "extrakeys.gpg";
+
+# Process options
+AdminUser = pwd.getpwuid(posix.getuid())[0];
+(options, arguments) = getopt.getopt(sys.argv[1:], "o:")
+for (switch, val) in options:
+   if (switch == '-o'):
+      Output = val
+   elif (switch == '-m'):
+       LoadOverride(val);
+   elif (switch == '-a'):
+       NoAct = 0;
+
+if len(arguments) == 0:
+   print "Give some keyrings to probe";
+   os.exit(0);
+
+# Popen GPG with the correct magic special options
+Args = [GPGPath] + GPGBasicOptions;
+for x in arguments:
+   Args.append("--keyring");
+   if string.find(x,"/") == -1:
+      Args.append("./"+x);
+   else:
+      Args.append(x);
+Args.append("--list-sigs");
+Args = Args + GPGSearchOptions + [" 2> /dev/null"]
+print string.join(Args," ")
+#Keys = os.popen(string.join(Args," "),"r");
+Keys = os.popen("cat sigs","r");
+
+# Loop over the GPG key file
+HaveKeys = {};
+NeedKeys = {};
+print "Reading keys+sigs from keyring";
+while(1):
+   Line = Keys.readline();
+   if Line == "":
+      break;
+   
+   Split = string.split(Line,":");
+   if len(Split) >= 8 and Split[0] == "pub":
+      HaveKeys[Split[4]] = "";
+      continue;
+
+   if len(Split) >= 5 and Split[0] == "sig":
+      NeedKeys[Split[4]] = "";
+      continue;
+Keys.close();
+
+# Popen GPG with the correct magic special options
+Args = [GPGPath] + GPGBasicOptions;
+for x in [Output]:
+   Args.append("--keyring");
+   if string.find(x,"/") == -1:
+      Args.append("./"+x);
+   else:
+      Args.append(x);
+OldArgs = Args;      
+Args = Args + GPGSearchOptions + [" 2> /dev/null"]
+Keys = os.popen(string.join(Args," "),"r");
+
+print "Reading keys from output";
+while(1):
+   Line = Keys.readline();
+   if Line == "":
+      break;
+   
+   Split = string.split(Line,":");
+   if len(Split) >= 8 and Split[0] == "pub":
+      HaveKeys[Split[4]] = "";
+      continue;
+Keys.close();
+
+KeysToFetch = [];
+for x in NeedKeys.keys():
+   if not HaveKeys.has_key(x):
+      KeysToFetch.append("0x"+x);
+
+print "Have %u keys and %u sigs, need %u keys"%(len(HaveKeys),len(NeedKeys),len(KeysToFetch));
+
+Args = OldArgs;
+Args.append("--keyserver 18.43.0.48");
+Args.append("--recv-keys");
+I = len(KeysToFetch);
+while (I > 0):
+   OldI = I;
+   I = I - 20;
+   if I < 0: I = 0;
+   print string.join(Args+KeysToFetch[I:OldI]," ") 
