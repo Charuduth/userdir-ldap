@@ -26,7 +26,7 @@ AttrInfo = {"description": ["Machine Descr.", 1],
             "machine": ["Machine Hardware", 10],
             "memory": ["Memory", 11],
             "disk": ["Disk", 12],
-            "sshrsahostkey": ["SSH Host Keys", 14],
+            "sshRSAHostKey": ["SSH Host Keys", 14],
             "bandwidth": ["Bandwidth", 15]};
 
 AttrPrompt = {"description": ["Purpose of the machine"],
@@ -41,7 +41,7 @@ AttrPrompt = {"description": ["Purpose of the machine"],
               "machine": ["Hardware description"],
               "memory": ["Installed RAM"],
               "disk": ["Disk Space, RAID levels, etc"],
-	      "sshrsahostkey": ["A copy of /etc/ssh/ssh_*host_key.pub"],
+	      "sshRSAHostKey": ["A copy of /etc/ssh/ssh_*host_key.pub"],
               "bandwidth": ["Available outbound"]};
 
 # Create a map of IDs to desc,value,attr
@@ -53,14 +53,14 @@ OrigOrderedIndex = copy.deepcopy(OrderedIndex);
 
 # Print out the automatic time stamp information
 def PrintModTime(Attrs):
-   Stamp = GetAttr(Attrs,"modifytimestamp","");
+   Stamp = GetAttr(Attrs,"modifyTimestamp","");
    if len(Stamp) >= 13:
       Time = (int(Stamp[0:4]),int(Stamp[4:6]),int(Stamp[6:8]),
               int(Stamp[8:10]),int(Stamp[10:12]),int(Stamp[12:14]),0,0,-1);
       print "%-24s:" % ("Record last modified on"), time.strftime("%a %d/%m/%Y %X UTC",Time),
-      print "by",ldap.explode_dn(GetAttr(Attrs,"modifiersname"),1)[0];
+      print "by",ldap.explode_dn(GetAttr(Attrs,"modifiersName"),1)[0];
 
-   Stamp = GetAttr(Attrs,"createtimestamp","");
+   Stamp = GetAttr(Attrs,"createTimestamp","");
    if len(Stamp) >= 13:
       Time = (int(Stamp[0:4]),int(Stamp[4:6]),int(Stamp[6:8]),
               int(Stamp[8:10]),int(Stamp[10:12]),int(Stamp[12:14]),0,0,-1);
@@ -92,7 +92,7 @@ def ShowAttrs(Attrs):
 
 # Change a single attribute
 def ChangeAttr(Attrs,Attr):
-   if (Attr == "sponsor" or Attr == "hostname" or Attr == "sshrsahostkey"):
+   if (Attr == "sponsor" or Attr == "hostname" or Attr == "sshRSAHostKey"):
       return MultiChangeAttr(Attrs,Attr);
 
    print "Old value: '%s'" % (GetAttr(Attrs,Attr,""));
