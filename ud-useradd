@@ -150,7 +150,6 @@ if Update == 0 or ForceMail == 1:
       print "Randomizing and encrypting password"
       Password = GenPass();
       Pass = HashPass(Password);
-      print "PASS: ", Password;
 
       # Use GPG to encrypt it, pass the fingerprint to ID it
       CryptedPass = GPGEncrypt("Your new password is '" + Password + "'\n",\
