@@ -2,7 +2,7 @@
 
 #   Copyright (c) 1999-2001  Jason Gunthorpe <jgg@debian.org>
 #   Copyright (c) 2002-2003  Ryan Murray <rmurray@debian.org>
-#   Copyright (c) 2004  Joey Schulze <joey@infodrom.org>
+#   Copyright (c) 2004-2005  Joey Schulze <joey@infodrom.org>
 #
 #   This program is free software; you can redistribute it and/or modify
 #   it under the terms of the GNU General Public License as published by
@@ -63,7 +63,7 @@ if [ -x /usr/bin/dchroot ]; then
 		if [ -x "$c/usr/bin/makedb" ]
 		then
 
-			test ! -d "$c/var/lib/misc/HOST" || mkdir -p "$c/var/lib/misc/HOST"
+			test ! -d "$c/var/lib/misc/$HOST" || mkdir -p "$c/var/lib/misc/$HOST"
 
 			rsync -a ${verbose} $HOST/group.tdb $HOST/passwd.tdb $HOST/ssh* "$c/var/lib/misc/$HOST"
 
