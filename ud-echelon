@@ -1,0 +1,182 @@
+#!/usr/bin/env python
+# -*- mode: python -*-
+import userdir_gpg, userdir_ldap, sys, traceback, time, ldap, posix;
+import string, pwd
+from userdir_gpg import *;
+from userdir_ldap import *;
+
+EX_TEMPFAIL = 75;
+EX_PERMFAIL = 65;      # EX_DATAERR
+
+# Try to extract a key fingerprint from a PGP siged message
+def TryGPG(Email):
+   # Try to get a pgp text
+   Msg = GetClearSig(Email);
+   if string.find(Msg[0],"-----BEGIN PGP SIGNED MESSAGE-----") == -1:
+      return None;
+      
+   Res = GPGCheckSig(Msg[0]);
+
+   # Failed to find a matching sig
+   if Res[0] != None:
+      return None;
+      
+   # Search for the matching key fingerprint
+   Attrs = l.search_s(BaseDn,ldap.SCOPE_ONELEVEL,"keyfingerprint=" + Res[2][1]);
+   if len(Attrs) == 0:
+      return None;
+   if len(Attrs) != 1:
+      raise Error, "Oddly your key fingerprint is assigned to more than one account.."
+   
+   return (Attrs[0][1]["uid"][0],"PGP",FormatPGPKey(Res[2][1]));
+
+# Convert the PGP name string to a uid value
+def GetUID(l,Name,UnknownMap = {}):
+   # Crack up the email address into a best guess first/middle/last name
+   (cn,mn,sn) = NameSplit(re.sub('["]','',Name[0]))
+   
+   # Brackets anger the ldap searcher
+   cn = re.sub('[(")]','?',cn);
+   sn = re.sub('[(")]','?',sn);
+
+   # First check the unknown map for the email address
+   if UnknownMap.has_key(Name[1] + '@' + Name[2]):
+      Stat = "unknown map hit for "+str(Name);
+      return (UnknownMap[Name[1] + '@' + Name[2]],[Stat]);
+
+   # Then the cruft component (ie there was no email address to match)
+   if UnknownMap.has_key(Name[2]):
+      Stat = "unknown map hit for"+str(Name);
+      return (UnknownMap[Name[2]],[Stat]);
+
+   # Search for a possible first/last name hit
+   try:
+      Attrs = l.search_s(BaseDn,ldap.SCOPE_ONELEVEL,"(&(cn=%s)(sn=%s))"%(cn,sn),["uid"]);
+   except ldap.FILTER_ERROR:
+      Stat = "Filter failure: (&(cn=%s)(sn=%s))"%(cn,sn);
+      return (None,[Stat]);
+
+   # Try matching on the email address
+   if (len(Attrs) != 1):
+      try:
+         Attrs = l.search_s(BaseDn,ldap.SCOPE_ONELEVEL,"emailforward=%s"%(Name[2]),["uid"]);
+      except ldap.FILTER_ERROR:
+	 pass;
+
+   # Hmm, more than one/no return
+   if (len(Attrs) != 1):
+      # Key claims a local address
+      if Name[2] == EmailAppend:
+
+         # Pull out the record for the claimed user
+         Attrs = l.search_s(BaseDn,ldap.SCOPE_ONELEVEL,"(uid=%s)"%(Name[1]),["uid","sn","cn"]);
+
+         # We require the UID surname to be someplace in the key name, this
+         # deals with special purpose keys like 'James Troup (Alternate Debian key)'
+	 # Some people put their names backwards on their key too.. check that as well
+         if len(Attrs) == 1 and \
+            (string.find(string.lower(sn),string.lower(Attrs[0][1]["sn"][0])) != -1 or \
+            string.find(string.lower(cn),string.lower(Attrs[0][1]["sn"][0])) != -1):
+            Stat = EmailAppend+" hit for "+str(Name);
+            return (Name[1],[Stat]);
+
+      # Attempt to give some best guess suggestions for use in editing the
+      # override file.
+      Attrs = l.search_s(BaseDn,ldap.SCOPE_ONELEVEL,"(sn~=%s)"%(sn),["uid","sn","cn"]);
+
+      Stat = [];
+      if len(Attrs) != 0:
+         Stat = ["None for %s"%(str(Name))];
+      for x in Attrs:
+         Stat.append("But might be: %s %s <%s@debian.org>"%(x[1]["cn"][0],x[1]["sn"][0],x[1]["uid"][0]));
+      return (None,Stat);	 
+   else:
+      return (Attrs[0][1]["uid"][0],None);
+
+   return (None,None);
+
+# Try to guess the name from the email address
+def TryMatcher(Email):
+   Sender = Email.getheader("From");
+   if Sender == None:
+      return None;
+      
+   # Split up the address and invoke the matcher routine
+   UID = GetUID(l,SplitEmail(Sender));
+   
+   if UID[0] == None:
+      if UID[1] == None or len(UID[1]) == 0:
+         return None;
+
+      # Print out an error message
+      S = "%s: %s -> Address matching failed '%s'\n" %(Now,MsgID,Sender);
+      for x in UID[1]:
+         S = S + " " + x + "\n";
+      ErrLog.write(S);
+      return None;
+    
+   return (UID[0],"FROM",Sender);
+   
+# Open the log files
+MainLog = open(Ech_MainLog,"a+",0);
+ErrLog = open(Ech_ErrorLog,"a+",0);
+
+# Start of main program
+ErrMsg = "Indeterminate Error";
+ErrType = EX_TEMPFAIL;
+Now = time.strftime("%a, %d %b %Y %H:%M:%S",time.gmtime(time.time()));
+MsgID = None;
+try:
+   # Get the email 
+   ErrType = EX_PERMFAIL;
+   ErrMsg = "Failed to understand the email or find a signature:";
+   Email = mimetools.Message(sys.stdin,0);
+   MsgID = Email.getheader("Message-ID");
+   
+   # Connect to the ldap server
+   ErrType = EX_TEMPFAIL;
+   ErrMsg = "An error occured while performing the LDAP lookup";
+   global l;
+   l = ldap.open(LDAPServer);
+   F = open(PassDir+"/pass-"+pwd.getpwuid(posix.getuid())[0],"r");
+   AccessPass = string.split(string.strip(F.readline())," ");
+   l.simple_bind_s("uid="+AccessPass[0]+","+BaseDn,AccessPass[1]);
+   F.close();
+
+   # Try to decode
+   ErrType = EX_TEMPFAIL;
+   ErrMsg = "An error occured while trying GPG decoding";
+   User = TryGPG(Email);
+   if User == None:
+      ErrMsg = "An error occured while trying Matcher decoding";
+      User = TryMatcher(Email);
+
+   # Get any mailing list information   
+   List = Email.getheader("X-Mailing-List");
+   if List == None:
+      List = "-";
+
+   # Tada, write a log message
+   if User != None:
+      Msg = "[%s] \"%s\" \"%s\" \"%s\""%(Now,User[2],List,MsgID);
+      MainLog.write("%s %s %s\n"%(User[0],User[1],Msg));
+      Dn = "uid=" + User[0] + "," + BaseDn;
+      Rec = [(ldap.MOD_REPLACE,"activity-%s"%(User[1]),Msg)];
+      l.modify_s(Dn,Rec);
+   else:
+      User = ("-","UKN",Email.getheader("From"));
+      Msg = "[%s] \"%s\" \"%s\" \"%s\""%(Now,User[2],List,MsgID);
+      MainLog.write("%s %s %s\n"%(User[0],User[1],Msg));
+
+except:
+   # Log an exception..
+   S = "%s: %s -> %s\n" %(Now,MsgID,ErrMsg);
+   S = S + "==> %s: %s\n" %(sys.exc_type,sys.exc_value);
+   List = traceback.extract_tb(sys.exc_traceback);
+   if len(List) > 1:
+      for x in List:
+         S = S + "   %s %s:%u: %s\n" %(x[2],x[0],x[1],x[3]);
+   ErrLog.write(S);
+   sys.exit(ErrType);
+   
+sys.exit(0);

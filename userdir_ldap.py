@@ -1,5 +1,5 @@
 # Some routines and configuration that are used by the ldap progams
-import termios, TERMIOS, re, string, imp, ldap, sys, whrandom, crypt;
+import termios, TERMIOS, re, string, imp, ldap, sys, whrandom, crypt, rfc822;
 
 try:
    File = open("/etc/userdir-ldap/userdir-ldap.conf");
@@ -8,6 +8,7 @@ except:
 ConfModule = imp.load_source("userdir_config","/etc/userdir-ldap.conf",File);
 File.close();
 
+# Cheap hack
 BaseDn = ConfModule.basedn;
 BaseDn = ConfModule.basedn;
 LDAPServer = ConfModule.ldaphost;
@@ -18,6 +19,8 @@ GenerateConf = ConfModule.generateconf;
 DefaultGID = ConfModule.defaultgid;
 TemplatesDir = ConfModule.templatesdir;
 PassDir = ConfModule.passdir;
+Ech_ErrorLog = ConfModule.ech_errorlog;
+Ech_MainLog = ConfModule.ech_mainlog;
 
 # This is a list of common last-name prefixes
 LastNamesPre = {"van": None, "le": None, "de": None, "di": None};
@@ -238,5 +241,17 @@ def FormatPGPKey(Str):
          I = I + 4;
    else:
       Res = Str;
-   return Res;
-  
+   return string.strip(Res);
+
+# Take an email address and split it into 3 parts, (Name,UID,Domain)
+def SplitEmail(Addr):
+   Res1 = rfc822.AddrlistClass(Addr).getaddress();
+   if len(Res1) != 1:
+      return ("","",Addr);
+   Res1 = Res1[0];
+   if Res1[1] == None:
+      return (Res1[0],"","");
+   Res2 = string.split(Res1[1],"@");
+   if len(Res2) != 2:
+      return (Res1[0],"",Res1[1]);
+   return (Res1[0],Res2[0],Res2[1]);

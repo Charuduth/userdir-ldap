@@ -23,8 +23,6 @@ from userdir_gpg import *;
 UnknownMap = {};
 NoAct = 1;
 
-AddressSplit = re.compile("(.*).*<([^@]*)@([^>]*)>");
-
 # Read the override file into the unknown map. The override file is a list
 # of colon delimited entires mapping PGP email addresess to local users
 def LoadOverride(File):
