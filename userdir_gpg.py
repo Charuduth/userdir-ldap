@@ -17,7 +17,8 @@ import rfc822, time, fcntl, FCNTL, anydbm
 
 # General GPG options
 GPGPath = "gpg"
-GPGBasicOptions = ["--no-options","--batch","--load-extension","rsa",\
+# "--load-extension","rsa",
+GPGBasicOptions = ["--no-options","--batch",
           "--no-default-keyring","--always-trust"];
 GPGKeyRings = [];
 GPGSigOptions = ["--output","-"];
