@@ -1,5 +1,5 @@
 #!/usr/bin/perl
-# $Id: machines.cgi,v 1.6 2000/08/19 02:34:11 tausq Exp $
+# $Id: machines.cgi,v 1.7 2000/08/19 02:53:56 tausq Exp $
 
 # (c) 1999 Randolph Chung. Licensed under the GPL. <tausq@debian.org>
 
@@ -80,6 +80,11 @@ foreach $dn (sort {$entries->{$a}->{host}->[0] cmp $entries->{$b}->{host}->[0]} 
     foreach $key (keys(%attrs)) {
       $output{$key} = $data->{$key}->[0];
     }
+  
+    $output{hostname} = undef;
+    foreach my $hostname (@{$data->{hostname}}) {
+      $output{hostname} .= sprintf("%s%s", ($output{hostname} ? ', ' : ''), $hostname);
+    }
 
     # Modified/created time. TODO: maybe add is the name of the creator/modifier
     $output{modifytimestamp} = &Util::FormatTimestamp($output{modifytimestamp});
@@ -116,7 +121,7 @@ foreach $dn (sort {$entries->{$a}->{host}->[0] cmp $entries->{$b}->{host}->[0]} 
   
   $summary{$thishost}{hostname} = undef;
   foreach my $hostname (@{$data->{hostname}}) {
-    $summary{$thishost}{hostname} .= sprintf("%s<a href=\"machines.cgi?host=%s\">%s</a>", ($summary{$thishost}{hostname} ? ', ' : ''), $summary{$thishost}{host}, $hostname);
+    $summary{$thishost}{hostname} .= sprintf("%s<a href=\"machines.cgi?host=%s\">%s</a>", ($summary{$thishost}{hostname} ? '<br>' : ''), $summary{$thishost}{host}, $hostname);
   }
 }
 $ldap->unbind;
