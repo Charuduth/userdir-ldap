@@ -4,6 +4,7 @@ userdir-ldap (0.3.8) stable; urgency=low
      - Update the ssh shadow files in /etc if they don't exist
      - Corrected the verbosity detection
      - Only fiddle inside the chroot if the makedb program exist
+     - Fixed path bug
   * userdir_ldap.py:
      - Support pressing C-d and C-c
      - Support for alphanumeric group names
@@ -14,12 +15,17 @@ userdir-ldap (0.3.8) stable; urgency=low
      - Support for no debian-private subscription
   * ud-host:
      - Support for -l to list all hosts
+     - Always perform the list output anonymously
   * ud-info:
     - Corrected spelling for labeledURI
   * ud-mailgate:
     - Corrected spelling for labeledURI
+    - Added support for deleting the d.net entry
+    - Notify users about unsupported SSH1 keys
+  * Added a proper copyright file
+  * Updated welcome-message-800 from newsamosa
 
- --
+ -- Martin Schulze <joey@infodrom.org>  Sat, 22 Jan 2005 21:14:24 +0100
 
 userdir-ldap (0.3.7) stable; urgency=low
 
