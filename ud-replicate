@@ -1,9 +1,27 @@
 #! /bin/sh
-# The rsync source host needs to be customized..
+
+#   Copyright (c) 1999-2001  Jason Gunthorpe <jgg@infodrom.org>
+#   Copyright (c) 2002-2003  Ryan Murray <rmurray@infodrom.org>
+#   Copyright (c) 2004  Joey Schulze <joey@infodrom.org>
+#
+#   This program is free software; you can redistribute it and/or modify
+#   it under the terms of the GNU General Public License as published by
+#   the Free Software Foundation; either version 2 of the License, or
+#   (at your option) any later version.
+#
+#   This program is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU General Public License for more details.
+#
+#   You should have received a copy of the GNU General Public License
+#   along with this program; if not, write to the Free Software
+#   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+
 set -e
 
 # Without effect on the commandline
-if [ -z "$PS1" -o "$TERM" ]
+if [ -z "$PS1" -o "$TERM" = "dumb" ]
 then
     exec > /dev/null 2>&1
     verbose=-v
@@ -14,13 +32,18 @@ cd /tmp/
 cd /var/lib/misc || cd /var/state/glibc/ || cd /var/db/
 lockfile -r 1 -l 3600 lock
 trap "rm -f lock" exit
+
 case $HOST in
 *samosa*)
-    udhost=;;
+    udhost=
+    ;;
 *)
-    udhost="sshdist@samosa:";;
+    udhost="sshdist@samosa:"
+    ;;
 esac
+
 rsync ${verbose} -e ssh -rp "${udhost}/var/cache/userdir-ldap/hosts/$HOST" .
+
 makedb "$HOST/passwd.tdb" -o passwd.db.t
 (umask 027 && makedb "$HOST/shadow.tdb" -o shadow.db.t)
 chown root.shadow shadow.db.t; chmod 0640 shadow.db.t
@@ -28,6 +51,9 @@ makedb "$HOST/group.tdb" -o group.db.t
 mv -f passwd.db.t passwd.db
 mv -f shadow.db.t shadow.db
 mv -f group.db.t group.db
+ln -sf "$HOST/ssh-rsa-shadow" .
+ln -sf "$HOST/ssh_known_hosts" .
+
 #if [ -x /usr/bin/dchroot ]; then
 #	CHROOTS=`dchroot --listpaths`
 #	for c in $CHROOTS; do
@@ -43,8 +69,7 @@ mv -f group.db.t group.db
 #		fi
 #	done
 #fi
-ln -sf "$HOST/ssh-rsa-shadow" .
-ln -sf "$HOST/ssh_known_hosts" .
+
 if [ -d "/etc/exim" -a -e "$HOST/bsmtp" ]; then
 	if perl -e 'exit !((stat "/etc/exim/bsmtp")[9] < time()-3600)'; then
 		cp "$HOST/bsmtp" /etc/exim/bsmtp
