@@ -354,12 +354,10 @@ def GenPrivate(l,File):
   Done(File,F,Fdb);
 
 # Generate the DNS Zone file
-def GenDNS(l,File,BSMTPFile,HomePrefix):
+def GenDNS(l,File,HomePrefix):
   F = None;
-  FB = None;
   try:
    F = open(File + ".tmp","w");
-   FB = open(BSMTPFile + ".tmp","w");
    
    # Fetch all the users
    global PasswdAttrs;
@@ -384,8 +382,6 @@ def GenDNS(l,File,BSMTPFile,HomePrefix):
 	       Host = Split[0] + DNSZone;
 	       if BSMTPCheck.match(Line) != None:
 		   F.write("; Has BSMTP\n");
-		   FB.write("%s: user=%s group=Debian file=%s%s/bsmtp/%s\n"%(Host,
- 		               GetAttr(x,"uid"),HomePrefix,GetAttr(x,"uid"),Host));
 			       
 	       # Write some identification information
                if string.lower(Split[2]) == "a":
@@ -405,10 +401,48 @@ def GenDNS(l,File,BSMTPFile,HomePrefix):
   # Oops, something unspeakable happened.
   except:
    Die(File,F,None);
-   Die(BSMTPFile,FB,None);
    raise;
   Done(File,F,None);
-  Done(BSMTPFile,FB,None);
+
+# Generate the BSMTP file
+def GenBSMTP(l,File):
+  F = None;
+  try:
+   F = open(File + ".tmp","w");
+   
+   # Fetch all the users
+   global PasswdAttrs;
+   if PasswdAttrs == None:
+      raise "No Users";
+
+   # Write out the zone file entry for each user
+   for x in PasswdAttrs:
+      if x[1].has_key("dnszoneentry") == 0:
+         continue;
+      try:
+         for z in x[1]["dnszoneentry"]:
+            Split = string.split(string.lower(z));
+	    if string.lower(Split[1]) == 'in':
+               for y in range(0,len(Split)):
+                  if Split[y] == "$":
+                     Split[y] = "\n\t";
+               Line = string.join(Split," ") + "\n";
+	       
+	       Host = Split[0] + DNSZone;
+	       if BSMTPCheck.match(Line) != None:
+		   F.write("%s: user=%s group=Debian file=%s%s/bsmtp/%s\n"%(Host,
+ 		               GetAttr(x,"uid"),HomePrefix,GetAttr(x,"uid"),Host));
+			       
+         F.write("\n");
+      except:
+	 F.write("; Errors\n");
+         pass;
+      
+  # Oops, something unspeakable happened.
+  except:
+   Die(File,F,None);
+   raise;
+  Done(File,F,None);
 
 # Generate the shadow list
 def GenSSHKnown(l,File):
@@ -535,7 +569,11 @@ while(1):
    DoLink(GlobalDir,OutDir,"forward-alias");
 
    if ExtraList.has_key("[DNS]"):
-      GenDNS(l,OutDir+"dns-zone",OutDir+"bsmtp",Split[1]);
+      GenDNS(l,OutDir+"dns-zone",Split[1]);
       
+   if ExtraList.has_key("[BSMTP]"):
+      GenBSMTP(l,OutDir+"bsmtp");
+
    if ExtraList.has_key("[PRIVATE]"):
       DoLink(GlobalDir,OutDir,"debian-private");
+
