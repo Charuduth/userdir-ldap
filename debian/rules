@@ -39,7 +39,10 @@ binary-indep: build
 	install -m 644 userdir_ldap.py userdir_gpg.py \
 		$(i)/$(pysite)/userdir_ldap/
 	install -m 755 {ud-forwardlist,ud-gpgimport,ud-info,ud-ldapshow,ud-userimport,ud-mailgate,ud-generate,ud-passchk,ud-useradd,ud-replicate,ud-xearth,ud-fingerserv,ud-echelon} $(i)/usr/bin/
-	install -m 755 web/*.* $(i)/var/www/userdir-ldap/
+	install -m 644 web/*.tab $(i)/var/www/userdir-ldap/
+	install -m 644 web/*.html $(i)/var/www/userdir-ldap/
+	install -m 644 web/*.cfg $(i)/var/www/userdir-ldap/
+	install -m 755 web/*.cgi $(i)/var/www/userdir-ldap/
 	chown www-data.www-data $(i)/var/cache/userdir-ldap/web-cookies/
 	chmod u=rwx,g=,o= $(i)/var/cache/userdir-ldap/web-cookies/
 	
