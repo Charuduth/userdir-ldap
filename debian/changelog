@@ -1,3 +1,9 @@
+userdir-ldap (0.3.2) unstable; urgency=low
+
+  * Seperation of bsmtp and zoneupdate
+
+ -- Ryan Murray <rmurray@debian.org>  Thu,  8 Aug 2002 12:07:00 -0700
+
 userdir-ldap (0.3.1) unstable; urgency=low
 
   * Add ud-zoneupdate from klecker's /usr/local/bin

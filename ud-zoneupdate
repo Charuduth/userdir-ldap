@@ -3,4 +3,8 @@ set -e
 
 sed -e "s/[1-9].*; Serial.*$/`date +%Y%m%d%H` ; Serial/" < $1 > $1.new
 mv -f $1.new $1
-/usr/sbin/ndc reload > /dev/null 2>&1
+if [ -e /etc/init.d/bind9 ]; then
+	/etc/init.d/bind9 reload > /dev/null 2>&1
+else
+	/etc/init.d/bind reload > /dev/null 2>&1
+fi
