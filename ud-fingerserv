@@ -1,12 +1,11 @@
 #!/usr/bin/perl
-# $Id: ud-fingerserv,v 1.12 1999/10/20 06:01:58 jgg Exp $
+# $Id: ud-fingerserv,v 1.13 1999/11/29 02:44:53 tausq Exp $
 
 # (c) 1999 Randolph Chung. Licensed under the GPL. <tausq@debian.org>
 
 use lib '/var/www/userdir-ldap/';
 #use lib '/home/randolph/projects/userdir-ldap/web';
 use strict vars;
-#use Apache::Registry;
 use IO::Handle;
 use IO::Socket;
 use POSIX qw(:sys_wait_h);
@@ -28,10 +27,11 @@ my %attrs = (
   'email' => 'Email',
   'keyfingerprint' => 'Fingerprint',
   'key' => 'Key block',
-  'ircnick' => 'IRC nickname'
+  'ircnick' => 'IRC nickname',
+  'labeledurl' => 'URL'
 );
 
-my @summarykeys = ('cn', 'mn', 'sn', 'email', 'ircnick', 'keyfingerprint', 'key');
+my @summarykeys = ('cn', 'mn', 'sn', 'email', 'labeledurl', 'ircnick', 'keyfingerprint', 'key');
 
 $SIG{__DIE__} = \&DieHandler;
 $SIG{INT} = \&DieHandler;
