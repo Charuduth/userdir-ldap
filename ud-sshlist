@@ -1,0 +1,46 @@
+#!/usr/bin/env python
+# -*- mode: python -*-
+# This script takes a list of .forward files and generates a list of colon
+# delimited fields for import into a ldap directory. The fields represent
+# the user and their email forwarding.
+#
+# A sample invokation..
+#   cd /home
+#   find -name ".foward" -maxdepth 2 | mkforwardlist | sort | less
+# Then correct any invalid forward files if possible. After that stash the
+# output in a file, remove the invalid lines and import it.
+#
+# It also understand .qmail type files
+
+import string, re, time, getopt, os, sys, pwd, stat;
+
+SSHAuthSplit = re.compile('^(.* )?(\d+) (\d+) (\d+) ?(.+)$');
+
+while (1):
+   File = string.strip(sys.stdin.readline());
+   if File == "":
+      break;
+
+   # Attempt to determine the UID   
+   try:
+      User = pwd.getpwuid(os.stat(File)[stat.ST_UID])[0];
+   except KeyError:
+      print "Invalid0", File;
+      continue;
+
+   # Read the first two non comment non empty lines
+   Forward = open(File,"r");
+   Lines = [];
+   while (1):
+      Line = string.strip(Forward.readline());
+      if Line == "":
+         break;
+      if Line[0] == '#' or Line[0] == '\n':
+         continue;
+      if SSHAuthSplit.match(Line) == None:
+         print "Bad line", File;
+      else:
+         Lines.append(Line);
+
+   for x in Lines:
+      print User + ":",x;

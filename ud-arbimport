@@ -27,19 +27,39 @@ Password = getpass(AdminUser + "'s password: ");
 # Connect to the ldap server
 l = ldap.open(LDAPServer);
 UserDn = "uid=" + AdminUser + "," + BaseDn;
-l.simple_bind_s(UserDn,Password);
+#l.simple_bind_s(UserDn,Password);
 
 List = open(arguments[1],"r");
+Set = [];
+User = None;
 while(1):
    Line = List.readline();
-   if Line == "":
-      break;
-
-   Split = re.split("[:\n]",Line);
+   if Line != "":
+      # Glob similar lines
+      Split = re.split("[:\n]",Line);
+      if User == None:
+         User = Split[0];
+      if Split[0] == User:
+         Set.append(string.strip(Split[1]));
+         continue;
+   else:
+      if len(Set) == 0:
+         break;
    
-   Rec = [(ldap.MOD_REPLACE,arguments[0],string.strip(Split[1]))];
-   Dn = "uid=" + Split[0] + "," + BaseDn;
+   # Generate the command..
+   Rec = [(ldap.MOD_REPLACE,arguments[0],Set[0])];
+   for x in Set[1:]:
+      Rec.append((ldap.MOD_ADD,arguments[0],x))
+
+   Dn = "uid=" + User + "," + BaseDn;
    try:
+      print Dn,Rec;
       l.modify_s(Dn,Rec);
    except:
       print "Failed",Dn;
+   
+   # Out of data..
+   if Line == "":
+      break;   
+   User = Split[0];
+   Set = [string.strip(Split[1])];

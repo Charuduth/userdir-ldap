@@ -24,7 +24,7 @@ LastNamesPre = {"van": None, "le": None, "de": None, "di": None};
 
 # SSH Key splitting. The result is:
 # (options,size,modulous,exponent,comment)
-SSHAuthSplit = re.compile('^(.* )?(\d+) (\d+) (\d+) (.+)$');
+SSHAuthSplit = re.compile('^(.* )?(\d+) (\d+) (\d+) ?(.+)$');
 #'^([^\d](?:[^ "]+(?:".*")?)*)? ?(\d+) (\d+) (\d+) (.+)$');
 
 # Safely get an attribute from a tuple representing a dn and an attribute
