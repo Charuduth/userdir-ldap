@@ -26,7 +26,9 @@ AttrInfo = {"description": ["Machine Descr.", 1],
             "machine": ["Machine Hardware", 10],
             "memory": ["Memory", 11],
             "disk": ["Disk", 12],
-            "bandwidth": ["Bandwidth", 13]};
+            "sshrsahostkey": ["SSH RSA", 14],
+            "sshdsahostkey": ["SSH DSA", 15],
+            "bandwidth": ["Bandwidth", 16]};
 
 AttrPrompt = {"description": ["Purpose of the machine"],
               "hostname": ["The hostnames for the box (ipv4/ipv6)"],
@@ -40,6 +42,8 @@ AttrPrompt = {"description": ["Purpose of the machine"],
               "machine": ["Hardware description"],
               "memory": ["Installed RAM"],
               "disk": ["Disk Space, RAID levels, etc"],
+	      "sshrsahostkey": ["A copy of /etc/ssh/ssh_host_key.pub"],
+	      "sshdsahostkey": ["A copy of /etc/ssh/ssh_host_key.pub.dsa"],
               "bandwidth": ["Available outbound"]};
 
 # Create a map of IDs to desc,value,attr
