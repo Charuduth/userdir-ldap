@@ -1,9 +1,9 @@
 #!/usr/bin/perl
-# $Id: ud-fingerserv,v 1.6 1999/10/17 01:36:33 tausq Exp $
+# $Id: ud-fingerserv,v 1.7 1999/10/17 01:42:03 jgg Exp $
 
 # (c) 1999 Randolph Chung. Licensed under the GPL. <tausq@debian.org>
 
-use lib '/home/randolph/projects/userdir-ldap/web';
+use lib '/var/www/userdir-ldap/';
 use strict vars;
 #use Apache::Registry;
 use IO::Handle;

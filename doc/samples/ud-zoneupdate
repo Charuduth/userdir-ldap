@@ -3,5 +3,5 @@ set -e
 
 sed -e "s/[1-9].*; Serial.*$/`date +%Y%m%d00` ; Serial/" < $1 > $1.new
 mv -f $1.new $1
-/usr/sbin/ndc reload 2>&1 /dev/null
+/usr/sbin/ndc reload > /dev/null 2>&1
 
