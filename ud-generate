@@ -10,6 +10,9 @@ GroupIDMap = {};
 Allowed = None;
 CurrentHost = "";
 
+def Sanitize(Str):
+  return string.translate(Str,string.maketrans("\n\r\t","$$$"));
+
 # See if this user is in the group list
 def IsInGroup(DnRecord):
   global Allowed,CurrentHost;
@@ -71,7 +74,11 @@ def GenPasswd(l,File,HomePrefix):
    for x in PasswdAttrs:
       if x[1].has_key("uidnumber") == 0 or IsInGroup(x) == 0:
          continue;
-	    
+
+      # Do not let people try to buffer overflow some busted passwd parser.
+      if len(GetAttr(x,"gecos")) > 100 or len(GetAttr(x,"loginshell")) > 50:
+         continue;
+
       Line = "%s:x:%s:%s:%s:%s%s:%s\n" % (GetAttr(x,"uid"),\
               GetAttr(x,"uidnumber"),GetAttr(x,"gidnumber"),\
               GetAttr(x,"gecos"),HomePrefix,GetAttr(x,"uid"),\
@@ -109,19 +116,51 @@ def GenShadow(l,File):
          continue;
 	 
       Pass = GetAttr(x,"userpassword");
-      if Pass[0:7] != "{crypt}":
+      if Pass[0:7] != "{crypt}" or len(Pass) > 50:
          Pass = '*';
       else:
          Pass = Pass[7:];
-      Line = "%s:%s:%s:%s:%s:%s:%s:%s:\n" % (GetAttr(x,"uid"),\
+      Line = "%s:%s:%s:%s:%s:%s:%s:%s:" % (GetAttr(x,"uid"),\
               Pass,GetAttr(x,"shadowlastchange"),\
               GetAttr(x,"shadowmin"),GetAttr(x,"shadowmax"),\
               GetAttr(x,"shadowwarning"),GetAttr(x,"shadowinactive"),\
               GetAttr(x,"shadowexpire"));
+      Line = Sanitize(Line) + "\n";
       F.write(Line);
       Fdb.write("0%u %s" % (I,Line));
       Fdb.write(".%s %s" % (GetAttr(x,"uid"),Line));
       I = I + 1;
+
+  # Oops, something unspeakable happened.
+  except:
+   Die(F,Fdb);
+   raise;
+  Done(File,F,Fdb);
+
+# Generate the shadow list
+def GenSSHShadow(l,File):
+  F = None;
+  Fdb = None;
+  try:
+   OldMask = os.umask(0077);
+   F = open(File + ".tmp","w",0600);
+   Fdb = None;
+   os.umask(OldMask);
+
+   # Fetch all the users
+   global PasswdAttrs;
+   if PasswdAttrs == None:
+      raise "No Users";
+
+   I = 0;
+   for x in PasswdAttrs:
+      if x[1].has_key("uidnumber") == 0 or IsInGroup(x) == 0 or \
+         x[1].has_key("sshrsaauthkey") == 0:
+         continue;
+      for I in x[1]["sshrsaauthkey"]:
+         Line = "%s: %s" %(GetAttr(x,"uid"),I);
+         Line = Sanitize(Line) + "\n";
+         F.write(Line);
 
   # Oops, something unspeakable happened.
   except:
@@ -168,7 +207,7 @@ def GenGroup(l,File):
       for I in GroupMap[x]:
         Line = Line + ("%s%s" % (Comma,I));
         Comma = ',';
-      Line = Line + '\n';
+      Line = Sanitize(Line) + "\n";
       F.write(Line);
       Fdb.write("0%u %s" % (Counter,Line));
       Fdb.write(".%s %s" % (x,Line));
@@ -200,7 +239,13 @@ def GenForward(l,File):
    for x in PasswdAttrs:
       if x[1].has_key("emailforward") == 0 or IsInGroup(x) == 0:
          continue;
-      Line = "%s: %s\n" % (GetAttr(x,"uid"),GetAttr(x,"emailforward"));
+      
+      # Do not allow people to try to buffer overflow busted parsers
+      if len(GetAttr(x,"emailforward")) > 200:
+         continue;
+
+      Line = "%s: %s" % (GetAttr(x,"uid"),GetAttr(x,"emailforward"));
+      Line = Sanitize(Line) + "\n";
       F.write(Line);
       
   # Oops, something unspeakable happened.
@@ -227,7 +272,9 @@ def GenMarkers(l,File):
       if x[1].has_key("latitude") == 0 or x[1].has_key("longitude") == 0:
          continue;	 
       try:
-         F.write("%8s %8s \"\"\n"%(DecDegree(x,"latitude",1),DecDegree(x,"longitude",1)));
+         Line = "%8s %8s \"\""%(DecDegree(x,"latitude",1),DecDegree(x,"longitude",1));
+         Line = Sanitize(Line) + "\n";
+         F.write(Line);
       except:
          pass;
       
@@ -261,7 +308,7 @@ PasswdAttrs = l.search_s(BaseDn,ldap.SCOPE_ONELEVEL,"uid=*",\
                  "gecos","loginshell","userpassword","shadowlastchange",\
                  "shadowmin","shadowmax","shadowwarning","shadowinactive",
 	         "shadowexpire","emailforward","latitude","longitude",\
-                 "allowedhosts"]);
+                 "allowedhosts","sshrsaauthkey"]);
 
 # Open the control file
 if len(sys.argv) == 1:
@@ -297,6 +344,7 @@ while(1):
    GenPasswd(l,OutDir+"passwd",Split[1]);
    GenGroup(l,OutDir+"group");
    GenShadow(l,OutDir+"shadow");
+   GenSSHShadow(l,OutDir+"ssh-rsa-shadow");
    GenForward(l,OutDir+"forward-alias");
    GenMarkers(l,OutDir+"markers");
 

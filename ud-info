@@ -140,6 +140,23 @@ def PrintKeys(Attrs):
          print x,
       print;
 
+# Print the SSH RSA Authentication keys for a user
+def PrintSshRSAKeys(Attrs):
+   if Attrs[1].has_key("sshrsaauthkey") == 0:
+      return;
+   First = 0;
+   for x in Attrs[1]["sshrsaauthkey"]:
+      if First == 0:
+         print "%-24s:" % ("SSH RSA Auth Keys"),
+         First = 1;
+      else:
+         print "%-24s:" % (""),
+      Split = string.split(x," ");
+      
+      if len(Split) != 4:
+         del Split[0];
+      print Split[0],Split[1],Split[2][:8]+".."+Split[2][-8:],string.join(Split[3:]);
+      
 # Display all of the attributes in a numbered list
 def ShowAttrs(Attrs):
    print;
@@ -147,6 +164,7 @@ def ShowAttrs(Attrs):
    PrintModTime(Attrs);
    PrintShadow(Attrs);
    PrintKeys(Attrs);
+   PrintSshRSAKeys(Attrs);
 
    for at in Attrs[1].keys():
       if AttrInfo.has_key(at):
@@ -287,6 +305,9 @@ if (RootMode == 1):
 
 # Query the server for all of the attributes
 Attrs = l.search_s(BaseDn,ldap.SCOPE_ONELEVEL,"uid=" + User);
+if len(Attrs) == 0:
+   print "User",User,"was not found.";
+   sys.exit(0); 
 
 # repeatedly show the account configuration
 while(1):
@@ -311,9 +332,13 @@ while(1):
       NewUser = raw_input("User? ");
       if NewUser == "":
          continue;
+      NAttrs = l.search_s(BaseDn,ldap.SCOPE_ONELEVEL,"uid=" + NewUser);
+      if len(NAttrs) == 0:
+         print "User",NewUser,"was not found.";
+         continue;
+      Attrs = NAttrs;
       User = NewUser;
       UserDn = "uid=" + User + "," + BaseDn;
-      Attrs = l.search_s(BaseDn,ldap.SCOPE_ONELEVEL,"uid=" + User);
       OrderedIndex = copy.deepcopy(OrigOrderedIndex);
       continue;
 

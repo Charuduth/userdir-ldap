@@ -11,35 +11,63 @@ index cn,sn approx,sub,eq
 
 # Administrate 
 #rootdn "uid=admin,ou=users,dc=debian,dc=org"
-#rootpw 
+#rootpw
 
 # Restrict reading/modification of the password to administration and self
-access to attrs=userpassword
+access to attrs=userpassword,sshrsaauthkey
         by self write
         by dn="uid=admin,ou=users,dc=debian,dc=org" write
-        by * compare	
+        by group="uid=admin,ou=users,dc=debian,dc=org" write
+        by * compare    
 
-# Reading of eamil forward is restricted by machine
 access to attrs=emailforward
         by dn="uid=admin,ou=users,dc=debian,dc=org" write
+        by group="uid=admin,ou=users,dc=debian,dc=org" write
         by self write
         by addr=127.0.0.1 read
-	by domain=.*\.debian\.org read
-	by * none
-	
-# Public self modifyable attributes
+        by domain=.*\.debian\.org read
+        by * none
 access to attrs=c,l,loginShell,ircNick,labeledURL
         by dn="uid=admin,ou=users,dc=debian,dc=org" write
+        by group="uid=admin,ou=users,dc=debian,dc=org" write
         by self write
-	
-# Private self modifyable fields that are still viewable by other users
-# in the directory.
-access to attrs=facsimileTelephoneNumber,telephoneNumber,postalAddress,postalCode,loginShell,onvacation
+access to attrs=facsimileTelephoneNumber,telephoneNumber,postalAddress,postalC
+ode,loginShell,onvacation,privateSub,latitude,longitude
         by dn="uid=admin,ou=users,dc=debian,dc=org" write
+        by group="uid=admin,ou=users,dc=debian,dc=org" write
         by self write
-	by dn="uid=.*,ou=users,dc=debian,dc=org" read
-	by * none
-	
-# Remainder	
+        by dn="uid=.*,ou=users,dc=debian,dc=org" read
+        by * none
 access to * 
         by dn="uid=admin,ou=users,dc=debian,dc=org" write
+        by group="uid=admin,ou=users,dc=debian,dc=org" write
+
+# End----------
+
+Here is the initial seed file to import and setup the proper entries:
+
+dn: dc=org
+dc: net
+objectClass: top
+objectClass: domain
+
+dn: dc=debian,dc=org
+dc: visi
+objectClass: top
+objectClass: domain
+
+dn: ou=users,dc=debian,dc=org
+ou: users
+objectClass: top
+objectClass: organizationalUnit
+
+dn: uid=admin,ou=users,dc=debian,dc=org
+uid: admin
+cn: LDAP administrator
+objectClass: top
+objectClass: groupOfNames
+userPassword: {crypt}?????
+member: uid=jgg,ou=users,dc=debian,dc=org
+member: uid=joey,ou=users,dc=debian,dc=org
+member: uid=troup,ou=users,dc=debian,dc=org
+mail: debian-admin@debian.org
