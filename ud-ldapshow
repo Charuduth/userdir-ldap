@@ -83,6 +83,18 @@ if arguments[0] == "devcount":
       Count = Count + 1;
    print "There are",Count,"developers as of",time.strftime("%a, %d %b %Y %H:%M:%S +0000",time.gmtime(time.time()));
 
+if arguments[0] == "echelon":
+   Attrs = l.search_s(BaseDn,ldap.SCOPE_ONELEVEL,\
+   "(&(|(activity-pgp=*)(activity-from=*))(&(keyfingerprint=*)(gidnumber=800)))",\
+           ["activity-pgp","activity-from"]);
+   Count = 0;
+   PGPCount = 0;
+   for x in Attrs:
+      Count = Count + 1;
+      if x[1].has_key("activity-pgp"):
+         PGPCount = PGPCount + 1;
+   print "Echelon has seen",Count,"developers, with",PGPCount,"PGP confirms as of",time.strftime("%a, %d %b %Y %H:%M:%S +0000",time.gmtime(time.time()));
+
 if arguments[0] == "keystat":
    Attrs = l.search_s(BaseDn,ldap.SCOPE_ONELEVEL,"keyfingerprint=*",\
            ["keyfingerprint"]);

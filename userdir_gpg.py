@@ -19,8 +19,7 @@ import rfc822, time, fcntl, FCNTL, anydbm
 GPGPath = "gpg"
 GPGBasicOptions = ["--no-options","--batch","--load-extension","rsa",\
           "--no-default-keyring","--always-trust"];
-GPGKeyRings = ["--keyring","/usr/share/keyrings/debian-keyring.pgp",\
-               "--keyring","/usr/share/keyrings/debian-keyring.gpg"];
+GPGKeyRings = [];
 GPGSigOptions = ["--output","-"];
 GPGSearchOptions = ["--dry-run","--with-colons","--fingerprint"];
 GPGEncryptOptions = ["--output","-","--quiet","--always-trust",\
@@ -33,6 +32,12 @@ GPGEncryptPGP2Options = ["--set-filename","","--rfc1991",\
 CleanCutOff = 7*24*60*60;
 AgeCutOff = 4*24*60*60;
 FutureCutOff = 3*24*60*60;
+
+# Set the keyrings, the input is a list of keyrings
+def SetKeyrings(Rings):
+   for x in Rings:
+      GPGKeyRings.append("--keyring");
+      GPGKeyRings.append(x);	       
 
 # GetClearSig takes an un-seekable email message stream (mimetools.Message) 
 # and returns a standard PGP '---BEGIN PGP SIGNED MESSAGE---' bounded 

@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- mode: python -*-
-import userdir_gpg, userdir_ldap, sys, traceback, time, ldap, posix, getopt;
+import userdir_gpg, userdir_ldap, sys, traceback, time, ldap, os, getopt;
 import string, pwd
 from userdir_gpg import *;
 from userdir_ldap import *;
@@ -96,7 +96,7 @@ try:
    global l;
    l = ldap.open(LDAPServer);
    if Debug == None:
-      F = open(PassDir+"/pass-"+pwd.getpwuid(posix.getuid())[0],"r");
+      F = open(PassDir+"/pass-"+pwd.getpwuid(os.getuid())[0],"r");
       AccessPass = string.split(string.strip(F.readline())," ");
       l.simple_bind_s("uid="+AccessPass[0]+","+BaseDn,AccessPass[1]);
       F.close();

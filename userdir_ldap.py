@@ -1,5 +1,6 @@
 # Some routines and configuration that are used by the ldap progams
 import termios, TERMIOS, re, string, imp, ldap, sys, whrandom, crypt, rfc822;
+import userdir_gpg
 
 try:
    File = open("/etc/userdir-ldap/userdir-ldap.conf");
@@ -21,6 +22,9 @@ TemplatesDir = ConfModule.templatesdir;
 PassDir = ConfModule.passdir;
 Ech_ErrorLog = ConfModule.ech_errorlog;
 Ech_MainLog = ConfModule.ech_mainlog;
+
+# Break up the keyring list
+userdir_gpg.SetKeyrings(string.split(ConfModule.keyrings,":"));
 
 # This is a list of common last-name prefixes
 LastNamesPre = {"van": None, "le": None, "de": None, "di": None};

@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- mode: python -*-
 
-import string, re, time, ldap, getopt, sys, posix, pwd;
+import string, re, time, ldap, getopt, sys, os, pwd;
 from userdir_ldap import *;
 from userdir_gpg import *;
 
@@ -176,13 +176,13 @@ if Res != "yes":
 # Initialize the substitution Map
 Subst = {}
 Subst["__REALNAME__"] = FullName;
-Subst["__WHOAMI__"] = pwd.getpwuid(posix.getuid())[0];
+Subst["__WHOAMI__"] = pwd.getpwuid(os.getuid())[0];
 Subst["__DATE__"] = time.strftime("%a, %d %b %Y %H:%M:%S +0000",time.gmtime(time.time()));
 Subst["__LOGIN__"] = account;
 Subst["__PRIVATE__"] = privsub;
 Subst["__EMAIL__"] = email;
 Subst["__PASSWORD__"] = CryptedPass;
-Subst["__LISTPASS__"] = string.strip(open(pwd.getpwuid(posix.getuid())[5]+"/.debian-lists_passwd","r").read());
+Subst["__LISTPASS__"] = string.strip(open(pwd.getpwuid(os.getuid())[5]+"/.debian-lists_passwd","r").read());
 
 # Generate the LDAP request
 Rec = [(ldap.MOD_REPLACE,"uid",account),
@@ -236,8 +236,8 @@ if privsub != " ":
 # Send the Welcome message
 print "Sending Welcome Email"
 Reply = TemplateSubst(Subst,open("templates/welcome-message-"+gidnumber,"r").read());
-Child = posix.popen("/usr/sbin/sendmail -t","w");
-#Child = posix.popen("cat","w");
+Child = os.popen("/usr/sbin/sendmail -t","w");
+#Child = os.popen("cat","w");
 Child.write(Reply);
 if Child.close() != None:
    raise Error, "Sendmail gave a non-zero return code";

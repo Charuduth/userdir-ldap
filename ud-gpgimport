@@ -14,7 +14,7 @@
 # in the directory but not in the key ring will be removed from the 
 # directory. 
 
-import string, re, time, ldap, getopt, sys, pwd, posix;
+import string, re, time, ldap, getopt, sys, pwd, os;
 from userdir_ldap import *;
 from userdir_gpg import *;
 
@@ -35,7 +35,7 @@ def LoadOverride(File):
       UnknownMap[Split[0]] = string.strip(Split[1]);
 
 # Process options
-AdminUser = pwd.getpwuid(posix.getuid())[0];
+AdminUser = pwd.getpwuid(os.getuid())[0];
 (options, arguments) = getopt.getopt(sys.argv[1:], "au:m:n")
 for (switch, val) in options:
    if (switch == '-u'):

@@ -9,6 +9,7 @@ lockfile -r 1 -l 3600 lock > /dev/null 2>&1
 trap "rm -f lock > /dev/null 2>&1" exit
 rsync -e ssh -rp sshdist@samosa:/var/cache/userdir-ldap/hosts/$HOST . > /dev/null 2>&1
 makedb $HOST/passwd.tdb -o passwd.db > /dev/null 2>&1
-makedb $HOST/shadow.tdb -o shadow.db > /dev/null 2>&1
+(umask 027 && makedb $HOST/shadow.tdb -o shadow.db) > /dev/null 2>&1
+chown root.shadow shadow.db
 makedb $HOST/group.tdb -o group.db > /dev/null 2>&1
 ln -sf $HOST/ssh-rsa-shadow . > /dev/null 2>&1

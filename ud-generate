@@ -2,7 +2,7 @@
 # -*- mode: python -*-
 # Generates passwd, shadow and group files from the ldap directory.
 
-import string, re, time, ldap, getopt, sys, os, posix, pwd;
+import string, re, time, ldap, getopt, sys, os, pwd;
 from userdir_ldap import *;
 
 PasswdAttrs = None;
@@ -336,7 +336,7 @@ def GenDNS(l,File):
 
 # Connect to the ldap server
 l = ldap.open(LDAPServer);
-F = open(PassDir+"/pass-"+pwd.getpwuid(posix.getuid())[0],"r");
+F = open(PassDir+"/pass-"+pwd.getpwuid(os.getuid())[0],"r");
 Pass = string.split(string.strip(F.readline())," ");
 F.close();
 l.simple_bind_s("uid="+Pass[0]+","+BaseDn,Pass[1]);
