@@ -1,7 +1,8 @@
 #!/usr/bin/perl
-# $Id: ud-fingerserv,v 1.17 2004/10/24 18:35:31 joey Exp $
+# $Id: ud-fingerserv,v 1.18 2004/11/18 16:49:15 joey Exp $
 
 # (c) 1999 Randolph Chung. Licensed under the GPL. <tausq@debian.org>
+# (c) 2004 Martin Schulze. Licensed under the GPL. <joey@debian.org>
 
 use lib '/var/www/userdir-ldap/';
 #use lib '/home/randolph/projects/userdir-ldap/web';
@@ -153,7 +154,7 @@ sub ProcessQuery {
       foreach $key (split(/,/, $fields)) {
         if ($key eq 'key') {
           foreach (@keyfingerprint) {
-            push (@{$data->{key}}, "\n".&Util::FetchKey($_));
+            push (@{$data->{key}}, "\n".&Util::FetchKey($_), 0);
           }
         }
         foreach (@{$data->{$key}}) {
