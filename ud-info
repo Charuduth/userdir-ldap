@@ -27,51 +27,51 @@ AttrInfo = {"cn": ["First Name", 101],
 	    "c": ["Country Code",1],
 	    "l": ["Locality",2],
 	    "ou": ["Membership",0],
-	    "facsimiletelephonenumber": ["Fax Phone Number",3],
-	    "telephonenumber": ["Phone Number",4],
-	    "postaladdress": ["Mailing Address",5],
-	    "postalcode": ["Postal Code",6],
+	    "facsimileTelephoneNumber": ["Fax Phone Number",3],
+	    "telephoneNumber": ["Phone Number",4],
+	    "postalAddress": ["Mailing Address",5],
+	    "postalCode": ["Postal Code",6],
 	    "uid": ["Unix User ID",0],
-	    "loginshell": ["Unix Shell",7],
-	    "supplementarygid": ["Unix Groups",0],
-	    "allowedhosts": ["Host ACL",0],
+	    "loginShell": ["Unix Shell",7],
+	    "supplementaryGid": ["Unix Groups",0],
+	    "allowedHost": ["Host ACL",0],
 	    "member": ["LDAP Group",0],
-	    "emailforward": ["Email Forwarding",8],
-	    "ircnick": ["IRC Nickname",9],
-	    "onvacation": ["Vacation Message",10],
-	    "labeledurl": ["Home Page",11],
+	    "emailForward": ["Email Forwarding",8],
+	    "ircNick": ["IRC Nickname",9],
+	    "onVacation": ["Vacation Message",10],
+	    "labledURI": ["Home Page",11],
 	    "latitude": ["Latitude",12],
 	    "longitude": ["Longitude",13],
-	    "icquin": ["ICQ UIN",14],
-	    "privatesub": ["Debian-Private",15],
+	    "icqUin": ["ICQ UIN",14],
+	    "privateSub": ["Debian-Private",15],
 	    "comment": ["Comment",116],
-	    "userpassword": ["Crypted Password",117],
-            "dnszoneentry": ["d.net Entry",118]};
+	    "userPassword": ["Crypted Password",117],
+            "dnsZoneEntry": ["d.net Entry",118]};
 
 AttrPrompt = {"cn": ["Common name or first name"],
               "mn": ["Middle name (or initial if it ends in a dot)"],
               "sn": ["Surname or last name"],
               "c": ["ISO 2 letter country code, such as US, DE, etc"],
               "l": ["City name, State/Provice (Locality)\n e.g. Dallas, Texas"],
-              "facsimiletelephonenumber": ["Fax phone number, with area code and country code"],
-              "telephonenumber": ["Voice phone number"],
-	      "postaladdress": ["Complete mailing address including postal codes and country designations\nSeperate lines using a $ character"],
-	      "postalcode": ["Postal Code or Zip Code"],
-              "loginshell": ["Login shell with full path (no check is done for validity)"],
-	      "emailforward": ["EMail address to send all mail to or blank to disable"],
-	      "ircnick": ["IRC nickname if you use IRC"],
-	      "onvacation": ["A message if on vaction, indicating the time of departure and return"],
-              "userpassword": ["The users Crypt'd password"],
+              "facsimileTelephoneNumber": ["Fax phone number, with area code and country code"],
+              "telephoneNumber": ["Voice phone number"],
+	      "postalAddress": ["Complete mailing address including postal codes and country designations\nSeperate lines using a $ character"],
+	      "postalCode": ["Postal Code or Zip Code"],
+              "loginShell": ["Login shell with full path (no check is done for validity)"],
+	      "emailForward": ["EMail address to send all mail to or blank to disable"],
+	      "ircNick": ["IRC nickname if you use IRC"],
+	      "onVacation": ["A message if on vaction, indicating the time of departure and return"],
+              "userPassword": ["The users Crypt'd password"],
               "comment": ["Admin Comment about the account"],
-              "supplementarygid": ["Groups the user is in"],
-	      "allowedhosts": ["Grant access to certain hosts"],
-              "privatesub": ["Debian-Private mailing list subscription"],
+              "supplementaryGid": ["Groups the user is in"],
+	      "allowedHost": ["Grant access to certain hosts"],
+              "privateSub": ["Debian-Private mailing list subscription"],
               "member": ["LDAP Group Member for slapd ACLs"],
 	      "latitude": ["XEarth latitude in ISO 6709 format - see /usr/share/zoneinfo/zone.tab or etak.com"],
 	      "longitude": ["XEarth latitude in ISO 6709 format - see /usr/share/zoneinfo/zone.tab or etak.com"],
-	      "dnszoneentry": ["DNS Zone fragment associated this this user"],
-              "labeledurl": ["Web home page"],
-              "icquin": ["ICQ UIN Number"]};
+	      "dnsZoneEntry": ["DNS Zone fragment associated this this user"],
+              "labledURI": ["Web home page"],
+              "icqUin": ["ICQ UIN Number"]};
 
 # Create a map of IDs to desc,value,attr
 OrderedIndex = {};
@@ -82,10 +82,10 @@ OrigOrderedIndex = copy.deepcopy(OrderedIndex);
 
 # Show shadow information
 def PrintShadow(Attrs):
-   Changed = int(GetAttr(Attrs,"shadowlastchange","0"));
-   MinDays = int(GetAttr(Attrs,"shadowmin","0"));
-   MaxDays = int(GetAttr(Attrs,"shadowmax","0"));
-   WarnDays = int(GetAttr(Attrs,"shadowwarning","0"));
+   Changed = int(GetAttr(Attrs,"shadowLastChange","0"));
+   MinDays = int(GetAttr(Attrs,"shadowMin","0"));
+   MaxDays = int(GetAttr(Attrs,"shadowMax","0"));
+   WarnDays = int(GetAttr(Attrs,"shadowWarning","0"));
    InactDays = int(GetAttr(Attrs,"shadowinactive","0"));
    Expire = int(GetAttr(Attrs,"shadowexpire","0"));
 
@@ -99,14 +99,14 @@ def PrintShadow(Attrs):
 
 # Print out the automatic time stamp information
 def PrintModTime(Attrs):
-   Stamp = GetAttr(Attrs,"modifytimestamp","");
+   Stamp = GetAttr(Attrs,"modifyTimestamp","");
    if len(Stamp) >= 13:
       Time = (int(Stamp[0:4]),int(Stamp[4:6]),int(Stamp[6:8]),
               int(Stamp[8:10]),int(Stamp[10:12]),int(Stamp[12:14]),0,0,-1);
       print "%-24s:" % ("Record last modified on"), time.strftime("%a %d/%m/%Y %X UTC",Time),
-      print "by",ldap.explode_dn(GetAttr(Attrs,"modifiersname"),1)[0];
+      print "by",ldap.explode_dn(GetAttr(Attrs,"modifiersName"),1)[0];
 
-   Stamp = GetAttr(Attrs,"createtimestamp","");
+   Stamp = GetAttr(Attrs,"createTimestamp","");
    if len(Stamp) >= 13:
       Time = (int(Stamp[0:4]),int(Stamp[4:6]),int(Stamp[6:8]),
               int(Stamp[8:10]),int(Stamp[10:12]),int(Stamp[12:14]),0,0,-1);
@@ -114,10 +114,10 @@ def PrintModTime(Attrs):
 
 # Print the PGP key for a user
 def PrintKeys(Attrs):
-   if Attrs[1].has_key("keyfingerprint") == 0:
+   if Attrs[1].has_key("keyFingerPrint") == 0:
       return;
    First = 0;
-   for x in Attrs[1]["keyfingerprint"]:
+   for x in Attrs[1]["keyFingerPrint"]:
       if First == 0:
          print "%-24s:" % ("PGP/GPG Key Fingerprints"),
          First = 1;
@@ -127,10 +127,10 @@ def PrintKeys(Attrs):
 
 # Print the SSH RSA Authentication keys for a user
 def PrintSshRSAKeys(Attrs):
-   if Attrs[1].has_key("sshrsaauthkey") == 0:
+   if Attrs[1].has_key("sshRSAAuthKey") == 0:
       return;
    First = 0;
-   for x in Attrs[1]["sshrsaauthkey"]:
+   for x in Attrs[1]["sshRSAAuthKey"]:
       if First == 0:
          print "%-24s:" % ("SSH Auth Keys"),
          First = 1;
@@ -155,7 +155,7 @@ def ShowAttrs(Attrs):
 	    for x in Attrs[1][at]:
 	       print "'%s'" % (x),
 	    if at == "uid":
-	       print "(id=%s, gid=%s)" % (GetAttr(Attrs,"uidnumber","-1"),GetAttr(Attrs,"gidnumber","-1")),
+	       print "(id=%s, gid=%s)" % (GetAttr(Attrs,"uidNumber","-1"),GetAttr(Attrs,"gidNumber","-1")),
             print;
          else:
             OrderedIndex[AttrInfo[at][1]][1] = Attrs[1][at];
@@ -171,8 +171,8 @@ def ShowAttrs(Attrs):
 
 # Change a single attribute
 def ChangeAttr(Attrs,Attr):
-   if (Attr == "supplementarygid" or Attr == "allowedhosts" or \
-       Attr == "member" or Attr == "dnszoneentry"):
+   if (Attr == "supplementaryGid" or Attr == "allowedHost" or \
+       Attr == "member" or Attr == "dnsZoneEntry"):
       return MultiChangeAttr(Attrs,Attr);
 
    print "Old value: '%s'" % (GetAttr(Attrs,Attr,""));
@@ -278,7 +278,7 @@ UserDn = "uid=" + User + "," + BaseDn;
 # Enable changing of supplementary gid's
 if (RootMode == 1):
    # Items that root can edit
-   list = ["supplementarygid","allowedhosts","member"];
+   list = ["supplementaryGid","allowedHost","member"];
    Count = 0;
    for x in list:
       AttrInfo[x][1] = 200 + Count;
@@ -348,8 +348,8 @@ while(1):
 
       print "Setting password..";
       Pass = "{crypt}" + Pass;
-      l.modify_s(UserDn,[(ldap.MOD_REPLACE,"userpassword",Pass)]);
-      Attrs[0][1]["userpassword"] = [Pass];
+      l.modify_s(UserDn,[(ldap.MOD_REPLACE,"userPassword",Pass)]);
+      Attrs[0][1]["userPassword"] = [Pass];
       continue;
 
    # Randomize password
@@ -369,8 +369,8 @@ while(1):
 	 
       print "Setting password..";
       Pass = "{crypt}" + Pass;
-      l.modify_s(UserDn,[(ldap.MOD_REPLACE,"userpassword",Pass)]);
-      Attrs[0][1]["userpassword"] = [Pass];
+      l.modify_s(UserDn,[(ldap.MOD_REPLACE,"userPassword",Pass)]);
+      Attrs[0][1]["userPassword"] = [Pass];
       continue;
 
    # Handle changing an arbitary value
