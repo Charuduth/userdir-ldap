@@ -57,22 +57,7 @@ for (switch, val) in options:
    elif (switch == '-a'):
       userdir_gpg.GPGKeyRings = OldGPGKeyRings;
 
-print "Accessing LDAP directory as '" + AdminUser + "'";
-while (1):
-   Password = getpass(AdminUser + "'s password: ");
-
-   if len(Password) == 0:
-      sys.exit(0)
-
-   l = ldap.open(LDAPServer);
-   UserDn = "uid=" + AdminUser + "," + BaseDn;
-
-   # Connect to the ldap server
-   try:
-      l.simple_bind_s(UserDn,Password);
-   except ldap.INVALID_CREDENTIALS:
-      continue
-   break
+l = passwdAccessLDAP(LDAPServer, BaseDn, AdminUser)
 
 # Locate the key of the user we are adding
 SetKeyrings(["/org/keyring.debian.org/keyrings/debian-keyring.gpg"])
@@ -112,7 +97,7 @@ uidNumber = 0;
 # Decide if we should use IDEA encryption
 UsePGP2 = 0;
 while len(Keys[0][1]) < 40:
-   Res = raw_input("Use PGP2.x compatibility [no]? ");
+   Res = raw_input("Use PGP2.x compatibility [No/yes]? ");
    if Res == "yes":
       UsePGP2 = 1;
       break;
