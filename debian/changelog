@@ -1,9 +1,9 @@
 userdir-ldap (0.3.5) unstable; urgency=low
 
   * Add depends on rsync
-  * Generate sdbm of debian.org on postfix systems
+  * Generate db of debian.org on postfix systems
 
- -- Ryan Murray <rmurray@gluck.debian.org>  Sat, 30 Aug 2003 18:02:01 -0600
+ -- Ryan Murray <rmurray@gluck.debian.org>  Sat, 30 Aug 2003 18:41:29 -0600
 
 userdir-ldap (0.3.4) unstable; urgency=low
 
