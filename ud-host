@@ -254,7 +254,10 @@ if ListMode == 1:
             Overview(hAttrs)
    sys.exit(0)
 elif FingerPrints == 1:
-   Attrs = l.search_s(HBaseDn,ldap.SCOPE_ONELEVEL,"host=*")
+   if Host is not None:
+      Attrs = l.search_s(HBaseDn,ldap.SCOPE_ONELEVEL,"host=" + Host)
+   else:
+      Attrs = l.search_s(HBaseDn,ldap.SCOPE_ONELEVEL,"host=*")
    hosts = []
    for hAttrs in Attrs:
       hosts.append(hAttrs[1]['host'][0])
