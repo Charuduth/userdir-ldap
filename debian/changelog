@@ -1,3 +1,9 @@
+userdir-ldap (0.3.1) unstable; urgency=low
+
+  * Add ud-zoneupdate from klecker's /usr/local/bin
+
+ -- Ryan Murray <rmurray@debian.org>  Tue,  6 Aug 2002 22:42:05 -0700
+
 userdir-ldap (0.3) unstable; urgency=low
 
   * Only use sshrsa{host,}key variable, and store all three types of keys
