@@ -61,7 +61,7 @@ A line of the form bf('field: value') will change the contents of the field
 to value. Some simple checks are performed on value to make sure that it is
 not sent to nonsense. The values that can be changed are: c, l,
 facsimiletelephonenumber, telephonenumber, postaladdress, postalcode,
-loginshell, emailforward, ircnick, onvacation, and onvacation. See
+loginshell, emailforward, ircnick, onvacation, and labledurl. See
 ud-info(1) for information on the meanings of each field type.
 
 dit(Latitude/Longitude Change)
@@ -81,7 +81,7 @@ each user. The change address is the simplest way to set the RSA key(s) you
 intend to use. Simply place a key on a line by itself, the full SSH key
 format specification is supported, see sshd(8). Probably the most common way
 to use this function will be verb(cat .ssh/identity.pub | gpg --clearsign |
-mail change@debian.org) which will set the authentication key to the
+mail change@db.debian.org) which will set the authentication key to the
 identity you are using.
 
 Multiple keys per user are supported, but they must all be sent at once.
