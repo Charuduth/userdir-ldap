@@ -1,4 +1,5 @@
 #   Copyright (c) 1999-2001  Jason Gunthorpe <jgg@debian.org>
+#   Copyright (c) 2005       Joey Schulze <joey@infodrom.org>
 #
 #   This program is free software; you can redistribute it and/or modify
 #   it under the terms of the GNU General Public License as published by
@@ -424,6 +425,11 @@ def GPGKeySearch(SearchCriteria):
    Owner = "";
    KeyID = "";
    Hits = {};
+
+   dir = os.path.expanduser("~/.gnupg")
+   if not os.path.isdir(dir):
+      os.mkdir(dir, 0700)
+                      
    try:
       Strm = os.popen(string.join(Args," "),"r");
       
