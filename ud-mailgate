@@ -204,7 +204,7 @@ def DoDNS(Str,Attrs,DnRecord):
 # Handle an [almost] arbitary change
 def HandleChange(Reply,DnRecord,Key):
    global PlainText;
-   Lines = string.split(PlainText,"\r\n");
+   Lines = re.split("\n *\r",PlainText);
 
    Result = "";
    Attrs = [];
