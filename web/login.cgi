@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 
-# $Id: login.cgi,v 1.5 1999/12/13 05:03:47 tausq Exp $
+# $Id: login.cgi,v 1.6 2000/05/06 06:10:05 tausq Exp $
 # (c) 1999 Randolph Chung. Licensed under the GPL. <tausq@debian.org>
 
 use lib '.';
@@ -36,6 +36,25 @@ my $mesg = $ldap->bind($binddn, password => $password);
 $mesg->sync;
 
 if ($mesg->code == LDAP_SUCCESS) {
+  # HACK HACK HACK
+  # Check for md5 password, and update as necessary
+  $mesg = $ldap->search(base   => $config{basedn}, 
+                        filter => "(uid=$username)");
+  $mesg->code && &Util::HTMLError($mesg->error);
+  my $entries = $mesg->as_struct;
+  my $dn = (keys %$entries)[0];
+  my $oldpassword = $entries->{$dn}->{userpassword}->[0];
+  if ($oldpassword !~ /^{crypt}\$1\$/) {
+    # Update their password to md5
+    open (LOG, ">$config{weblogfile}");
+    print LOG scalar(localtime);
+    print LOG ": Updating MD5 password for $dn\n";
+    close LOG;
+    my $newpassword = '{crypt}'.crypt($password, &Util::CreateCryptSalt(1));
+    &Util::LDAPUpdate($ldap, $dn, 'userPassword', $newpassword);
+  }
+  ## END HACK HACK HACK
+  
   my $cryptid = &Util::SavePasswordToFile($username, $password, $cipher);
 
   if ($query->param('update')) {
