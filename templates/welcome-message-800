@@ -11,10 +11,13 @@ User-Agent: nm-create script run by __WHOAMI__
 
 Dear __REALNAME__!
 
-An account has been created for you on master.debian.org and
-va.debian.org with username '__LOGIN__'.  The password for this
-account can be found encrypted with your PGP key and appended to this
-message.
+An account has been created for you on developer-accessible machines
+with username '__LOGIN__'.  The password for this account can be found 
+encrypted with your PGP or GPG key and appended to this message. A list 
+of machines available to Debian developers can be found at
+<URL:http://db.debian.org/machines.cgi>. Please take a minute now to
+familiarize yourself with the Debian Machine Usage Policy, available
+at <URL:http://www.debian.org/devel/dmup>
 
 You have been subscribed to the debian-private mailing list as
 <__PRIVATE__> (you should receive seperate confirmation of this from
@@ -68,21 +71,23 @@ list to make sure nobody else is working on them.
 The machine master.debian.org is our main archive server.  Every
 uploaded package finds it's way there (except for Packages covered by
 US crypto laws which go to non-us.debian.org) eventually.  That
-machine is also the home of our web pages and our bug tracking system.
-The second machine va.debian.org is supposed to take over some of the
-work master does.
-
-Both machines were sponsored by companies (Novare Inc. for master and
-VA Linux Systems for va).  Please don't over-stress them and use your
-accounts carefully.
+machine is also the home of our bug tracking system. Project web
+pages and CVS archives are hosted on va.debian.org.
 
 You should use ssh to log into the machines instead of regular telnet
 or rlogin.  We have installed ~/.ssh directories and authorized_keys
 files with appropriate permissions on both machines.  If you want to
 ssh to them without typing the password, run ssh-keygen on your
 machine and add the contents of ~/.ssh/identity.pub into the
-authorized_keys files in ~/.ssh on master and va.  But please be aware
-of the security implications of doing this.
+authorized_keys files in ~/.ssh on the various Debian machines.  
+However, please be aware of the security implications of doing this.
+
+Finally, please take a minute to visit <URL:http://db.debian.org/>. 
+Login using the password information appended to this email, and 
+update your personal information. The information is used to maintain 
+your accounts on various Debian machines, and also to allow other 
+developers and general users to find out more about you. Many of 
+the fields are only visible to other registered Debian developers.
 
 Welcome to the project!
 
