@@ -31,21 +31,21 @@ def IsInGroup(DnRecord):
      return 1;
 
   # See if the primary group is in the list
-  if Allowed.has_key(GetAttr(DnRecord,"gidnumber")) != 0:
+  if Allowed.has_key(GetAttr(DnRecord,"gidNumber")) != 0:
      return 1;
 
   # Check the host based ACL
-  if DnRecord[1].has_key("allowedhosts") != 0:
-     for I in DnRecord[1]["allowedhosts"]:
+  if DnRecord[1].has_key("allowedHost") != 0:
+     for I in DnRecord[1]["allowedHost"]:
         if CurrentHost == I:
            return 1;
 
   # See if there are supplementary groups
-  if DnRecord[1].has_key("supplementarygid") == 0:
+  if DnRecord[1].has_key("supplementaryGid") == 0:
      return 0;
 
   # Check the supplementary groups
-  for I in DnRecord[1]["supplementarygid"]:
+  for I in DnRecord[1]["supplementaryGid"]:
      if Allowed.has_key(I):
         return 1;
   return 0;
@@ -81,22 +81,22 @@ def GenPasswd(l,File,HomePrefix):
 
    I = 0;
    for x in PasswdAttrs:
-      if x[1].has_key("uidnumber") == 0 or IsInGroup(x) == 0:
+      if x[1].has_key("uidNumber") == 0 or IsInGroup(x) == 0:
          continue;
 
       # Do not let people try to buffer overflow some busted passwd parser.
-      if len(GetAttr(x,"gecos")) > 100 or len(GetAttr(x,"loginshell")) > 50:
+      if len(GetAttr(x,"gecos")) > 100 or len(GetAttr(x,"loginShell")) > 50:
          continue;
 
       Line = "%s:x:%s:%s:%s:%s%s:%s" % (GetAttr(x,"uid"),\
-              GetAttr(x,"uidnumber"),GetAttr(x,"gidnumber"),\
+              GetAttr(x,"uidNumber"),GetAttr(x,"gidNumber"),\
               GetAttr(x,"gecos"),HomePrefix,GetAttr(x,"uid"),\
-              GetAttr(x,"loginshell"));
+              GetAttr(x,"loginShell"));
 
       Line = Sanitize(Line) + "\n";
       F.write("0%u %s" % (I,Line));
       F.write(".%s %s" % (GetAttr(x,"uid"),Line));
-      F.write("=%s %s" % (GetAttr(x,"uidnumber"),Line));
+      F.write("=%s %s" % (GetAttr(x,"uidNumber"),Line));
       I = I + 1;
 
   # Oops, something unspeakable happened.
@@ -120,18 +120,18 @@ def GenShadow(l,File):
 
    I = 0;
    for x in PasswdAttrs:
-      if x[1].has_key("uidnumber") == 0 or IsInGroup(x) == 0:
+      if x[1].has_key("uidNumber") == 0 or IsInGroup(x) == 0:
          continue;
 	 
-      Pass = GetAttr(x,"userpassword");
+      Pass = GetAttr(x,"userPassword");
       if Pass[0:7] != "{crypt}" or len(Pass) > 50:
          Pass = '*';
       else:
          Pass = Pass[7:];
       Line = "%s:%s:%s:%s:%s:%s:%s:%s:" % (GetAttr(x,"uid"),\
-              Pass,GetAttr(x,"shadowlastchange"),\
-              GetAttr(x,"shadowmin"),GetAttr(x,"shadowmax"),\
-              GetAttr(x,"shadowwarning"),GetAttr(x,"shadowinactive"),\
+              Pass,GetAttr(x,"shadowLastChange"),\
+              GetAttr(x,"shadowMin"),GetAttr(x,"shadowMax"),\
+              GetAttr(x,"shadowWarning"),GetAttr(x,"shadowinactive"),\
               GetAttr(x,"shadowexpire"));
       Line = Sanitize(Line) + "\n";
       F.write("0%u %s" % (I,Line));
@@ -158,10 +158,14 @@ def GenSSHShadow(l,File):
       raise "No Users";
 
    for x in PasswdAttrs:
-      if x[1].has_key("uidnumber") == 0 or \
-         x[1].has_key("sshrsaauthkey") == 0:
+     if x[1].has_key("uidNumber") == 0 or \
+        x[1].has_key("sshRSAAuthKey") == 0:
          continue;
-      for I in x[1]["sshrsaauthkey"]:
+
+      if x[1].has_key("uidNumber") == 0 or \
+         x[1].has_key("sshRSAAuthKey") == 0:
+         continue;
+      for I in x[1]["sshRSAAuthKey"]:
          User = GetAttr(x,"uid");
          Line = "%s: %s" %(User,I);
          Line = Sanitize(Line) + "\n";
@@ -190,12 +194,12 @@ def GenGroup(l,File):
 
    # Sort them into a list of groups having a set of users
    for x in PasswdAttrs:
-      if x[1].has_key("uidnumber") == 0 or IsInGroup(x) == 0:
+      if x[1].has_key("uidNumber") == 0 or IsInGroup(x) == 0:
          continue;
-      if x[1].has_key("supplementarygid") == 0:
+      if x[1].has_key("supplementaryGid") == 0:
          continue;
 	 
-      for I in x[1]["supplementarygid"]:
+      for I in x[1]["supplementaryGid"]:
          if GroupMap.has_key(I):
 	    GroupMap[I].append(GetAttr(x,"uid"));
 	 else:
@@ -239,17 +243,17 @@ def GenForward(l,File):
 
    # Write out the email address for each user
    for x in PasswdAttrs:
-      if x[1].has_key("emailforward") == 0 or IsInGroup(x) == 0:
+      if x[1].has_key("emailForward") == 0 or IsInGroup(x) == 0:
          continue;
       
       # Do not allow people to try to buffer overflow busted parsers
-      if len(GetAttr(x,"emailforward")) > 200:
+      if len(GetAttr(x,"emailForward")) > 200:
          continue;
 
       # Check the forwarding address
-      if EmailCheck.match(GetAttr(x,"emailforward")) == None:
+      if EmailCheck.match(GetAttr(x,"emailForward")) == None:
          continue;
-      Line = "%s: %s" % (GetAttr(x,"uid"),GetAttr(x,"emailforward"));
+      Line = "%s: %s" % (GetAttr(x,"uid"),GetAttr(x,"emailForward"));
       Line = Sanitize(Line) + "\n";
       F.write(Line);
       
@@ -273,11 +277,11 @@ def GenAllForward(l,File):
 
    # Write out the email address for each user
    for x in PasswdAttrs:
-      if x[1].has_key("emailforward") == 0:
+      if x[1].has_key("emailForward") == 0:
          continue;
       
       # Do not allow people to try to buffer overflow busted parsers
-      Forward = GetAttr(x,"emailforward");
+      Forward = GetAttr(x,"emailForward");
       if len(Forward) > 200:
          continue;
 
@@ -340,23 +344,23 @@ def GenPrivate(l,File):
 
    # Write out the position for each user
    for x in PasswdAttrs:
-      if x[1].has_key("privatesub") == 0:
+      if x[1].has_key("privateSub") == 0:
          continue;
 
       # If the account is locked, do not write it
-      if (string.find(GetAttr(x,"userpassword"),"*LK*")  != -1):
+      if (string.find(GetAttr(x,"userPassword"),"*LK*")  != -1):
          continue;
 
       # If the account has no PGP key, do not write it
-      if x[1].has_key("keyfingerprint") == 0:
+      if x[1].has_key("keyFingerPrint") == 0:
          continue;
 
       # Must be in the Debian group (yuk, hard coded for now)
-      if GetAttr(x,"gidnumber") != "800":
+      if GetAttr(x,"gidNumber") != "800":
 	 continue;
 
       try:
-         Line = "%s"%(GetAttr(x,"privatesub"));
+         Line = "%s"%(GetAttr(x,"privateSub"));
          Line = Sanitize(Line) + "\n";
          F.write(Line);
       except:
@@ -381,11 +385,11 @@ def GenDNS(l,File,HomePrefix):
 
    # Write out the zone file entry for each user
    for x in PasswdAttrs:
-      if x[1].has_key("dnszoneentry") == 0:
+      if x[1].has_key("dnsZoneEntry") == 0:
          continue;
       try:
          F.write("; %s\n"%(EmailAddress(x)));
-         for z in x[1]["dnszoneentry"]:
+         for z in x[1]["dnsZoneEntry"]:
             Split = string.split(string.lower(z));
 	    if string.lower(Split[1]) == 'in':
                for y in range(0,len(Split)):
@@ -401,7 +405,7 @@ def GenDNS(l,File,HomePrefix):
 	       # Write some identification information
                if string.lower(Split[2]) == "a":
    	          Line = "%s IN TXT \"%s\"\n"%(Split[0],EmailAddress(x));
-                  for y in x[1]["keyfingerprint"]:
+                  for y in x[1]["keyFingerPrint"]:
   	             Line = Line + "%s IN TXT \"PGP %s\"\n"%(Split[0],FormatPGPKey(y));
                   F.write(Line);
 	    else:
@@ -432,10 +436,10 @@ def GenBSMTP(l,File,HomePrefix):
 
    # Write out the zone file entry for each user
    for x in PasswdAttrs:
-      if x[1].has_key("dnszoneentry") == 0:
+      if x[1].has_key("dnsZoneEntry") == 0:
          continue;
       try:
-         for z in x[1]["dnszoneentry"]:
+         for z in x[1]["dnsZoneEntry"]:
             Split = string.split(string.lower(z));
 	    if string.lower(Split[1]) == 'in':
                for y in range(0,len(Split)):
@@ -467,19 +471,19 @@ def GenSSHKnown(l,File):
    os.umask(OldMask);
 
    # Fetch all the hosts
-   HostKeys = l.search_s(HostBaseDn,ldap.SCOPE_ONELEVEL,"sshrsahostkey=*",\
-                ["hostname","sshrsahostkey"]);
+   HostKeys = l.search_s(HostBaseDn,ldap.SCOPE_ONELEVEL,"sshRSAHostKey=*",\
+                ["hostname","sshRSAHostKey"]);
    
    if HostKeys == None:
       raise "No Hosts";
 
    for x in HostKeys:
       if x[1].has_key("hostname") == 0 or \
-         x[1].has_key("sshrsahostkey") == 0:
+         x[1].has_key("sshRSAHostKey") == 0:
          continue;
       Host = GetAttr(x,"hostname");
       SHost = string.find(Host,".");
-      for I in x[1]["sshrsahostkey"]:
+      for I in x[1]["sshRSAHostKey"]:
          if SHost == None:
             Line = "%s,%s %s" %(Host,socket.gethostbyname(Host),I);
          else:
@@ -503,22 +507,22 @@ l.simple_bind_s("uid="+Pass[0]+","+BaseDn,Pass[1]);
 # Fetch all the groups
 GroupIDMap = {};
 Attrs = l.search_s(BaseDn,ldap.SCOPE_ONELEVEL,"gid=*",\
-                  ["gid","gidnumber"]);
+                  ["gid","gidNumber"]);
 
 # Generate the GroupMap and GroupIDMap
 for x in Attrs:
-   if x[1].has_key("gidnumber") == 0:
+   if x[1].has_key("gidNumber") == 0:
       continue;
-   GroupIDMap[x[1]["gid"][0]] = int(x[1]["gidnumber"][0]);
+   GroupIDMap[x[1]["gid"][0]] = int(x[1]["gidNumber"][0]);
 
 # Fetch all the users
 PasswdAttrs = l.search_s(BaseDn,ldap.SCOPE_ONELEVEL,"uid=*",\
-                ["uid","uidnumber","gidnumber","supplementarygid",\
-                 "gecos","loginshell","userpassword","shadowlastchange",\
-                 "shadowmin","shadowmax","shadowwarning","shadowinactive",
-	         "shadowexpire","emailforward","latitude","longitude",\
-                 "allowedhosts","sshrsaauthkey","dnszoneentry","cn","sn",\
-	         "keyfingerprint","privatesub"]);
+                ["uid","uidNumber","gidNumber","supplementaryGid",\
+                 "gecos","loginShell","userPassword","shadowLastChange",\
+                 "shadowMin","shadowMax","shadowWarning","shadowinactive",
+	         "shadowexpire","emailForward","latitude","longitude",\
+                 "allowedHost","sshRSAAuthKey","dnsZoneEntry","cn","sn",\
+	         "keyFingerPrint","privateSub"]);
 
 # Open the control file
 if len(sys.argv) == 1:
