@@ -46,11 +46,15 @@ esac
 rsync ${verbose} -e ssh -rp "${udhost}/var/cache/userdir-ldap/hosts/$HOST" .
 
 makedb "$HOST/passwd.tdb" -o passwd.db.t
-(umask 027 && makedb "$HOST/shadow.tdb" -o shadow.db.t)
-chown root.shadow shadow.db.t; chmod 0640 shadow.db.t
+if [ -s "$HOST/shadow.tdb" ]
+then
+    (umask 027 && makedb "$HOST/shadow.tdb" -o shadow.db.t)
+    chown root.shadow shadow.db.t
+    chmod 0640 shadow.db.t
+    mv -f shadow.db.t shadow.db
+fi
 makedb "$HOST/group.tdb" -o group.db.t
 mv -f passwd.db.t passwd.db
-mv -f shadow.db.t shadow.db
 mv -f group.db.t group.db
 ln -sf "$HOST/ssh-rsa-shadow" .
 ln -sf "$HOST/ssh_known_hosts" .
