@@ -34,60 +34,6 @@ def LoadOverride(File):
       Split = re.split("[:\n]",Line);
       UnknownMap[Split[0]] = string.strip(Split[1]);
 
-# Convert the PGP name string to a uid value
-def GetUID(l,Name):
-   # Crack up the email address into a best guess first/middle/last name
-   (cn,mn,sn) = NameSplit(re.sub('["]','',Name[0]))
-   
-   # Brackets anger the ldap searcher
-   cn = re.sub('[(")]','?',cn);
-   sn = re.sub('[(")]','?',sn);
-
-   # First check the unknown map for the email address
-   if UnknownMap.has_key(Name[1] + '@' + Name[2]):
-      print "unknown map hit for",Name;
-      return UnknownMap[Name[1] + '@' + Name[2]];
-
-   # Then the cruft component (ie there was no email address to match)
-   if UnknownMap.has_key(Name[2]):
-      print "unknown map hit for",Name;
-      return UnknownMap[Name[2]];
-
-   # Search for a possible first/last name hit
-   try:
-      Attrs = l.search_s(BaseDn,ldap.SCOPE_ONELEVEL,"(&(cn=%s)(sn=%s))"%(cn,sn),["uid"]);
-   except ldap.FILTER_ERROR:
-      print "Filter failure:","(&(cn=%s)(sn=%s))"%(cn,sn);
-      return None;
-
-   # Hmm, more than one/no return
-   if (len(Attrs) != 1):
-      # Key claims a local address
-      if Name[2] == EmailAppend:
-
-         # Pull out the record for the claimed user
-         Attrs = l.search_s(BaseDn,ldap.SCOPE_ONELEVEL,"(uid=%s)"%(Name[1]),["uid","sn","cn"]);
-
-         # We require the UID surname to be someplace in the key name, this
-         # deals with special purpose keys like 'James Troup (Alternate Debian key)'
-	 # Some people put their names backwards on their key too.. check that as well
-         if len(Attrs) == 1 and \
-            (string.find(string.lower(sn),string.lower(Attrs[0][1]["sn"][0])) != -1 or \
-            string.find(string.lower(cn),string.lower(Attrs[0][1]["sn"][0])) != -1):
-            print EmailAppend,"hit for",Name;
-            return Name[1];
-
-      # Attempt to give some best guess suggestions for use in editing the
-      # override file.
-      print "None for",Name;
-      Attrs = l.search_s(BaseDn,ldap.SCOPE_ONELEVEL,"(sn~=%s)"%(sn),["uid","sn","cn"]);
-      for x in Attrs:
-         print "  But might be:",x[1]["cn"][0],x[1]["sn"][0],"<" + x[1]["uid"][0] + "@debian.org>";
-   else:
-      return Attrs[0][1]["uid"][0];
-
-   return None;
-
 # Process options
 AdminUser = pwd.getpwuid(posix.getuid())[0];
 (options, arguments) = getopt.getopt(sys.argv[1:], "au:m:n")
@@ -188,17 +134,16 @@ while(1):
       # print "Ignoring keyID",Split2[9],"belonging to",KeyMap[Split2[9]][0];
       KeyMap[Split2[9]][1] = 1;
       continue;
-
-   Match = AddressSplit.match(Split[9]);
-   if Match == None:
-      UID = GetUID(l,("","",Split[9]));
-   else:
-      UID = GetUID(l,Match.groups());
-
-   if UID == None:
+      
+   UID = GetUID(l,SplitEmail(Split[9]),UnknownMap);
+   if UID[0] == None:
+      print "None for",SplitEmail(Split[9]),"'%s'"%(Split[9]);
+      if UID[1] != None: 
+         for x in UID[1]: print x;
       print "MISSING 0x" + Split2[9];
       continue;
 
+   UID = UID[0]
    Rec = [(ldap.MOD_ADD,"keyfingerprint",Split2[9])];
    Dn = "uid=" + UID + "," + BaseDn;
    print "Adding key 0x"+Split2[9],"to",UID;
@@ -227,7 +172,7 @@ print Ignored,"keys already in the directory (ignored)";
 # Look for unmatched keys
 for x in KeyMap.keys():
    if KeyMap[x][1] == 0:
-      print "key 0x",x,"belonging to",KeyMap[x][0],"removed";
+      print "key 0x%s belonging to %s removed"%(x,KeyMap[x][0]);
       if KeyCount.has_key(KeyMap[x][0]) :
          KeyCount[KeyMap[x][0]] = KeyCount[KeyMap[x][0]] - 1
          if KeyCount[KeyMap[x][0]] <= 0:

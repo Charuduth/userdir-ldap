@@ -30,6 +30,8 @@ LastNamesPre = {"van": None, "le": None, "de": None, "di": None};
 SSHAuthSplit = re.compile('^(.* )?(\d+) (\d+) (\d+) ?(.+)$');
 #'^([^\d](?:[^ "]+(?:".*")?)*)? ?(\d+) (\d+) (\d+) (.+)$');
 
+AddressSplit = re.compile("(.*).*<([^@]*)@([^>]*)>");
+
 # Safely get an attribute from a tuple representing a dn and an attribute
 # list. It returns the first attribute if there are multi.
 def GetAttr(DnRecord,Attribute,Default = ""):
@@ -101,10 +103,9 @@ def NameSplit(Name):
          break;
 	 
    # Merge any of the middle initials
-   if len(Words) > 2:
-      while len(Words[2]) == 2 and Words[2][1] == '.':
-         Words[1] = Words[1] +  Words[2];
-         del Words[2];
+   while len(Words) > 2 and len(Words[2]) == 2 and Words[2][1] == '.':
+      Words[1] = Words[1] +  Words[2];
+      del Words[2];
 
    while len(Words) < 2:
       Words.append('');
@@ -251,7 +252,83 @@ def SplitEmail(Addr):
    Res1 = Res1[0];
    if Res1[1] == None:
       return (Res1[0],"","");
+
+   # If there is no @ then the address was not parsed well. Try the alternate
+   # Parsing scheme. This is particularly important when scanning PGP keys.
    Res2 = string.split(Res1[1],"@");
    if len(Res2) != 2:
-      return (Res1[0],"",Res1[1]);
+      Match = AddressSplit.match(Addr);
+      if Match == None:
+         return ("","",Addr);
+      return Match.groups();
+
    return (Res1[0],Res2[0],Res2[1]);
+
+# Convert the PGP name string to a uid value. The return is a tuple of
+# (uid,[message strings]). UnknownMpa is a hash from email to uid that 
+# overrides normal searching.
+def GetUID(l,Name,UnknownMap = {}):
+   # Crack up the email address into a best guess first/middle/last name
+   (cn,mn,sn) = NameSplit(re.sub('["]','',Name[0]))
+   
+   # Brackets anger the ldap searcher
+   cn = re.sub('[(")]','?',cn);
+   sn = re.sub('[(")]','?',sn);
+
+   # First check the unknown map for the email address
+   if UnknownMap.has_key(Name[1] + '@' + Name[2]):
+      Stat = "unknown map hit for "+str(Name);
+      return (UnknownMap[Name[1] + '@' + Name[2]],[Stat]);
+
+   # Then the cruft component (ie there was no email address to match)
+   if UnknownMap.has_key(Name[2]):
+      Stat = "unknown map hit for"+str(Name);
+      return (UnknownMap[Name[2]],[Stat]);
+
+   # Search for a possible first/last name hit
+   try:
+      Attrs = l.search_s(BaseDn,ldap.SCOPE_ONELEVEL,"(&(cn=%s)(sn=%s))"%(cn,sn),["uid"]);
+   except ldap.FILTER_ERROR:
+      Stat = "Filter failure: (&(cn=%s)(sn=%s))"%(cn,sn);
+      return (None,[Stat]);
+
+   # Try matching on the email address
+   if (len(Attrs) != 1):
+      try:
+         Attrs = l.search_s(BaseDn,ldap.SCOPE_ONELEVEL,"emailforward=%s"%(Name[2]),["uid"]);
+      except ldap.FILTER_ERROR:
+	 pass;
+
+   # Hmm, more than one/no return
+   if (len(Attrs) != 1):
+      # Key claims a local address
+      if Name[2] == EmailAppend:
+
+         # Pull out the record for the claimed user
+         Attrs = l.search_s(BaseDn,ldap.SCOPE_ONELEVEL,"(uid=%s)"%(Name[1]),["uid","sn","cn"]);
+
+         # We require the UID surname to be someplace in the key name, this
+         # deals with special purpose keys like 'James Troup (Alternate Debian key)'
+	 # Some people put their names backwards on their key too.. check that as well
+         if len(Attrs) == 1 and \
+            (string.find(string.lower(sn),string.lower(Attrs[0][1]["sn"][0])) != -1 or \
+            string.find(string.lower(cn),string.lower(Attrs[0][1]["sn"][0])) != -1):
+            Stat = EmailAppend+" hit for "+str(Name);
+            return (Name[1],[Stat]);
+
+      # Attempt to give some best guess suggestions for use in editing the
+      # override file.
+      Attrs = l.search_s(BaseDn,ldap.SCOPE_ONELEVEL,"(sn~=%s)"%(sn),["uid","sn","cn"]);
+
+      Stat = [];
+      if len(Attrs) != 0:
+         Stat = ["None for %s"%(str(Name))];
+      for x in Attrs:
+         Stat.append("But might be: %s %s <%s@debian.org>"%(x[1]["cn"][0],x[1]["sn"][0],x[1]["uid"][0]));
+      return (None,Stat);	 
+   else:
+      return (Attrs[0][1]["uid"][0],None);
+
+   return (None,None);
+
+   
