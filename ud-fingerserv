@@ -1,5 +1,5 @@
 #!/usr/bin/perl
-# $Id: ud-fingerserv,v 1.16 2004/10/24 18:34:12 joey Exp $
+# $Id: ud-fingerserv,v 1.17 2004/10/24 18:35:31 joey Exp $
 
 # (c) 1999 Randolph Chung. Licensed under the GPL. <tausq@debian.org>
 
@@ -76,8 +76,12 @@ if (!$use_inetd) {
 } else { # inetd
   &log("inetd mode");
   my $sockaddr = getpeername(STDIN);
-  my ($port, $addr) = unpack_sockaddr_in(getpeername(STDIN));
-  &log(sprintf("[Connect from %s (%s)]", gethostbyaddr($addr, AF_INET), inet_ntoa($addr)));
+  if ($sockaddr) {
+    my ($port, $addr) = unpack_sockaddr_in(getpeername(STDIN));
+    &log(sprintf("[Connect from %s (%s)]", gethostbyaddr($addr, AF_INET), inet_ntoa($addr)));
+  } else {
+    &log("[Connect via terminal]");
+  }
   my $query = &readdata(\*STDIN);
   &ProcessQuery(\*STDOUT, $query) if (defined($query));
   exit;
@@ -123,23 +127,21 @@ sub ProcessQuery {
   foreach $dn (sort {$entries->{$a}->{sn}->[0] <=> $entries->{$b}->{sn}->[0]} keys(%$entries)) {
     $data = $entries->{$dn};
 
-    $data->{key} = [];    
-    foreach (@{$data->{keyfingerprint}}) {
-      push (@{$data->{key}}, "\n".&Util::FetchKey($_));
-    }
-    
     $data->{email}->[0] = sprintf("%s %s %s <%s>", $data->{cn}->[0],
                                   $data->{mn}->[0], $data->{sn}->[0],
 				  $data->{uid}->[0]."\@$config{emailappend}");
 				  
     $data->{email}->[0] =~ s/\s+/ /g;				  
  
+    my @keyfingerprint = ();
     for (my $i=0; $i <= $#{$data->{'keyfingerprint'}}; $i++) {
+      push (@keyfingerprint, $data->{keyfingerprint}->[$i]);
       $data->{keyfingerprint}->[$i] = &Util::FormatFingerPrint($data->{keyfingerprint}->[$i]);
       $data->{keyfingerprint}->[$i] =~ s,&nbsp;, ,;
     }
     print $client "$dn\n";
     if (!$fields) {
+      push (@{$data->{key}}, sprintf ("finger %s/key\@db.debian.org", $uid));
       foreach $key (@summarykeys) {
         foreach (@{$data->{$key}}) {
           print $client "$attrs{$key}: ";
@@ -149,6 +151,11 @@ sub ProcessQuery {
     } else {
   #     print "$fields\n";
       foreach $key (split(/,/, $fields)) {
+        if ($key eq 'key') {
+          foreach (@keyfingerprint) {
+            push (@{$data->{key}}, "\n".&Util::FetchKey($_));
+          }
+        }
         foreach (@{$data->{$key}}) {
           print $client "$attrs{$key}: ";
           print $client "$_\n";
