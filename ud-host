@@ -2,11 +2,11 @@
 # -*- mode: python -*-
 # This script is an interactive way to manipulate fields in the LDAP directory.
 # When run it connects to the directory using the current users ID and fetches
-# all the attributes for the first machine. It then formats them nicely and 
+# all the attributes for the first machine. It then formats them nicely and
 # allows the user to change them.
 #
 #  Usage: userinfo -a <user> -u <user> -c <user> -r
-#    -a    Set the authentication user (the user whose password you are 
+#    -a    Set the authentication user (the user whose password you are
 #          going to enter)
 #    -h    Set the host to display
 
@@ -80,7 +80,7 @@ def ShowAttrs(Attrs):
             print;
          else:
             OrderedIndex[AttrInfo[at][1]][1] = Attrs[1][at];
-				       
+
    Keys = OrderedIndex.keys();
    Keys.sort();
    for at in Keys:
@@ -98,7 +98,7 @@ def ChangeAttr(Attrs,Attr):
    print "Old value: '%s'" % (GetAttr(Attrs,Attr,""));
    print "Press enter to leave unchanged and a single space to set to empty";
    NewValue = raw_input("New? ");
-  
+
    # Empty string
    if (NewValue == ""):
       print "Leaving unchanged.";
@@ -139,8 +139,8 @@ def MultiChangeAttr(Attrs,Attr):
    if (NewValue == ""):
       print "Leaving unchanged.";
       return;
-   
-   # Delete   
+
+   # Delete
    if (Mode == "D"):
       print "Deleting.",;
       try:
@@ -190,15 +190,15 @@ if (BindUser != ""):
    l.simple_bind_s(UserDn,Password);
 else:
    l.simple_bind_s("","");
-   
-HBaseDn = "ou=hosts,dc=debian,dc=org";    
+
+HBaseDn = "ou=hosts,dc=debian,dc=org";
 HostDn = "host=" + Host + "," + HBaseDn;
 
 # Query the server for all of the attributes
 Attrs = l.search_s(HBaseDn,ldap.SCOPE_ONELEVEL,"host=" + Host);
 if len(Attrs) == 0:
    print "Host",Host,"was not found.";
-   sys.exit(0); 
+   sys.exit(0);
 
 # repeatedly show the account configuration
 while(1):
@@ -212,7 +212,7 @@ while(1):
    print "   d) Delete Host";
    print "   u) Switch Hosts";
    print "   x) Exit";
-   
+
    # Prompt
    Response = raw_input("Change? ");
    if (Response == "x" or Response == "X" or Response == "q" or 
@@ -246,8 +246,8 @@ while(1):
       Dn = "host=" + NewHost + "," + HBaseDn;
       l.add_s(Dn,[("host",NewHost),
                   ("objectclass","top")]);
-		  
-      # Switch		  
+
+      # Switch
       NAttrs = l.search_s(HBaseDn,ldap.SCOPE_ONELEVEL,"host=" + NewHost);
       if len(NAttrs) == 0:
          print "Host",NewHost,"was not found.";
@@ -257,7 +257,7 @@ while(1):
       HostDn = "host=" + Host + "," + HBaseDn;
       OrderedIndex = copy.deepcopy(OrigOrderedIndex);
       continue;
-  
+
    # Handle changing an arbitary value
    if (Response == "a"):
       Attr = raw_input("Attr? ");
@@ -266,12 +266,12 @@ while(1):
 
    if (Response == 'd'):
       Really = raw_input("Really (type yes)? ");
-      if Really != 'yes': 
+      if Really != 'yes':
 	  continue;
       print "Deleting",HostDn;
       l.delete_s(HostDn);
       continue;
-  
+
    # Convert the integer response
    try:
       ID = int(Response);
