@@ -34,8 +34,12 @@ mv -f group.db.t group.db
 #fi
 ln -sf "$HOST/ssh-rsa-shadow" .
 ln -sf "$HOST/ssh_known_hosts" .
-if [ -e "$HOST/bsmtp" ]; then
+if [ -d "/etc/exim" -a -e "$HOST/bsmtp" ]; then
 	if perl -e 'exit !((stat "/etc/exim/bsmtp")[9] < time()-3600)'; then
 		cp "$HOST/bsmtp" /etc/exim/bsmtp
 	fi
+fi
+if [ -d "/etc/postfix" -a -f "$HOST/forward-alias" ]; then
+	sed -e 's/:/@debian.org/' $HOST/forward-alias > /etc/postfix/debian
+	postmap sdbm:/etc/postfix/debian < /etc/postfix/debian &> /dev/null || true
 fi
