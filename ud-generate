@@ -181,6 +181,40 @@ def GenSSHShadow(l,File):
      raise "cdbmake gave an error";
   Done(File,F,None);
 
+def GenSSH2Shadow(l,File):
+  F = None;
+  Fdb = None;
+  try:
+   OldMask = os.umask(0077);
+   F = open(File + ".tmp","w",0600);
+   Fdb = os.popen("cdbmake %s.cdb %s.cdb.tmp"%(File,File),"w");
+   os.umask(OldMask);
+
+   # Fetch all the users
+   global PasswdAttrs;
+   if PasswdAttrs == None:
+      raise "No Users";
+
+   I = 0;
+   for x in PasswdAttrs:
+      if x[1].has_key("uidnumber") == 0 or \
+         x[1].has_key("sshdsaauthkey") == 0:
+         continue;
+      for I in x[1]["sshdsaauthkey"]:
+         User = GetAttr(x,"uid");
+         Line = "%s: %s" %(User,I);
+         Line = Sanitize(Line) + "\n";
+         F.write(Line);
+         Fdb.write("+%d,%d:%s->%s\n"%(len(User),len(I),User,I));
+   Fdb.write("\n");
+  # Oops, something unspeakable happened.
+  except:
+   Die(File,F,Fdb);
+   raise;
+  if Fdb.close() != None:
+     raise "cdbmake gave an error";
+  Done(File,F,None);
+  
 # Generate the group list
 def GenGroup(l,File):
   F = None;
@@ -462,7 +496,7 @@ PasswdAttrs = l.search_s(BaseDn,ldap.SCOPE_ONELEVEL,"uid=*",\
                  "shadowmin","shadowmax","shadowwarning","shadowinactive",
 	         "shadowexpire","emailforward","latitude","longitude",\
                  "allowedhosts","sshrsaauthkey","dnszoneentry","cn","sn",\
-	         "keyfingerprint","privatesub"]);
+	         "keyfingerprint","privatesub","sshdsaauthkey"]);
 
 # Open the control file
 if len(sys.argv) == 1:
@@ -472,6 +506,7 @@ else:
 
 # Generate global things
 GlobalDir = GenerateDir+"/";
+GenSSH2Shadow(l,GlobalDir+"ssh-dsa-shadow");
 GenSSHShadow(l,GlobalDir+"ssh-rsa-shadow");
 GenAllForward(l,GlobalDir+"mail-forward.cdb");
 GenMarkers(l,GlobalDir+"markers");

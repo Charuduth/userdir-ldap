@@ -16,3 +16,4 @@ mv -f passwd.db.t passwd.db
 mv -f shadow.db.t shadow.db
 mv -f group.db.t group.db
 ln -sf $HOST/ssh-rsa-shadow . > /dev/null 2>&1
+ln -sf $HOST/ssh-dsa-shadow . > /dev/null 2>&1
