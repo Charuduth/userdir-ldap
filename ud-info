@@ -16,8 +16,6 @@
 #          database
 #    -r    Enable 'root' functions, do this if your uid has access to
 #          restricted variables.
-#
-# http://www.geocode.com/eagle.html-ssi
 
 import string, time, posix, pwd, sys, getopt, ldap, crypt, whrandom, readline, copy;
 from userdir_ldap import *;

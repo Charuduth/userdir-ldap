@@ -202,6 +202,8 @@ def GenGroup(l,File):
    # Output the group file.
    Counter = 0; 
    for x in GroupMap.keys():
+      if GroupIDMap.has_key(x) == 0:
+         continue;
       Line = "%s:x:%u:" % (x,GroupIDMap[x]);
       Comma = '';
       for I in GroupMap[x]:
