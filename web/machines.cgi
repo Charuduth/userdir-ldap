@@ -1,5 +1,5 @@
 #!/usr/bin/perl
-
+#$Id: machines.cgi,v 1.2 1999/09/30 05:38:29 tausq Exp $
 # (c) 1999 Randolph Chung. Licensed under the GPL. <tausq@debian.org>
 
 use lib '.';
