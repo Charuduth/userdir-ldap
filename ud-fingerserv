@@ -1,5 +1,5 @@
 #!/usr/bin/perl
-# $Id: ud-fingerserv,v 1.13 1999/11/29 02:44:53 tausq Exp $
+# $Id: ud-fingerserv,v 1.14 2000/02/21 06:08:32 tausq Exp $
 
 # (c) 1999 Randolph Chung. Licensed under the GPL. <tausq@debian.org>
 
@@ -66,7 +66,7 @@ if (!$use_inetd) {
     my $hostinfo = gethostbyaddr($client->peeraddr, AF_INET);
     &log(sprintf("[Connect from %s]", $hostinfo || $client->peerhost));
     my $query = &readdata($client);
-    &ProcessQuery($client, $query);
+    &ProcessQuery($client, $query) if (defined($query));
     $client->close;
     exit;
   } continue {
@@ -78,7 +78,7 @@ if (!$use_inetd) {
   my ($port, $addr) = unpack_sockaddr_in(getpeername(STDIN));
   &log(sprintf("[Connect from %s (%s)]", gethostbyaddr($addr, AF_INET), inet_ntoa($addr)));
   my $query = &readdata(\*STDIN);
-  &ProcessQuery(\*STDOUT, $query);
+  &ProcessQuery(\*STDOUT, $query) if (defined($query));
   exit;
 }
 
@@ -175,6 +175,7 @@ sub readdata {
   my $in = undef;
   my $out = undef;
   my $bytesread = 0;
+  my $ret;
 
   my $flags= fcntl($fh, F_GETFL, 0)
      or die "Can't get flags for socket: $!\n";
@@ -182,7 +183,9 @@ sub readdata {
      or die "Can't make socket nonblocking: $!\n";
 						
   while (($bytesread < 1024) && ($out !~ /\n/)) {
-    $bytesread += sysread($fh, $in, 1024);
+    $ret = sysread($fh, $in, 1024);
+    return undef if (!defined($ret) || ($ret == 0));
+    $bytesread += $ret;
     $out .= $in;
   }
 
