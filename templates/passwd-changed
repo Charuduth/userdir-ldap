@@ -6,9 +6,9 @@ Hello __EMAIL__!
 Your password has been updated. Enclosed below is the new password encrypted
 with your key. __CRYPTTYPE__
 
-Currently LDAP information is replicated to each machine every 15 mins, 
+Currently LDAP information is replicated to each machine every 15 mins,
 you can set a proper password only by using the web interface at
-https://db.debian.org/
+<URL:https://db.debian.org/>.
 
 Please email __ADMIN__ if you have any questions.
 

@@ -12,7 +12,7 @@ use this account to help make software run properly on the Debian GNU/Linux
 distribution. The username for this account is '__LOGIN__'. The password can
 be found encrypted with your PGP key and appended to this message.
 
-See http://db.debian.org/machines.cgi for a list of machines that are
+See <URL:http://db.debian.org/machines.cgi> for a list of machines that are
 available. The ones marked 'public' are available to non-developers.
 
 Requests for Debian software to be installed should be directed at
