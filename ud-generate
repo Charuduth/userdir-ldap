@@ -10,7 +10,7 @@ GroupIDMap = {};
 Allowed = None;
 CurrentHost = "";
 
-EmailCheck = re.compile("^([^<>@]+@.+)?$");
+EmailCheck = re.compile("^([^ <>@]+@[^ ,<>@]+)?$");
 
 def Sanitize(Str):
   return string.translate(Str,string.maketrans("\n\r\t","$$$"));
