@@ -23,7 +23,7 @@ You have been subscribed to the debian-private mailing list as
 <__PRIVATE__>.  Please respect the privacy of that list and don't forward
 mail from it elsewhere.  E-mail to <__LOGIN__@debian.org> will be
 forwarded to <__EMAIL__>.  To change this, please see
-<URL:http://db.debian.org/forward.html>/ Also, please subscribe to 
+<URL:http://db.debian.org/forward.html> Also, please subscribe to 
 debian-devel-announce, if you haven't done so already.
 
 We strongly suggest that you use your __LOGIN__@debian.org address for
@@ -54,9 +54,6 @@ You should have read these documents before working on your packages.
   o The Debian Policy Manual
     <URL:http://www.debian.org/doc/debian-policy/>
 
-  o The Debian Packaging Manual
-    <URL:http://www.debian.org/doc/packaging-manuals/packaging.html>
-
 If you have some spare time and want to contribute it to Debian you
 may wish to take a look at the "Work-Needing and Prospective Packages
 for Debian GNU/Linux" also known as WNPP that can be found at
@@ -70,8 +67,8 @@ The machine ftp-master.debian.org is our main archive server.  Every
 uploaded package finds it's way there (except for Packages covered by US 
 crypto laws which go to non-us.debian.org) eventually. master.debian.org is 
 the home of our bug tracking system. Project web pages and CVS archives are 
-hosted on klecker.debian.org (aka cvs/www.debian.org), klecker is also our
-general shell server. Web pages should be placed in public_html on klecker 
+hosted on gluck.debian.org (aka cvs/www.debian.org), gluck is also our
+general shell server. Web pages should be placed in public_html on gluck 
 and refered to by http://people.debian.org/~__LOGIN__
 
 You should use ssh to log into the machines instead of regular telnet
