@@ -1,9 +1,15 @@
+userdir-ldap (0.2) unstable; urgency=low
+
+  * What the hey, a new version number.
+
+ -- Jason Gunthrope <jgg@debian.org>  Sun, 11 Feb 2001 18:37:27 -0800 
+
 userdir-ldap (0.1) unstable; urgency=low
 
   * Initial Packaging
 
  -- Jason Gunthrope <jgg@debian.org>  Fri, 30 Apr 1999 00:39:31 -0600
- 
+
 Local variables:
 mode: debian-changelog
 add-log-mailing-address: "jgg@debian.org"

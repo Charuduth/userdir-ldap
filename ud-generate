@@ -11,6 +11,8 @@ Allowed = None;
 CurrentHost = "";
 
 EmailCheck = re.compile("^([^ <>@]+@[^ ,<>@]+)?$");
+BSMTPCheck = re.compile(".*mx 0 klecker\.debian\.org\..*",re.DOTALL);
+DNSZone = ".debian.net"
 
 def Sanitize(Str):
   return string.translate(Str,string.maketrans("\n\r\t","$$$"));
@@ -379,13 +381,13 @@ def GenPrivate(l,File):
   Done(File,F,Fdb);
 
 # Generate the DNS Zone file
-def GenDNS(l,File):
+def GenDNS(l,File,BSMTPFile,HomePrefix):
   F = None;
-  Fdb = None;
+  FB = None;
   try:
    F = open(File + ".tmp","w");
-   Fdb = None;
-
+   FB = open(BSMTPFile + ".tmp","w");
+   
    # Fetch all the users
    global PasswdAttrs;
    if PasswdAttrs == None:
@@ -406,7 +408,13 @@ def GenDNS(l,File):
                Line = string.join(Split," ") + "\n";
                F.write(Line);
 	       
-	       # Write some identication information
+	       Host = Split[0] + DNSZone;
+	       if BSMTPCheck.match(Line) != None:
+		   F.write("; Has BSMTP\n");
+		   FB.write("%s: user=%s group=Debian file=%s%s/bsmtp/%s\n"%(Host,
+ 		               GetAttr(x,"uid"),HomePrefix,GetAttr(x,"uid"),Host));
+			       
+	       # Write some identification information
                if string.lower(Split[2]) == "a":
    	          Line = "%s IN TXT \"%s\"\n"%(Split[0],EmailAddress(x));
                   for y in x[1]["keyfingerprint"]:
@@ -418,13 +426,16 @@ def GenDNS(l,File):
 
          F.write("\n");
       except:
+	 F.write("; Errors\n");
          pass;
       
   # Oops, something unspeakable happened.
   except:
-   Die(File,F,Fdb);
+   Die(File,F,None);
+   Die(BSMTPFile,FB,None);
    raise;
-  Done(File,F,Fdb);
+  Done(File,F,None);
+  Done(BSMTPFile,FB,None);
 
 # Connect to the ldap server
 l = ldap.open(LDAPServer);
@@ -464,7 +475,6 @@ GlobalDir = GenerateDir+"/";
 GenSSHShadow(l,GlobalDir+"ssh-rsa-shadow");
 GenAllForward(l,GlobalDir+"mail-forward.cdb");
 GenMarkers(l,GlobalDir+"markers");
-GenDNS(l,GlobalDir+"dns-zone");
 GenPrivate(l,GlobalDir+"debian-private");
 
 # Compatibility.
@@ -516,7 +526,7 @@ while(1):
    DoLink(GlobalDir,OutDir,"forward-alias");
 
    if ExtraList.has_key("[DNS]"):
-      DoLink(GlobalDir,OutDir,"dns-zone");
+      GenDNS(l,OutDir+"dns-zone",OutDir+"bsmtp",Split[1]);
       
    if ExtraList.has_key("[PRIVATE]"):
       DoLink(GlobalDir,OutDir,"debian-private");
