@@ -6,5 +6,5 @@ userdir-ldap (0.1) unstable; urgency=low
  
 Local variables:
 mode: debian-changelog
-add-log-mailing-address: "doko@cs.tu-berlin.de"
+add-log-mailing-address: "jgg@debian.org"
 End:
