@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 
-# $Id: login.cgi,v 1.6 2000/05/06 06:10:05 tausq Exp $
+# $Id: login.cgi,v 1.7 2000/05/10 05:01:55 tausq Exp $
 # (c) 1999 Randolph Chung. Licensed under the GPL. <tausq@debian.org>
 
 use lib '.';
@@ -46,7 +46,7 @@ if ($mesg->code == LDAP_SUCCESS) {
   my $oldpassword = $entries->{$dn}->{userpassword}->[0];
   if ($oldpassword !~ /^{crypt}\$1\$/) {
     # Update their password to md5
-    open (LOG, ">$config{weblogfile}");
+    open (LOG, ">>$config{weblogfile}");
     print LOG scalar(localtime);
     print LOG ": Updating MD5 password for $dn\n";
     close LOG;
