@@ -15,7 +15,10 @@ itemize(
   it() passwd file [in normal and DB form]
   it() shadow file [in normal and DB form]
   it() group file [in normal and DB form]
-  it() Exim forwarding file
+  it() Exim forwarding file [cdb]
+  it() XEarth makers file
+  it() SSH authorized key file [cdb and flat]
+  it() debian.net DNS zone
 )
 
 Generation of the files is controlled by the configuration file
@@ -28,6 +31,9 @@ The format of the configuration file is a one line per host with these fields:
 verb(host homedirpath group1 group2 ...)
 Only users who are a member of the named groups or has a specific host acl 
 are emitted to the output files.
+
+The special groups bf([DNS]) and bf([PRIVATE]) control replication of the
+debian.net zone and the debian-private subscription list.
 
 Authorization to read protected entries from the directory is achieved by
 reading a username and password from the pass- file in the userdir-ldap
