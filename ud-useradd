@@ -27,7 +27,7 @@ AdminUser = pwd.getpwuid(os.getuid())[0];
 # Process options
 ForceMail = 0;
 OldGPGKeyRings = GPGKeyRings;
-GPGKeyRings = [];
+userdir_gpg.GPGKeyRings = [];
 (options, arguments) = getopt.getopt(sys.argv[1:], "u:ma")
 for (switch, val) in options:
    if (switch == '-u'):
@@ -35,7 +35,7 @@ for (switch, val) in options:
    elif (switch == '-m'):
       ForceMail = 1;
    elif (switch == '-a'):
-      GPGKeyRings = OldGPGKeyRings;
+      userdir_gpg.GPGKeyRings = OldGPGKeyRings;
 
 print "Accessing LDAP directory as '" + AdminUser + "'";
 Password = getpass(AdminUser + "'s password: ");
@@ -97,6 +97,7 @@ while 1:
       account = Res;
    Attrs = l.search_s(BaseDn,ldap.SCOPE_ONELEVEL,"uid=" + account);
    if len(Attrs) == 0:
+      privsub = "%s@debian.org"%(account);
       break;
    Res = raw_input("That account already exists, update [no]? ");
    if Res == "yes":
@@ -239,12 +240,12 @@ if Update == 1 and ForceMail == 0:
    sys.exit(0);
    
 # Do the subscription/welcome message
-if privsub != " ":
-   Sub = TemplateSubst(Subst,open(TemplatesDir+"/list-subscribe","r").read());
-   Child = os.popen("/usr/sbin/sendmail -t","w");
-   Child.write(Sub);
-   if Child.close() != None:
-       raise Error, "Sendmail gave a non-zero return code";
+#if privsub != " ":
+#   Sub = TemplateSubst(Subst,open(TemplatesDir+"/list-subscribe","r").read());
+#   Child = os.popen("/usr/sbin/sendmail -t","w");
+#   Child.write(Sub);
+#   if Child.close() != None:
+#       raise Error, "Sendmail gave a non-zero return code";
    
 # Send the Welcome message
 print "Sending Welcome Email"

@@ -20,13 +20,11 @@ familiarize yourself with the Debian Machine Usage Policy, available
 at <URL:http://www.debian.org/devel/dmup>
 
 You have been subscribed to the debian-private mailing list as
-<__PRIVATE__> (you should receive seperate confirmation of this from
-smartlist).  Please respect the privacy of that list and don't forward
+<__PRIVATE__>.  Please respect the privacy of that list and don't forward
 mail from it elsewhere.  E-mail to <__LOGIN__@debian.org> will be
-forwarded to <__EMAIL__>.  To change this, edit the file '.qmail' in
-your home directory on master to point to the new address (don't
-forget the '&' character at the beginning of the line). Also, please 
-subscribe to debian-devel-announce, if you haven't done so already.
+forwarded to <__EMAIL__>.  To change this, please see
+<URL:http://db.debian.org/forward.html>/ Also, please subscribe to 
+debian-devel-announce, if you haven't done so already.
 
 We strongly suggest that you use your __LOGIN__@debian.org address for
 the maintainer field in your packages, because that one will be valid
@@ -67,11 +65,11 @@ If you plan to make a Debian package from a not yet packaged piece of
 software you *must* announce your intention on the debian-devel mailing
 list to make sure nobody else is working on them.
 
-The machine master.debian.org is our main archive 
-server.  Every uploaded package finds it's way there (except for Packages 
-covered by US crypto laws which go to non-us.debian.org) eventually. That
-machine is also the home of our bug tracking system. Project web
-pages and CVS archives are hosted on va.debian.org (aka cvs/www.debian.org).
+The machine ftp-master.debian.org is our main archive server.  Every 
+uploaded package finds it's way there (except for Packages covered by US 
+crypto laws which go to non-us.debian.org) eventually. master.debian.org is 
+the home of our bug tracking system. Project web pages and CVS archives are 
+hosted on va.debian.org (aka cvs/www.debian.org).
 
 You should use ssh to log into the machines instead of regular telnet
 or rlogin. Our LDAP directory is able to share ssh RSA keys among machines,
