@@ -66,7 +66,8 @@ while (1):
    Keys = GPGKeySearch(Foo);
 
    if len(Keys) == 0:
-      print "Sorry, that search did not turn up any keys";
+      print "Sorry, that search did not turn up any keys."
+      print "Has it been added to the Debian keyring already?"
       continue;
    if len(Keys) > 1:
       print "Sorry, more than one key was found, please specify the key to use by\nfingerprint:";
