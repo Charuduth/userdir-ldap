@@ -42,9 +42,10 @@ AttrInfo = {"cn": ["First Name", 101],
 	    "labeledurl": ["Home Page",11],
 	    "latitude": ["Latitude",12],
 	    "longitude": ["Longitude",13],
-	    "comment": ["Comment",114],
-	    "userpassword": ["Crypted Password",115],
-            "dnszoneentry": ["d.net Entry",116]};
+	    "icqUIN": ["ICQ UIN",14],
+	    "comment": ["Comment",115],
+	    "userpassword": ["Crypted Password",116],
+            "dnszoneentry": ["d.net Entry",117]};
 
 AttrPrompt = {"cn": ["Common name or first name"],
               "mn": ["Middle name (or initial if it ends in a dot)"],
@@ -67,7 +68,8 @@ AttrPrompt = {"cn": ["Common name or first name"],
 	      "latitude": ["XEarth latitude in ISO 6709 format - see /usr/share/zoneinfo/zone.tab or etak.com"],
 	      "longitude": ["XEarth latitude in ISO 6709 format - see /usr/share/zoneinfo/zone.tab or etak.com"],
 	      "dnszoneentry": ["DNS Zone fragment associated this this user"],
-              "labeledurl": ["Web home page"]};
+              "labeledurl": ["Web home page"],
+              "icqUIN": ["ICQ UIN Number"]};
 
 # Create a map of IDs to desc,value,attr
 OrderedIndex = {};
