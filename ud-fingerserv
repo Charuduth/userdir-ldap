@@ -1,9 +1,9 @@
 #!/usr/bin/perl
-# $Id: ud-fingerserv,v 1.4 1999/10/16 21:44:30 tausq Exp $
+# $Id: ud-fingerserv,v 1.5 1999/10/16 21:50:52 tausq Exp $
 
 # (c) 1999 Randolph Chung. Licensed under the GPL. <tausq@debian.org>
 
-#use lib '/home/randolph/projects/userdir-ldap/web';
+use lib '/home/randolph/projects/userdir-ldap/web';
 use strict vars;
 #use Apache::Registry;
 use IO::Handle;
@@ -16,7 +16,7 @@ use Net::LDAP qw(:all);
 # Global settings...
 my %config = &Util::ReadConfigFile;
 my %opts;
-getopt("iqh", \%opts);
+getopts("iqh", \%opts);
 my $use_inetd = $config{use_inetd} || $opts{i}; 
 $| = 1;
 
@@ -71,7 +71,6 @@ if ($use_inetd == 0) {
     $client->close;
   }
 } else { # inetd
-  $opts{q} = 1; # Temp, until i figure out wth tcpd doesn't pass parameters to this program properly
   &log("inetd mode");
   my $sockaddr = getpeername(STDIN);
   my ($port, $addr) = unpack_sockaddr_in(getpeername(STDIN));
