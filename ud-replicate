@@ -41,5 +41,5 @@ if [ -d "/etc/exim" -a -e "$HOST/bsmtp" ]; then
 fi
 if [ -d "/etc/postfix" -a -f "$HOST/forward-alias" ]; then
 	sed -e 's/:/@debian.org/' $HOST/forward-alias > /etc/postfix/debian
-	postmap hash:/etc/postfix/debian < /etc/postfix/debian &> /dev/null || true
+	/usr/sbin/postmap hash:/etc/postfix/debian < /etc/postfix/debian || true
 fi
