@@ -249,10 +249,11 @@ if Update == 0:
               ("shadowMin","0"),
               ("shadowMax","99999"),
               ("shadowWarning","7"),
-              ("privateSub",privsub),
               ("userPassword","{crypt}"+Pass)];
    if mn:
       Details.append(("mn",mn));
+   if privsub != " ":
+      Details.append(("privateSub",privsub))
    l.add_s(Dn,Details);
 else:
    # Modification
