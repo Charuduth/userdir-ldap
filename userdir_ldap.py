@@ -29,6 +29,9 @@ userdir_gpg.SetKeyrings(string.split(ConfModule.keyrings,":"));
 # This is a list of common last-name prefixes
 LastNamesPre = {"van": None, "von": None, "le": None, "de": None, "di": None};
 
+# This is a list of common groups on Debian hosts
+DebianGroups = {"Debian": 800, "guest": 60000}
+
 # SSH Key splitting. The result is:
 # (options,size,modulous,exponent,comment)
 SSHAuthSplit = re.compile('^(.* )?(\d+) (\d+) (\d+) ?(.+)$');
@@ -356,3 +359,9 @@ def GetUID(l,Name,UnknownMap = {}):
 
    return (None,None);
 
+def Group2GID(name):
+   """Returns the numerical id of a common group"""
+   for g in DebianGroups.keys():
+      if name == g:
+         return DebianGroups[g]
+   return name
