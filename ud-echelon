@@ -1,13 +1,13 @@
 #!/usr/bin/env python
 # -*- mode: python -*-
-import userdir_gpg, userdir_ldap, sys, traceback, time, ldap, posix;
+import userdir_gpg, userdir_ldap, sys, traceback, time, ldap, posix, getopt;
 import string, pwd
 from userdir_gpg import *;
 from userdir_ldap import *;
 
 EX_TEMPFAIL = 75;
 EX_PERMFAIL = 65;      # EX_DATAERR
-Debug = "";
+Debug = None;
 
 # Try to extract a key fingerprint from a PGP siged message
 def TryGPG(Email):
@@ -16,11 +16,12 @@ def TryGPG(Email):
    if string.find(Msg[0],"-----BEGIN PGP SIGNED MESSAGE-----") == -1:
       return None;
       
-   print Msg[0];
    Res = GPGCheckSig(Msg[0]);
 
    # Failed to find a matching sig
    if Res[0] != None:
+      S = "%s: %s -> PGP Checking failed '%s': %s %s\n" %(Now,MsgID,Email.getheader("From"),str(Res[0]),str(Res[2]));
+      ErrLog.write(S);
       return None;
       
    # Search for the matching key fingerprint
@@ -53,6 +54,12 @@ def TryMatcher(Email):
       return None;
     
    return (UID[0],"FROM",Sender);
+
+# Process options
+(options, arguments) = getopt.getopt(sys.argv[1:], "dr")
+for (switch, val) in options:
+   if (switch == '-d'):
+      Debug = "";
    
 # Open the log files
 if Debug == None:

@@ -83,7 +83,12 @@ def GetClearSig(Msg):
 
       # Append the PGP boundary header and the signature text to re-form the
       # original signed block [needs to convert to \r\n]
-      Output = "-----BEGIN PGP SIGNED MESSAGE-----\r\n\r\n" + Signed.getvalue() + Signature;
+      Output = "-----BEGIN PGP SIGNED MESSAGE-----\r\n";
+      # Semi-evil hack to get the proper hash type inserted in the message
+      if Msg.getparam('micalg') != None:
+          Output = Output + "Hash: %s\r\n"%(string.upper(Msg.getparam('micalg')[4:]));
+      Output = Output + "\r\n";
+      Output = Output + Signed.getvalue() + Signature;
       return (Output,1);
    else:
       # Just return the message body
