@@ -211,6 +211,7 @@ while(1):
    if RootMode == 1:
       print "   a) Arbitary Change";
    print "   n) New Host";
+   print "   d) Delete Host";
    print "   u) Switch Hosts";
    print "   x) Exit";
    
@@ -265,6 +266,14 @@ while(1):
       ChangeAttr(Attrs[0],Attr);
       continue;
 
+   if (Response == 'd'):
+      Really = raw_input("Really (type yes)? ");
+      if Really != 'yes': 
+	  continue;
+      print "Deleting",HostDn;
+      l.delete_s(HostDn);
+      continue;
+  
    # Convert the integer response
    try:
       ID = int(Response);
