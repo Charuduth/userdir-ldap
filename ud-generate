@@ -267,7 +267,7 @@ def GenMarkers(l,File):
    if PasswdAttrs == None:
       raise "No Users";
 
-   # Write out the email address for each user
+   # Write out the position for each user
    for x in PasswdAttrs:
       if x[1].has_key("latitude") == 0 or x[1].has_key("longitude") == 0:
          continue;	 
@@ -284,6 +284,43 @@ def GenMarkers(l,File):
    raise;
   Done(File,F,Fdb);
   
+# Generate the DNS Zone file
+def GenDNS(l,File):
+  F = None;
+  Fdb = None;
+  try:
+   F = open(File + ".tmp","w");
+   Fdb = None;
+
+   # Fetch all the users
+   global PasswdAttrs;
+   if PasswdAttrs == None:
+      raise "No Users";
+
+   # Write out the zone file entry for each user
+   for x in PasswdAttrs:
+      if x[1].has_key("dnszoneentry") == 0:
+         continue;
+      try:
+         F.write("; %s\n"%(EmailAddress(x)));
+         for z in x[1]["dnszoneentry"]:
+            Split = string.split(string.lower(z));
+            for y in range(0,len(Split)):
+               if Split[y] == "$":
+                  Split[y] = "\n\t";
+	    
+            Line = string.join(Split," ") + "\n";
+            F.write(Line);
+         F.write("\n");
+      except:
+         pass;
+      
+  # Oops, something unspeakable happened.
+  except:
+   Die(F,Fdb);
+   raise;
+  Done(File,F,Fdb);
+
 # Connect to the ldap server
 l = ldap.open(LDAPServer);
 F = open(PassDir+"/pass-"+pwd.getpwuid(posix.getuid())[0],"r");
@@ -308,7 +345,7 @@ PasswdAttrs = l.search_s(BaseDn,ldap.SCOPE_ONELEVEL,"uid=*",\
                  "gecos","loginshell","userpassword","shadowlastchange",\
                  "shadowmin","shadowmax","shadowwarning","shadowinactive",
 	         "shadowexpire","emailforward","latitude","longitude",\
-                 "allowedhosts","sshrsaauthkey"]);
+                 "allowedhosts","sshrsaauthkey","dnszoneentry","cn","sn"]);
 
 # Open the control file
 if len(sys.argv) == 1:
@@ -332,7 +369,11 @@ while(1):
 
    # Get the group list and convert any named groups to numerics
    GroupList = {};
+   ExtraList = {};
    for I in Split[2:]:
+      if I[0] == '[':
+         ExtraList[I] = None;
+         continue;
       GroupList[I] = None;
       if GroupIDMap.has_key(I):
          GroupList[str(GroupIDMap[I])] = None;
@@ -347,4 +388,7 @@ while(1):
    GenSSHShadow(l,OutDir+"ssh-rsa-shadow");
    GenForward(l,OutDir+"forward-alias");
    GenMarkers(l,OutDir+"markers");
+
+   if ExtraList.has_key("[DNS]"):
+      GenDNS(l,OutDir+"dns-zone");
 

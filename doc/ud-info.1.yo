@@ -39,6 +39,8 @@ itemize(
   it() supplementarygid - A list of group names that the user belongs.
            This field emulates the functionality of the traditional Unix group
 	   file. [root]
+  it() dnszoneentry - A list of zone file fragments that are placed in
+           the zone file for debian.net. [root]
   it() allowedhosts - Permits access to hosts outside of the group list. [root]
   it() onvacation - A message indicating that the user is on vacation. The
            time of departure and expected return date should be included as

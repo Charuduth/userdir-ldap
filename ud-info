@@ -45,7 +45,8 @@ AttrInfo = {"cn": ["First Name", 101],
 	    "latitude": ["Latitude",12],
 	    "longitude": ["Longitude",13],
 	    "comment": ["Comment",114],
-	    "userpassword": ["Crypted Password",115]};
+	    "userpassword": ["Crypted Password",115],
+            "dnszoneentry": ["d.net Entry",116]};
 
 AttrPrompt = {"cn": ["Common name or first name"],
               "mn": ["Middle name (or initial if it ends in a dot)"],
@@ -67,6 +68,7 @@ AttrPrompt = {"cn": ["Common name or first name"],
               "member": ["LDAP Group Member for slapd ACLs"],
 	      "latitude": ["XEarth latitude in ISO 6709 format - see /usr/share/zoneinfo/zone.tab or etak.com"],
 	      "longitude": ["XEarth latitude in ISO 6709 format - see /usr/share/zoneinfo/zone.tab or etak.com"],
+	      "dnszoneentry": ["DNS Zone fragment associated this this user"],
               "labeledurl": ["Web home page"]};
 
 # Create a map of IDs to desc,value,attr
@@ -189,7 +191,8 @@ def ShowAttrs(Attrs):
 
 # Change a single attribute
 def ChangeAttr(Attrs,Attr):
-   if (Attr == "supplementarygid" or Attr == "allowedhosts" or Attr == "member"):
+   if (Attr == "supplementarygid" or Attr == "allowedhosts" or \
+       Attr == "member" or Attr == "dnszoneentry"):
       return MultiChangeAttr(Attrs,Attr);
 
    print "Old value: '%s'" % (GetAttr(Attrs,Attr,""));

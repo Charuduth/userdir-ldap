@@ -29,13 +29,12 @@ l = ldap.open(LDAPServer);
 UserDn = "uid=" + AdminUser + "," + BaseDn;
 l.simple_bind_s(UserDn,Password);
 
-# Read the override file into the unknown map. The override file is a list
-# of colon delimited entires mapping PGP email addresess to local users
 List = open(arguments[1],"r");
 while(1):
    Line = List.readline();
    if Line == "":
       break;
+
    Split = re.split("[:\n]",Line);
    
    Rec = [(ldap.MOD_REPLACE,arguments[0],string.strip(Split[1]))];
