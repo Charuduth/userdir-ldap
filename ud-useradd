@@ -40,12 +40,21 @@ for (switch, val) in options:
       userdir_gpg.GPGKeyRings = OldGPGKeyRings;
 
 print "Accessing LDAP directory as '" + AdminUser + "'";
-Password = getpass(AdminUser + "'s password: ");
+while (1):
+   Password = getpass(AdminUser + "'s password: ");
 
-# Connect to the ldap server
-l = ldap.open(LDAPServer);
-UserDn = "uid=" + AdminUser + "," + BaseDn;
-l.simple_bind_s(UserDn,Password);
+   if len(Password) == 0:
+      sys.exit(0)
+
+   l = ldap.open(LDAPServer);
+   UserDn = "uid=" + AdminUser + "," + BaseDn;
+
+   # Connect to the ldap server
+   try:
+      l.simple_bind_s(UserDn,Password);
+   except ldap.INVALID_CREDENTIALS:
+      continue
+   break
 
 # Locate the key of the user we are adding
 GPGBasicOptions[0] = "--batch"           # Permit loading of the config file
