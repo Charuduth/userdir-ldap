@@ -116,9 +116,9 @@ def GetClearSig(Msg,Paranoid = 0):
       Output = "-----BEGIN PGP SIGNED MESSAGE-----\r\n";
       # Semi-evil hack to get the proper hash type inserted in the message
       if Msg.getparam('micalg') != None:
-          Output = Output + "Hash: %s\r\n"%(string.upper(Msg.getparam('micalg')[4:]));
+          Output = Output + "Hash: MD5,SHA1,%s\r\n"%(string.upper(Msg.getparam('micalg')[4:]));
       Output = Output + "\r\n";
-      Output = Output +  string.replace(Signed.getvalue(),"\n---","\n- ---") + Signature;
+      Output = Output +  string.replace(Signed.getvalue(),"\n-","\n- -") + Signature;
       return (Output,1);
    else:
       if Paranoid == 0:
