@@ -4,7 +4,7 @@
 #   Copyright (c) 2000-2001  Jason Gunthorpe <jgg@debian.org>
 #   Copyright (c) 2001       Ryan Murray <rmurray@debian.org>
 #   Copyright (c) 2003       James Troup <troup@debian.org>
-#   Copyright (c) 2004       Joey Schulze <joey@infodrom.org>
+#   Copyright (c) 2004-2005  Joey Schulze <joey@infodrom.org>
 #
 #   This program is free software; you can redistribute it and/or modify
 #   it under the terms of the GNU General Public License as published by
@@ -29,8 +29,12 @@
 #    -a    Set the authentication user (the user whose password you are
 #          going to enter)
 #    -h    Set the host to display
+#    -l    list all hosts and their status
+#    -f    list all SSH fingerprints
 
 import string, time, os, pwd, sys, getopt, ldap, crypt, whrandom, readline, copy;
+from tempfile import mktemp
+from os import O_CREAT, O_EXCL, O_WRONLY
 from userdir_ldap import *;
 
 RootMode = 0;
@@ -191,11 +195,26 @@ def MultiChangeAttr(Attrs,Attr):
    Attrs[1][Attr].append(NewValue);
    print;
 
+def CalcTempFile():
+   unique = 0
+   while unique == 0:
+      name = mktemp()
+      try:
+         fd = os.open(name, O_CREAT | O_EXCL | O_WRONLY, 0600)
+      except OSError:
+         continue
+      os.close(fd)
+      unique = 1
+   return name
+
+
 # Main program starts here
 User = pwd.getpwuid(os.getuid())[0];
 BindUser = User;
+ListMode = 0
+FingerPrints = 0
 # Process options
-(options, arguments) = getopt.getopt(sys.argv[1:], "nh:a:rl")
+(options, arguments) = getopt.getopt(sys.argv[1:], "nh:a:rlf")
 for (switch, val) in options:
    if (switch == '-h'):
       Host = val;
@@ -208,6 +227,9 @@ for (switch, val) in options:
    elif (switch == '-l'):
       BindUser = "";
       ListMode = 1
+   elif (switch == '-f'):
+      BindUser = "";
+      FingerPrints = 1
 
 if (BindUser != ""):
    l = passwdAccessLDAP(LDAPServer, BaseDn, BindUser)
@@ -230,6 +252,29 @@ if ListMode == 1:
       for hAttrs in Attrs:
          if host == hAttrs[1]['host'][0]:
             Overview(hAttrs)
+   sys.exit(0)
+elif FingerPrints == 1:
+   Attrs = l.search_s(HBaseDn,ldap.SCOPE_ONELEVEL,"host=*")
+   hosts = []
+   for hAttrs in Attrs:
+      hosts.append(hAttrs[1]['host'][0])
+   hosts.sort()
+
+   tmpfile = CalcTempFile()
+   for host in hosts:
+      for hAttrs in Attrs:
+         if host == hAttrs[1]['host'][0]:
+            if 'sshRSAHostKey' in hAttrs[1].keys():
+               for key in hAttrs[1]['sshRSAHostKey']:
+                  tmp = open(tmpfile, 'w')
+                  tmp.write(key + '\n')
+                  tmp.close()
+                  fp = os.popen('/usr/bin/ssh-keygen -l -f ' + tmpfile, "r")
+                  input = fp.readline()
+                  fp.close()
+                  fingerprint = input.split(' ')
+                  print "%s %s root@%s" % (fingerprint[0], fingerprint[1], host)
+   os.unlink(tmpfile)
    sys.exit(0)
 
 HostDn = "host=" + Host + "," + HBaseDn;
