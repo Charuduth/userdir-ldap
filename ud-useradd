@@ -1,4 +1,4 @@
-y#!/usr/bin/env python
+#!/usr/bin/env python
 # -*- mode: python -*-
 
 import string, re, time, ldap, getopt, sys, os, pwd;
@@ -13,10 +13,10 @@ from userdir_gpg import *;
 def GetFreeID(l):
    HighestUID = 1400;
    Attrs = l.search_s(BaseDn,ldap.SCOPE_ONELEVEL,
-                      "uidnumber>="+str(HighestUID),["uidnumber"]);
+                      "uidnumber>="+str(HighestUID),["uidNumber"]);
    HighestUID = 0;
    for I in Attrs:
-      ID = int(GetAttr(I,"uidnumber","0"));
+      ID = int(GetAttr(I,"uidNumber","0"));
       if ID > HighestUID:
          HighestUID = ID;
    return HighestUID + 1;
@@ -76,8 +76,8 @@ email = Addr[1] + '@' + Addr[2];
 account = Addr[1];
 
 privsub = email;
-gidnumber = str(DefaultGID);
-uidnumber = 0;
+gidNumber = str(DefaultGID);
+uidNumber = 0;
 
 # Decide if we should use IDEA encryption
 UsePGP2 = 0;
@@ -89,7 +89,7 @@ while len(Keys[0][1]) < 40:
    if Res == "":
       break;
 
-Attrs = l.search_s(BaseDn,ldap.SCOPE_ONELEVEL,"keyfingerprint=" + Keys[0][1]);
+Attrs = l.search_s(BaseDn,ldap.SCOPE_ONELEVEL,"keyFingerPrint=" + Keys[0][1]);
 if len(Attrs) != 0:
    print "*** This key already belongs to",GetAttr(Attrs[0],"uid");
    account = GetAttr(Attrs[0],"uid");
@@ -108,10 +108,10 @@ while 1:
    if Res == "yes":
       # Update mode, fetch the default values from the directory
       Update = 1;
-      privsub = GetAttr(Attrs[0],"privatesub");
-      gidnumber = GetAttr(Attrs[0],"gidnumber");
-      uidnumber = GetAttr(Attrs[0],"uidnumber");
-      email = GetAttr(Attrs[0],"emailforward");
+      privsub = GetAttr(Attrs[0],"privateSub");
+      gidNumber = GetAttr(Attrs[0],"gidNumber");
+      uidNumber = GetAttr(Attrs[0],"uidNumber");
+      email = GetAttr(Attrs[0],"emailForward");
       cn = GetAttr(Attrs[0],"cn");
       sn = GetAttr(Attrs[0],"sn");
       mn = GetAttr(Attrs[0],"mn");
@@ -139,13 +139,13 @@ if Res != "":
    privsub = Res;
 
 # GID
-Res = raw_input("Group ID Number [" + gidnumber + "]? ");
+Res = raw_input("Group ID Number [" + gidNumber + "]? ");
 if Res != "":
-   gidnumber = Res;
+   gidNumber = Res;
 
 # UID
-if uidnumber == 0:
-   uidnumber = GetFreeID(l);
+if uidNumber == 0:
+   uidNumber = GetFreeID(l);
 
 # Generate a random password
 if Update == 0 or ForceMail == 1:
@@ -177,7 +177,7 @@ else:
 print "------------";
 print "Final information collected:"
 print " %s <%s@%s>:" % (FullName,account,EmailAppend);
-print "   Assigned UID:",uidnumber," GID:", gidnumber;
+print "   Assigned UID:",uidNumber," GID:", gidNumber;
 print "   Email forwarded to:",email;
 print "   Private Subscription:",privsub;
 print "   GECOS Field: \"%s,,,,\"" % (FullName);
@@ -200,15 +200,15 @@ Subst["__PASSWORD__"] = CryptedPass;
 
 # Generate the LDAP request
 Rec = [(ldap.MOD_REPLACE,"uid",account),
-       (ldap.MOD_REPLACE,"uidNumber",str(uidnumber)),
-       (ldap.MOD_REPLACE,"gidNumber",str(gidnumber)),
+       (ldap.MOD_REPLACE,"uidNumber",str(uidNumber)),
+       (ldap.MOD_REPLACE,"gidNumber",str(gidNumber)),
        (ldap.MOD_REPLACE,"gecos",FullName+",,,,"),
        (ldap.MOD_REPLACE,"loginShell","/bin/bash"),
-       (ldap.MOD_REPLACE,"keyfingerprint",Keys[0][1]),
+       (ldap.MOD_REPLACE,"keyFingerPrint",Keys[0][1]),
        (ldap.MOD_REPLACE,"cn",cn),
        (ldap.MOD_REPLACE,"mn",mn),
        (ldap.MOD_REPLACE,"sn",sn),
-       (ldap.MOD_REPLACE,"emailforward",email),
+       (ldap.MOD_REPLACE,"emailForward",email),
        (ldap.MOD_REPLACE,"shadowLastChange",str(int(time.time()/24/60/60))),
        (ldap.MOD_REPLACE,"shadowMin","0"),
        (ldap.MOD_REPLACE,"shadowMax","99999"),
@@ -216,7 +216,7 @@ Rec = [(ldap.MOD_REPLACE,"uid",account),
        (ldap.MOD_REPLACE,"shadowInactive",""),
        (ldap.MOD_REPLACE,"shadowExpire","")];
 if privsub != " ":
-   Rec.append((ldap.MOD_REPLACE,"privatesub",privsub));
+   Rec.append((ldap.MOD_REPLACE,"privateSub",privsub));
 if Pass != None:
    Rec.append((ldap.MOD_REPLACE,"userPassword","{crypt}"+Pass));
 
@@ -253,7 +253,7 @@ if Update == 1 and ForceMail == 0:
 
 # Send the Welcome message
 print "Sending Welcome Email"
-Reply = TemplateSubst(Subst,open(TemplatesDir+"/welcome-message-"+gidnumber,"r").read());
+Reply = TemplateSubst(Subst,open(TemplatesDir+"/welcome-message-"+gidNumber,"r").read());
 Child = os.popen("/usr/sbin/sendmail -t","w");
 #Child = os.popen("cat","w");
 Child.write(Reply);
