@@ -14,7 +14,7 @@ cd /tmp/
 cd /var/lib/misc || cd /var/state/glibc/ || cd /var/db/
 lockfile -r 1 -l 3600 lock
 trap "rm -f lock" exit
-case $(hostname) in
+case $HOST in
 *samosa*)
     udhost=;;
 *)
