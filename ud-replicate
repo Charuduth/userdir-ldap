@@ -21,7 +21,7 @@
 set -e
 
 # Without effect on the commandline
-if [ -z "$PS1" -o "$TERM" = "dumb" ]
+if [ -z "$TERM" -o "$TERM" = "dumb" ]
 then
     exec > /dev/null 2>&1
 else
