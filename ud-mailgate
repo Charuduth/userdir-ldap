@@ -360,7 +360,8 @@ try:
    Msg = GetClearSig(Email);
 
    ErrMsg = "Message is not PGP signed:"
-   if string.find(Msg[0],"-----BEGIN PGP SIGNED MESSAGE-----") == -1:
+   if string.find(Msg[0],"-----BEGIN PGP SIGNED MESSAGE-----") == -1 and \
+      string.find(Msg[0],"-----BEGIN PGP MESSAGE-----") == -1:
       raise Error, "No PGP signature";
    
    # Check the signature
