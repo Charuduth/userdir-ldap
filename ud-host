@@ -206,6 +206,7 @@ for (switch, val) in options:
    elif (switch == '-n'):
       BindUser = "";
    elif (switch == '-l'):
+      BindUser = "";
       ListMode = 1
 
 if (BindUser != ""):
