@@ -7,12 +7,24 @@ from userdir_ldap import *;
 
 PasswdAttrs = None;
 GroupIDMap = {};
+Allowed = None;
+CurrentHost = "";
 
 # See if this user is in the group list
-def IsInGroup(DnRecord,Allowed):
+def IsInGroup(DnRecord):
+  global Allowed,CurrentHost;
+  if Allowed == None:
+     return 1;
+
   # See if the primary group is in the list
   if Allowed.has_key(GetAttr(DnRecord,"gidnumber")) != 0:
      return 1;
+
+  # Check the host based ACL
+  if DnRecord[1].has_key("allowedhosts") != 0:
+     for I in DnRecord[1]["allowedhosts"]:
+        if CurrentHost == I:
+           return 1;
 
   # See if there are supplementary groups
   if DnRecord[1].has_key("supplementarygid") == 0:
@@ -43,7 +55,7 @@ def Done(File,F,Fdb):
     os.rename(File + ".tdb.tmp",File+".tdb");
   
 # Generate the password list
-def GenPasswd(l,File,HomePrefix,Allowed):
+def GenPasswd(l,File,HomePrefix):
   F = None;
   Fdb = None;
   try:
@@ -57,7 +69,7 @@ def GenPasswd(l,File,HomePrefix,Allowed):
 
    I = 0;
    for x in PasswdAttrs:
-      if x[1].has_key("uidnumber") == 0 or IsInGroup(x,Allowed) == 0:
+      if x[1].has_key("uidnumber") == 0 or IsInGroup(x) == 0:
          continue;
 	    
       Line = "%s:x:%s:%s:%s:%s%s:%s\n" % (GetAttr(x,"uid"),\
@@ -77,7 +89,7 @@ def GenPasswd(l,File,HomePrefix,Allowed):
   Done(File,F,Fdb);
 
 # Generate the shadow list
-def GenShadow(l,File,Allowed):
+def GenShadow(l,File):
   F = None;
   Fdb = None;
   try:
@@ -93,7 +105,7 @@ def GenShadow(l,File,Allowed):
 
    I = 0;
    for x in PasswdAttrs:
-      if x[1].has_key("uidnumber") == 0 or IsInGroup(x,Allowed) == 0:
+      if x[1].has_key("uidnumber") == 0 or IsInGroup(x) == 0:
          continue;
 	 
       Pass = GetAttr(x,"userpassword");
@@ -118,7 +130,7 @@ def GenShadow(l,File,Allowed):
   Done(File,F,Fdb);
 
 # Generate the group list
-def GenGroup(l,File,Allowed):
+def GenGroup(l,File):
   F = None;
   Fdb = None;
   try:
@@ -137,7 +149,7 @@ def GenGroup(l,File,Allowed):
 
    # Sort them into a list of groups having a set of users
    for x in PasswdAttrs:
-      if x[1].has_key("uidnumber") == 0 or IsInGroup(x,Allowed) == 0:
+      if x[1].has_key("uidnumber") == 0 or IsInGroup(x) == 0:
          continue;
       if x[1].has_key("supplementarygid") == 0:
          continue;
@@ -170,7 +182,7 @@ def GenGroup(l,File,Allowed):
   Done(File,F,Fdb);
 
 # Generate the email forwarding list
-def GenForward(l,File,Allowed):
+def GenForward(l,File):
   F = None;
   Fdb = None;
   try:
@@ -186,7 +198,7 @@ def GenForward(l,File,Allowed):
 
    # Write out the email address for each user
    for x in PasswdAttrs:
-      if x[1].has_key("emailforward") == 0 or IsInGroup(x,Allowed) == 0:
+      if x[1].has_key("emailforward") == 0 or IsInGroup(x) == 0:
          continue;
       Line = "%s: %s\n" % (GetAttr(x,"uid"),GetAttr(x,"emailforward"));
       F.write(Line);
@@ -248,7 +260,8 @@ PasswdAttrs = l.search_s(BaseDn,ldap.SCOPE_ONELEVEL,"uid=*",\
                 ["uid","uidnumber","gidnumber","supplementarygid",\
                  "gecos","loginshell","userpassword","shadowlastchange",\
                  "shadowmin","shadowmax","shadowwarning","shadowinactive",
-	         "shadowexpire","emailforward","latitude","longitude"]);
+	         "shadowexpire","emailforward","latitude","longitude",\
+                 "allowedhosts"]);
 
 # Open the control file
 if len(sys.argv) == 1:
@@ -277,9 +290,13 @@ while(1):
       if GroupIDMap.has_key(I):
          GroupList[str(GroupIDMap[I])] = None;
 
-   GenPasswd(l,OutDir+"passwd",Split[1],GroupList);
-   GenGroup(l,OutDir+"group",GroupList);
-   GenShadow(l,OutDir+"shadow",GroupList);
-   GenForward(l,OutDir+"forward-alias",GroupList);
+   global Allowed,CurrentHost;
+   Allowed = GroupList;
+   CurrentHost = Split[0];
+
+   GenPasswd(l,OutDir+"passwd",Split[1]);
+   GenGroup(l,OutDir+"group");
+   GenShadow(l,OutDir+"shadow");
+   GenForward(l,OutDir+"forward-alias");
    GenMarkers(l,OutDir+"markers");
 

@@ -36,6 +36,8 @@ AttrInfo = {"cn": ["First Name", 101],
 	    "uid": ["Unix User ID",0],
 	    "loginshell": ["Unix Shell",7],
 	    "supplementarygid": ["Unix Groups",0],
+	    "allowedhosts": ["Host ACL",0],
+	    "member": ["LDAP Group",0],
 	    "emailforward": ["Email Forwarding",8],
 	    "ircnick": ["IRC Nickname",9],
 	    "onvacation": ["Vacation Message",10],
@@ -61,6 +63,8 @@ AttrPrompt = {"cn": ["Common name or first name"],
               "userpassword": ["The users Crypt'd password"],
               "comment": ["Admin Comment about the account"],
               "supplementarygid": ["Groups the user is in"],
+	      "allowedhosts": ["Grant access to certain hosts"],
+              "member": ["LDAP Group Member for slapd ACLs"],
 	      "latitude": ["XEarth latitude in ISO 6709 format - see /usr/share/zoneinfo/zone.tab or etak.com"],
 	      "longitude": ["XEarth latitude in ISO 6709 format - see /usr/share/zoneinfo/zone.tab or etak.com"],
               "labeledurl": ["Web home page"]};
@@ -167,7 +171,7 @@ def ShowAttrs(Attrs):
 
 # Change a single attribute
 def ChangeAttr(Attrs,Attr):
-   if (Attr == "supplementarygid"):
+   if (Attr == "supplementarygid" or Attr == "allowedhosts" or Attr == "member"):
       return MultiChangeAttr(Attrs,Attr);
 
    print "Old value: '%s'" % (GetAttr(Attrs,Attr,""));
@@ -272,9 +276,14 @@ UserDn = "uid=" + User + "," + BaseDn;
 
 # Enable changing of supplementary gid's
 if (RootMode == 1):
-   AttrInfo["supplementarygid"][1] = 100;
-   OrderedIndex[AttrInfo["supplementarygid"][1]] = [AttrInfo["supplementarygid"][0], "","supplementarygid"];
-   OrigOrderedIndex[AttrInfo["supplementarygid"][1]] = [AttrInfo["supplementarygid"][0], "","supplementarygid"];
+   # Items that root can edit
+   list = ["supplementarygid","allowedhosts","member"];
+   Count = 0;
+   for x in list:
+      AttrInfo[x][1] = 200 + Count;
+      OrderedIndex[AttrInfo[x][1]] = [AttrInfo[x][0], "",x];
+      OrigOrderedIndex[AttrInfo[x][1]] = [AttrInfo[x][0], "",x];
+      Count = Count + 1;
 
 # Query the server for all of the attributes
 Attrs = l.search_s(BaseDn,ldap.SCOPE_ONELEVEL,"uid=" + User);
