@@ -89,11 +89,11 @@ def DoPasswd(l,Passwd):
       if (DoAdd == 1):
          try:
             l.add_s(Dn,[("uid",Split[0]),
-                        ("objectclass","top"),
-                        ("objectclass","account"),
-                        ("objectclass","posixAccount"),
-                        ("objectclass","shadowAccount"),
-                        ("objectclass","debiandeveloper")]);
+                        ("objectClass","top"),
+                        ("objectClass","account"),
+                        ("objectClass","posixAccount"),
+                        ("objectClass","shadowAccount"),
+                        ("objectClass","debiandeveloper")]);
          except ldap.ALREADY_EXISTS:
             print "exists",;
 
@@ -162,7 +162,7 @@ def DoGroup(l,Group):
 
       # Iterate over the membership list and add the membership information
       # To the directory
-      Rec = [(ldap.MOD_ADD,"supplementarygid",Split[0])];
+      Rec = [(ldap.MOD_ADD,"supplementaryGid",Split[0])];
       Counter = 0;
       for x in Members:
 	 if x == "":
@@ -191,8 +191,8 @@ def DoGroup(l,Group):
       if (DoAdd == 1):
          try:
             l.add_s(Dn,[("gid",Split[0]),
-                        ("objectclass","top"),
-                        ("objectclass","posixGroup")]);
+                        ("objectClass","top"),
+                        ("objectClass","posixGroup")]);
          except ldap.ALREADY_EXISTS:
             print "exists",;
 

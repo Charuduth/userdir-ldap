@@ -9,15 +9,15 @@ from userdir_ldap import *;
 
 def ShowDups(Attrs,Len):
    for x in Attrs:
-      if x[1].has_key("keyfingerprint") == 0:
+      if x[1].has_key("keyFingerPrint") == 0:
          continue;
 	 
       Count = 0;
-      for I in x[1]["keyfingerprint"]:
+      for I in x[1]["keyFingerPrint"]:
          if len(I) == Len:
             Count = Count + 1;
       if Count > 1:
-         for I in x[1]["keyfingerprint"]:
+         for I in x[1]["keyFingerPrint"]:
            if len(I) == Len:
               print "%s: %s" % (EmailAddress(x),I);
 
@@ -35,48 +35,48 @@ l = ldap.open(LDAPServer);
 l.simple_bind_s("","");
 
 if arguments[0] == "nokey":
-   Attrs = l.search_s(BaseDn,ldap.SCOPE_ONELEVEL,"(!(keyfingerprint=*))",\
-           ["uid","cn","sn","emailforward","comment"]);
+   Attrs = l.search_s(BaseDn,ldap.SCOPE_ONELEVEL,"(!(keyFingerPrint=*))",\
+           ["uid","cn","sn","emailForward","comment"]);
    Attrs.sort();
    for x in Attrs:
       print "Key Missing:",EmailAddress(x);
-      if GetAttr(x,"emailforward") != "":
-         print "  ->",GetAttr(x,"emailforward");
+      if GetAttr(x,"emailForward") != "":
+         print "  ->",GetAttr(x,"emailForward");
       if GetAttr(x,"comment") != "":
          print "  :",GetAttr(x,"comment");
 
 if arguments[0] == "noforward":
-   Attrs = l.search_s(BaseDn,ldap.SCOPE_ONELEVEL,"(!(emailforward=*))",\
-           ["uid","cn","sn","emailforward","comment"]);
+   Attrs = l.search_s(BaseDn,ldap.SCOPE_ONELEVEL,"(!(emailForward=*))",\
+           ["uid","cn","sn","emailForward","comment"]);
    Attrs.sort();
    for x in Attrs:
       print "No Forward:",EmailAddress(x);
 
 if arguments[0] == "badpriv":
-   Attrs = l.search_s(BaseDn,ldap.SCOPE_ONELEVEL,"(&(!(keyfingerprint=*))(privatesub=*))",\
-           ["uid","cn","sn","privatesub"]);
+   Attrs = l.search_s(BaseDn,ldap.SCOPE_ONELEVEL,"(&(!(keyFingerPrint=*))(privateSub=*))",\
+           ["uid","cn","sn","privateSub"]);
    Attrs.sort();
    for x in Attrs:
-      print EmailAddress(x)+": "+GetAttr(x,"privatesub");
+      print EmailAddress(x)+": "+GetAttr(x,"privateSub");
 
 if arguments[0] == "nopriv":
-   Attrs = l.search_s(BaseDn,ldap.SCOPE_ONELEVEL,"(&(keyfingerprint=*)(!(privatesub=*)))",\
-           ["uid","cn","sn","privatesub"]);
+   Attrs = l.search_s(BaseDn,ldap.SCOPE_ONELEVEL,"(&(keyFingerPrint=*)(!(privateSub=*)))",\
+           ["uid","cn","sn","privateSub"]);
    Attrs.sort();
    for x in Attrs:
-      print "  ",EmailAddress(x)+": "+GetAttr(x,"privatesub");
+      print "  ",EmailAddress(x)+": "+GetAttr(x,"privateSub");
 
 if arguments[0] == "keymap":
    Attrs = l.search_s(BaseDn,ldap.SCOPE_ONELEVEL,"uid=*",\
-           ["uid","cn","sn","keyfingerprint"]);
+           ["uid","cn","sn","keyFingerPrint"]);
    Attrs.sort();
    for x in Attrs:
-      if x[1].has_key("keyfingerprint"):
-         for I in x[1]["keyfingerprint"]:
+      if x[1].has_key("keyFingerPrint"):
+         for I in x[1]["keyFingerPrint"]:
            print "%s: %s" % (EmailAddress(x),I);
 
 if arguments[0] == "devcount":
-   Attrs = l.search_s(BaseDn,ldap.SCOPE_ONELEVEL,"(&(keyfingerprint=*)(gidnumber=800))",\
+   Attrs = l.search_s(BaseDn,ldap.SCOPE_ONELEVEL,"(&(keyFingerPrint=*)(gidNumber=800))",\
            ["uid"]);
    Count = 0;
    for x in Attrs:
@@ -85,7 +85,7 @@ if arguments[0] == "devcount":
 
 if arguments[0] == "echelon":
    Attrs = l.search_s(BaseDn,ldap.SCOPE_ONELEVEL,\
-   "(&(|(activity-pgp=*)(activity-from=*))(&(keyfingerprint=*)(gidnumber=800)))",\
+   "(&(|(activity-pgp=*)(activity-from=*))(&(keyFingerPrint=*)(gidNumber=800)))",\
            ["activity-pgp","activity-from"]);
    Count = 0;
    PGPCount = 0;
@@ -97,21 +97,21 @@ if arguments[0] == "echelon":
 
 if arguments[0] == "missing":
    Attrs = l.search_s(BaseDn,ldap.SCOPE_ONELEVEL,\
-   "(&(!(|(activity-pgp=*)(activity-from=*)))(&(keyfingerprint=*)(gidnumber=800)))",\
+   "(&(!(|(activity-pgp=*)(activity-from=*)))(&(keyFingerPrint=*)(gidNumber=800)))",\
            ["uid","cn","sn","mn"]);
    Attrs.sort();
    for x in Attrs:
       print EmailAddress(x);
 
 if arguments[0] == "keystat":
-   Attrs = l.search_s(BaseDn,ldap.SCOPE_ONELEVEL,"keyfingerprint=*",\
-           ["keyfingerprint"]);
+   Attrs = l.search_s(BaseDn,ldap.SCOPE_ONELEVEL,"keyFingerPrint=*",\
+           ["keyFingerPrint"]);
    KeyCount = 0;
    GPGCount = 0;
    for x in Attrs:
-      if x[1].has_key("keyfingerprint"):
+      if x[1].has_key("keyFingerPrint"):
          KeyCount = KeyCount + 1;
-         for I in x[1]["keyfingerprint"]:
+         for I in x[1]["keyFingerPrint"]:
            if len(I) == 40:
               GPGCount = GPGCount + 1;
               break;
@@ -119,7 +119,7 @@ if arguments[0] == "keystat":
 
 if arguments[0] == "multikeys":
    Attrs = l.search_s(BaseDn,ldap.SCOPE_ONELEVEL,"uid=*",\
-           ["uid","cn","sn","keyfingerprint"]);
+           ["uid","cn","sn","keyFingerPrint"]);
    Attrs.sort();
    
    

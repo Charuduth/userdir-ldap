@@ -10,7 +10,7 @@ def PassCheck(l,File,HomePrefix):
    
    # Fetch all the users and generate a map out of them
    Attrs = l.search_s(BaseDn,ldap.SCOPE_ONELEVEL,"uid=*",\
-           ["uid","uidnumber","gidnumber","loginshell"]);
+           ["uid","uidNumber","gidNumber","loginShell"]);
    UIDMap = {};
    for x in Attrs:
       if x[1].has_key("uid") == 0:
@@ -30,11 +30,11 @@ def PassCheck(l,File,HomePrefix):
 
       Ats = UIDMap[Split[0]];
       Miss = [];
-      if Ats.has_key("uidnumber") and Ats["uidnumber"][0] != Split[2]: 
+      if Ats.has_key("uidNumber") and Ats["uidNumber"][0] != Split[2]: 
 	  Miss.append("UID");
-      if Ats.has_key("uidnumber") and Ats["gidnumber"][0] != Split[3]: 
+      if Ats.has_key("uidNumber") and Ats["gidNumber"][0] != Split[3]: 
 	  Miss.append("GID");
-      if Ats.has_key("homedirectory") and \
+      if Ats.has_key("homeDirectory") and \
          split[5] != HomePrefix + Split[0]:
          Miss.append("Home");
       if len(Miss) != 0:

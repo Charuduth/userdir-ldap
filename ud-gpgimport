@@ -63,22 +63,22 @@ else:
 # Download the existing key list and put it into a map
 print "Fetching key list..",
 sys.stdout.flush();
-Attrs = l.search_s(BaseDn,ldap.SCOPE_ONELEVEL,"keyfingerprint=*",["keyfingerprint","uid"]);
+Attrs = l.search_s(BaseDn,ldap.SCOPE_ONELEVEL,"keyFingerPrint=*",["keyFingerPrint","uid"]);
 KeyMap = {};
 KeyCount = {};
 for x in Attrs:
   try:
      # Sense a bad fingerprint.. Slapd has problems, it will store a null
      # value that ldapsearch doesn't show up.. detect and remove
-     if len(x[1]["keyfingerprint"]) == 0 or x[1]["keyfingerprint"][0] == "":
+     if len(x[1]["keyFingerPrint"]) == 0 or x[1]["keyFingerPrint"][0] == "":
        print;
        print "Fixing bad fingerprint for",x[1]["uid"][0],
        sys.stdout.flush();
        if NoAct == 0:
          l.modify_s("uid="+x[1]["uid"][0]+","+BaseDn,\
-                     [(ldap.MOD_DELETE,"keyfingerprint",None)]);
+                     [(ldap.MOD_DELETE,"keyFingerPrint",None)]);
      else:
-       for I in x[1]["keyfingerprint"]:
+       for I in x[1]["keyFingerPrint"]:
          KeyMap[I] = [x[1]["uid"][0],0];
          if KeyCount.has_key(x[1]["uid"][0]):
             KeyCount[x[1]["uid"][0]] = KeyCount[x[1]["uid"][0]] + 1;
@@ -144,7 +144,7 @@ while(1):
       continue;
 
    UID = UID[0]
-   Rec = [(ldap.MOD_ADD,"keyfingerprint",Split2[9])];
+   Rec = [(ldap.MOD_ADD,"keyFingerPrint",Split2[9])];
    Dn = "uid=" + UID + "," + BaseDn;
    print "Adding key 0x"+Split2[9],"to",UID;
    if KeyCount.has_key(UID):
@@ -179,5 +179,5 @@ for x in KeyMap.keys():
             print "**",KeyMap[x][0],"no longer has any keys";
       if NoAct == 0:
          l.modify_s("uid="+KeyMap[x][0]+","+BaseDn,\
-                     [(ldap.MOD_DELETE,"keyfingerprint",x)]);
+                     [(ldap.MOD_DELETE,"keyFingerPrint",x)]);
       
