@@ -190,8 +190,8 @@ def HandleChange(Reply,DnRecord,Key):
            Show = 1;
 	   Res = "OK";
          else:
-            Res = DoPosition(Line,Attrs) or DoDNS(Line,Attrs,DnRecord) or \ 
-                  DoArbChange(Line,Attrs) or DoSSH(Line,Attrs);
+           Res = DoPosition(Line,Attrs) or DoDNS(Line,Attrs,DnRecord) or \
+                 DoArbChange(Line,Attrs) or DoSSH(Line,Attrs);
       except:
          Res = None;
          Result = Result + "==> %s: %s\n" %(sys.exc_type,sys.exc_value);
