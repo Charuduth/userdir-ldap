@@ -29,9 +29,10 @@ debian-devel-announce, if you haven't done so already.
 We strongly suggest that you use your __LOGIN__@debian.org address for
 the maintainer field in your packages, because that one will be valid
 as long as you are a Debian developer, even if you change jobs, leave
-university or change Internet Service providers.  If you do so, please 
-add that address to your PGP/GPG key(s) (using `gpg --edit-key 
-"YOUR USER ID"') and send it to <keyring-maint@debian.org>.
+university or change Internet Service providers.  If you do so, please
+add that address to your PGP/GPG key(s) (using `gpg --edit-key "YOUR
+USER ID"') and send it to the keyring server at keyring.debian.org
+with `gpg --keyserver keyring.debian.org --send-keys "YOUR USER ID"'.
 
 You can find more information useful to developers at
 <URL:http://www.debian.org/devel/> (in particular, see the subsection
