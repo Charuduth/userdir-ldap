@@ -214,3 +214,29 @@ def FormatSSHAuth(Str):
    if G[0] == None:
       return "%s %s %s..%s %s"%(G[1],G[2],G[3][:8],G[3][-8:],G[4]);
    return "%s %s %s %s..%s %s"%(G[0],G[1],G[2],G[3][:8],G[3][-8:],G[4]);
+
+def FormatPGPKey(Str):
+   Res = "";
+
+   # PGP 2.x Print
+   if (len(Str) == 32):
+      I = 0;
+      while (I < len(Str)):
+         if I+2 == 32/2:
+            Res = "%s %s%s "%(Res,Str[I],Str[I+1]);
+         else:
+            Res = "%s%s%s "%(Res,Str[I],Str[I+1]);
+         I = I + 2;
+   elif (len(Str) == 40):
+      # OpenPGP Print
+      I = 0;
+      while (I < len(Str)):
+         if I+4 == 40/2:
+            Res = "%s %s%s%s%s "%(Res,Str[I],Str[I+1],Str[I+2],Str[I+3]);
+         else:
+            Res = "%s%s%s%s%s "%(Res,Str[I],Str[I+1],Str[I+2],Str[I+3]);
+         I = I + 4;
+   else:
+      Res = Str;
+   return Res;
+  

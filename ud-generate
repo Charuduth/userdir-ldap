@@ -305,12 +305,23 @@ def GenDNS(l,File):
          F.write("; %s\n"%(EmailAddress(x)));
          for z in x[1]["dnszoneentry"]:
             Split = string.split(string.lower(z));
-            for y in range(0,len(Split)):
-               if Split[y] == "$":
-                  Split[y] = "\n\t";
-	    
-            Line = string.join(Split," ") + "\n";
-            F.write(Line);
+	    if string.lower(Split[1]) == 'in':
+               for y in range(0,len(Split)):
+                  if Split[y] == "$":
+                     Split[y] = "\n\t";
+               Line = string.join(Split," ") + "\n";
+               F.write(Line);
+	       
+	       # Write some identication information
+               if string.lower(Split[2]) != "cname":
+   	          Line = "%s IN TXT \"%s\"\n"%(Split[0],EmailAddress(x));
+                  for y in x[1]["keyfingerprint"]:
+  	             Line = Line + "%s IN TXT \"PGP %s\"\n"%(Split[0],FormatPGPKey(y));
+                  F.write(Line);
+	    else:
+               Line = "; Err %s"%(str(Split));
+               F.write(Line);
+
          F.write("\n");
       except:
          pass;
@@ -345,7 +356,8 @@ PasswdAttrs = l.search_s(BaseDn,ldap.SCOPE_ONELEVEL,"uid=*",\
                  "gecos","loginshell","userpassword","shadowlastchange",\
                  "shadowmin","shadowmax","shadowwarning","shadowinactive",
 	         "shadowexpire","emailforward","latitude","longitude",\
-                 "allowedhosts","sshrsaauthkey","dnszoneentry","cn","sn"]);
+                 "allowedhosts","sshrsaauthkey","dnszoneentry","cn","sn",\
+	         "keyfingerprint"]);
 
 # Open the control file
 if len(sys.argv) == 1:

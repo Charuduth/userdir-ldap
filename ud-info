@@ -121,26 +121,7 @@ def PrintKeys(Attrs):
          First = 1;
       else:
          print "%-24s:" % (""),
-
-      # PGP Print
-      if (len(x) == 32):
-         I = 0;
-         while (I < len(x)):
-            print x[I]+x[I+1],
-            I = I + 2;
-            if I == 32/2:
-               print "",
-      elif (len(x) == 40):
-         # GPG Print
-         I = 0;
-         while (I < len(x)):
-            print x[I]+x[I+1]+x[I+2]+x[I+3],
-            I = I + 4;
-            if I == 40/2:
-               print "",
-      else:
-         print x,
-      print;
+      print FormatPGPKey(x);
 
 # Print the SSH RSA Authentication keys for a user
 def PrintSshRSAKeys(Attrs):
