@@ -83,6 +83,20 @@ if arguments[0] == "devcount":
       Count = Count + 1;
    print "There are",Count,"developers as of",time.strftime("%a, %d %b %Y %H:%M:%S +0000",time.gmtime(time.time()));
 
+if arguments[0] == "keystat":
+   Attrs = l.search_s(BaseDn,ldap.SCOPE_ONELEVEL,"keyfingerprint=*",\
+           ["keyfingerprint"]);
+   KeyCount = 0;
+   GPGCount = 0;
+   for x in Attrs:
+      if x[1].has_key("keyfingerprint"):
+         KeyCount = KeyCount + 1;
+         for I in x[1]["keyfingerprint"]:
+           if len(I) == 40:
+              GPGCount = GPGCount + 1;
+              break;
+   print "There are",KeyCount,"accounts with PGP2/5 keys and",GPGCount,"of them have PGP5 keys";
+
 if arguments[0] == "multikeys":
    Attrs = l.search_s(BaseDn,ldap.SCOPE_ONELEVEL,"uid=*",\
            ["uid","cn","sn","keyfingerprint"]);
