@@ -54,6 +54,8 @@ mv -f shadow.db.t shadow.db
 mv -f group.db.t group.db
 ln -sf "$HOST/ssh-rsa-shadow" .
 ln -sf "$HOST/ssh_known_hosts" .
+ln -sf `pwd -P`/ssh-rsa-shadow /etc/ssh
+ln -sf `pwd -P`/ssh_known_hosts /etc/ssh
 
 if [ -x /usr/bin/dchroot ]; then
 	CHROOTS=`dchroot --listpaths`
@@ -69,8 +71,8 @@ if [ -x /usr/bin/dchroot ]; then
 			chroot "$c" makedb "/var/lib/misc/$HOST/group.tdb" -o /var/lib/misc/group.db.t
 			mv -f "$c/var/lib/misc/passwd.db.t" "$c/var/lib/misc/passwd.db"
 			mv -f "$c/var/lib/misc/group.db.t" "$c/var/lib/misc/group.db"
-			ln -sf "$c/var/lib/misc/$HOST/ssh-rsa-shadow" "$c/var/lib/misc/"
 			ln -sf "$c/var/lib/misc/$HOST/ssh_known_hosts" "$c/var/lib/misc/"
+			ln -sf ../../var/lib/misc/ssh_known_hosts "$c/etc/ssh"
 	done
 fi
 
