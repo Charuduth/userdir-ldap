@@ -3,10 +3,11 @@
 # Made with the aid of debmake, by Christoph Lameter,
 # based on the sample debian/rules file for GNU hello by Ian Jackson.
 
-package=userdir-ldap
-pyversion=1.5
-i=./debian/tmp
-pysite=usr/lib/python$(pyversion)/site-packages
+PYTHON:=/usr/bin/python
+package:=userdir-ldap
+pyversion:=`$(PYTHON) -c 'import sys; print sys.version[:3]'`
+i:=./debian/tmp
+pysite:=usr/lib/python$(pyversion)/site-packages
 
 build:
 	dh_testdir
@@ -59,6 +60,7 @@ binary-indep: build
 	dh_fixperms --exclude=web-cookies
 	dh_compress
 	dh_installdeb
+	$(PYTHON) debian/python-dep >> debian/substvars
 	dh_gencontrol
 #	dh_makeshlibs
 	dh_md5sums
