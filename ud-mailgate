@@ -136,7 +136,7 @@ def DoDel(Str,Attrs):
    if Match == None:
       return None;
    G = Match.groups();
- 
+
    attrName = G[0].lower();
    for i in DelItems.keys():
       if i.lower() == attrName:
@@ -402,7 +402,6 @@ try:
    Rply = RC.Check(Res[1]);
    if Rply != None:
       raise Error, Rply;
-   RC.Add(Res[1]);
 
    # Connect to the ldap server
    ErrType = EX_TEMPFAIL;
@@ -413,13 +412,16 @@ try:
 
    # Search for the matching key fingerprint
    Attrs = l.search_s(BaseDn,ldap.SCOPE_ONELEVEL,"keyFingerPrint=" + Res[2][1]);
+
+   ErrType = EX_PERMFAIL;
    if len(Attrs) == 0:
       raise Error, "Key not found"
    if len(Attrs) != 1:
       raise Error, "Oddly your key fingerprint is assigned to more than one account.."
 
+   RC.Add(Res[1]);
+
    # Determine the sender address
-   ErrType = EX_PERMFAIL;
    ErrMsg = "A problem occured while trying to formulate the reply";
    Sender = Email.getheader("Reply-To");
    if Sender == None:
