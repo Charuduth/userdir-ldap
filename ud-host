@@ -213,6 +213,7 @@ User = pwd.getpwuid(os.getuid())[0];
 BindUser = User;
 ListMode = 0
 FingerPrints = 0
+Host = None
 # Process options
 (options, arguments) = getopt.getopt(sys.argv[1:], "nh:a:rlf")
 for (switch, val) in options:
