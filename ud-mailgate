@@ -180,14 +180,14 @@ def DoSSH(Str,Attrs):
 #  host in a 12.12.12.12
 #  host in cname foo.bar.    <- Trailing dot is required
 def DoDNS(Str,Attrs,DnRecord):
-   cname = re.match("^[\w-]+\s+in\s+cname\s+[\w.\-]+\.$",Str,re.IGNORECASE);
-   if re.match('^[\w-]+\s+in\s+a\s+\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$',\
+   cname = re.match("^[-\w]+\s+in\s+cname\s+[-\w.]+\.$",Str,re.IGNORECASE);
+   if re.match('^[-\w]+\s+in\s+a\s+\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$',\
         Str,re.IGNORECASE) == None and cname == None and \
-      re.match("^[\w-]+\s+in\s+mx\s+\d{1,3}\s+[\w.\-]+\.$",Str,re.IGNORECASE) == None:
+      re.match("^[-\w]+\s+in\s+mx\s+\d{1,3}\s+[-\w.]+\.$",Str,re.IGNORECASE) == None:
      return None;     
 
    # Check if the name is already taken
-   G = re.match('^([\w-+]+)\s',Str).groups();
+   G = re.match('^([-\w+]+)\s',Str).groups();
 
    # Check for collisions
    global l;
