@@ -60,7 +60,7 @@ You should have read these documents before working on your packages.
 If you have some spare time and want to contribute it to Debian you
 may wish to take a look at the "Work-Needing and Prospective Packages
 for Debian GNU/Linux" also known as WNPP that can be found at
-<URL:http://ftp.debian.org/debian/doc/package-developer/prospective-packages.html>
+<URL:http://www.debian.org/devel/wnpp/>
 
 If you plan to make a Debian package from a not yet packaged piece of
 software you *must* announce your intention on the debian-devel mailing
