@@ -16,4 +16,9 @@ mv -f passwd.db.t passwd.db
 mv -f shadow.db.t shadow.db
 mv -f group.db.t group.db
 ln -sf $HOST/ssh-rsa-shadow . > /dev/null 2>&1
-ln -sf $HOST/ssh-dsa-shadow . > /dev/null 2>&1
+ln -sf $HOST/ssh_known_hosts . > /dev/null 2>&1
+if [ -e $HOST/bsmtp ]; then
+	if perl -e 'exit !((stat "/etc/exim/bsmtp")[9] < time()-3600)'; then
+		cp $HOST/bsmtp /etc/exim/bsmtp
+	fi
+fi
