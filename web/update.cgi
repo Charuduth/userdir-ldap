@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 
-# $Id: update.cgi,v 1.2 1999/09/26 01:20:39 tausq Exp $
+# $Id: update.cgi,v 1.3 1999/10/23 04:01:44 tausq Exp $
 # (c) 1999 Randolph Chung. Licensed under the GPL. <tausq@debian.org>
 
 use lib '.';
@@ -77,6 +77,9 @@ if (!($query->param('doupdate'))) {
   $data{staddress} = $entry->{postaladdress}->[0];
   $data{staddress} =~ s/\$/\n/;
   $data{countryname} = &Util::LookupCountry($data{c});
+  if ($data{labeledurl} !~ /^https?:\/\//i) {
+    &Util::HTMLError("Malformed URL entered");
+  }
   
   $data{email} = join(", ", @{$entry->{emailforward}});  
 
