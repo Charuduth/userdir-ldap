@@ -1,0 +1,160 @@
+#!/usr/bin/env python
+# -*- mode: python -*-
+#
+# Check PGP signed emails
+#
+# This script verifies the signature on incoming mail for a couple of things
+#   - That the signature is valid, recent and is not replay
+#   - The signer is in the LDAP directory and is in the right group
+#   - The message contains no extra text that is not signed.
+#
+# Options:
+#  -r  Replay cache file, if unset replay checking is disabled
+#  -k  Colon seperated list of keyrings to use
+#  -d  LDAP search base DN
+#  -l  LDAP server
+#  -g  supplementary group membership
+#  -p  File of Phrases that must be in the plaintext.
+#  -m  Disallow PGP/MIME
+
+# Typical Debian invokation may look like:
+# ./gpgwrapper -k /usr/share/keyrings/debian-keyring.gpg:/usr/share/keyrings/debian-keyring.pgp \
+#      -d ou=users,dc=debian,dc=org -l db.debian.org \
+#      -m debian.org -a admin@db.debian.org \
+#      -e /etc/userdir-ldap/templtes/error-reply -- test.sh
+
+import sys, traceback, time, os;
+import string, pwd, getopt;
+from userdir_gpg import *;
+
+EX_TEMPFAIL = 75;
+EX_PERMFAIL = 65;      # EX_DATAERR
+Error = 'Message Error';
+
+# Configuration
+ReplayCacheFile = None;
+LDAPDn = None;
+LDAPServer = None;
+GroupMember = None;
+Phrases = None;
+AllowMIME = 1;
+
+# Match the key fingerprint against an LDAP directory
+def CheckLDAP(FingerPrint):
+   import ldap;
+   
+   # Connect to the ldap server
+   global ErrTyp, ErrMsg;
+   ErrType = EX_TEMPFAIL;
+   ErrMsg = "An error occured while performing the LDAP lookup:";
+   global l;
+   l = ldap.open(LDAPServer);
+   l.simple_bind_s("","");
+
+   # Search for the matching key fingerprint
+   Attrs = l.search_s(LDAPDn,ldap.SCOPE_ONELEVEL,"keyfingerprint=" + FingerPrint);
+   if len(Attrs) == 0:
+      raise Error, "Key not found"
+   if len(Attrs) != 1:
+      raise Error, "Oddly your key fingerprint is assigned to more than one account.."
+
+   # See if the group membership is OK
+   if GroupMember != None:
+      Hit = 0;
+      for x in Attrs[0][1].get("supplementarygid",[]):
+         if x == GroupMember:
+	   Hit = 1;
+      if Hit != 1:
+	  raise Error, "You don't have %s group permissions."%(GroupMember);
+   
+# Start of main program
+# Process options
+(options, arguments) = getopt.getopt(sys.argv[1:], "r:k:d:l:g:mp:");
+for (switch, val) in options:
+   if (switch == '-r'):
+      ReplayCacheFile = val;
+   elif (switch == '-k'):
+      SetKeyrings(string.split(val,":"));
+   elif (switch == '-d'):
+      LDAPDn = val;
+   elif (switch == '-l'):
+      LDAPServer = val;
+   elif (switch == '-g'):
+      GroupMember = val;
+   elif (switch == '-m'):
+      AllowMIME = 0;
+   elif (switch == '-p'):
+      Phrases = val;
+      
+Now = time.strftime("%a, %d %b %Y %H:%M:%S",time.gmtime(time.time()));
+ErrMsg = "Indeterminate Error";
+ErrType = EX_TEMPFAIL;
+MsgID = None;
+try:
+   # Startup the replay cache
+   ErrType = EX_TEMPFAIL;
+   if ReplayCacheFile != None:
+      ErrMsg = "Failed to initialize the replay cache:";
+      RC = ReplayCache(ReplayCacheFile);
+      RC.Clean();
+   
+   # Get the email 
+   ErrType = EX_PERMFAIL;
+   ErrMsg = "Failed to understand the email or find a signature:";
+   Email = mimetools.Message(sys.stdin,0);
+   MsgID = Email.getheader("Message-ID");
+   Msg = GetClearSig(Email,1);
+   if AllowMIME == 0 and Msg[1] != 0:
+      raise Error, "PGP/MIME disallowed";
+  
+   ErrMsg = "Message is not PGP signed:"
+   if string.find(Msg[0],"-----BEGIN PGP SIGNED MESSAGE-----") == -1:
+      raise Error, "No PGP signature";
+   
+   # Check the signature
+   ErrMsg = "Unable to check the signature or the signature was invalid:";
+   Res = GPGCheckSig(Msg[0]);
+   
+   if Res[0] != None:
+      raise Error, Res[0];
+      
+   if Res[3] == None:
+      raise Error, "Null signature text";
+
+   # Check the signature against the replay cache
+   if ReplayCacheFile != None:
+      ErrMsg = "The replay cache rejected your message. Check your clock!";
+      Rply = RC.Check(Res[1]);
+      if Rply != None:
+         raise Error, Rply;
+      RC.Add(Res[1]);
+
+   # Do LDAP stuff
+   if LDAPDn != None:
+      CheckLDAP(Res[2][1]);
+         
+   ErrMsg = "Verifying message:";
+   if Phrases != None:
+      F = open(Phrases,"r");
+      while 1:
+	  Line = F.readline();
+	  if Line == "": break;
+	  if string.find(Res[3],string.strip(Line)) == -1:
+	      raise Error,"Phrase '%s' was not found"%(string.strip(Line));
+      
+except:
+   ErrMsg = "[%s] \"%s\" \"%s %s\"\n"%(Now,MsgID,ErrMsg,sys.exc_value);
+   sys.stderr.write(ErrMsg);
+   
+   Trace = "==> %s: %s\n" %(sys.exc_type,sys.exc_value);
+   List = traceback.extract_tb(sys.exc_traceback);
+   if len(List) >= 1:
+      Trace = Trace + "Python Stack Trace:\n";
+      for x in List:
+         Trace = Trace +  "   %s %s:%u: %s\n" %(x[2],x[0],x[1],x[3]);
+   #print Trace;
+   
+   sys.exit(EX_PERMFAIL);
+
+# For Main   
+sys.exit(0);

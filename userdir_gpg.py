@@ -49,7 +49,10 @@ def SetKeyrings(Rings):
 # present in the signature text! The return result is a tuple, the first
 # element is the text itself the second is a mime flag indicating if the
 # result should be mime processed after sig checking.
-def GetClearSig(Msg):
+#
+# Paranoid will check the message text to make sure that all the plaintext is 
+# in fact signed (bounded by a PGP packet)
+def GetClearSig(Msg,Paranoid = 0):
    Error = 'MIME Error';
    # See if this is a MIME encoded multipart signed message
    if Msg.gettype() == "multipart/signed":
@@ -65,6 +68,16 @@ def GetClearSig(Msg):
       mf = multifile.MultiFile(SkMessage)
       mf.push(Msg.getparam("boundary"));
 
+      # Check the first bit of the message..
+      if Paranoid != 0:
+	 Pos = mf.tell();
+	 while 1:
+	     x = mf.readline();
+	     if not x: break;
+	     if len(string.strip(x)) != 0:
+	        raise Error,"Unsigned text in message (at start)";
+         mf.seek(Pos);
+      
       # Get the first part of the multipart message
       if not mf.next():
          raise Error, "Invalid pgp/mime encoding [no section]";
@@ -73,7 +86,7 @@ def GetClearSig(Msg):
       Signed = StringIO.StringIO();
       Signed.write(mf.read());
       InnerMsg = mimetools.Message(Signed);
-
+      
       # Make sure it is the right type
       if InnerMsg.gettype() != "text/plain":
          raise Error, "Invalid pgp/mime encoding [wrong plaintext type]";
@@ -86,6 +99,17 @@ def GetClearSig(Msg):
          raise Error, "Invalid pgp/mime encoding [wrong signature type]";
       Signature = string.joinfields(mf.readlines(),'');
 
+      # Check the last bit of the message..
+      if Paranoid != 0:
+	 mf.pop();
+	 Pos = mf.tell();
+	 while 1:
+	     x = mf.readline();
+	     if not x: break; 
+	     if len(string.strip(x)) != 0:
+	        raise Error,"Unsigned text in message (at end)";
+         mf.seek(Pos);
+      
       # Append the PGP boundary header and the signature text to re-form the
       # original signed block [needs to convert to \r\n]
       Output = "-----BEGIN PGP SIGNED MESSAGE-----\r\n";
@@ -96,8 +120,42 @@ def GetClearSig(Msg):
       Output = Output +  string.replace(Signed.getvalue(),"\n---","\n- ---") + Signature;
       return (Output,1);
    else:
-      # Just return the message body
-      return (string.joinfields(Msg.fp.readlines(),''),0);
+      if Paranoid == 0:
+         # Just return the message body
+         return (string.joinfields(Msg.fp.readlines(),''),0);
+     
+      Body = "";
+      State = 1;
+      for x in Msg.fp.readlines():
+	  Body = Body + x;
+	  Tmp = string.strip(x);
+	  if len(Tmp) == 0:
+	     continue;
+	 
+	  # Leading up to the signature
+	  if State == 1:
+  	     if Tmp == "-----BEGIN PGP SIGNED MESSAGE-----":
+	        State = 2;
+	     else:
+	        raise Error,"Unsigned text in message (at start)";
+	     continue;
+	 
+	  # In the signature plain text
+	  if State == 2:
+  	     if Tmp == "-----BEGIN PGP SIGNATURE-----":
+	        State = 3;
+	     continue;
+		
+	  # In the signature
+	  if State == 3:
+  	     if Tmp == "-----END PGP SIGNATURE-----":
+	        State = 4;
+	     continue;
+		
+          # Past the end
+	  if State == 4:
+	     raise Error,"Unsigned text in message (at end)";
+      return (Body,0);
 
 # This opens GPG in 'write filter' mode. It takes Message and sends it
 # to GPGs standard input, pipes the standard output to a temp file along
