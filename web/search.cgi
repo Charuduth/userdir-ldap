@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 
-# $Id: search.cgi,v 1.6 2000/03/26 22:13:25 tausq Exp $
+# $Id: search.cgi,v 1.7 2002/10/06 18:13:00 rmurray Exp $
 # (c) 1999 Randolph Chung. Licensed under the GPL. <tausq@debian.org>
 
 use lib '.';
@@ -134,7 +134,7 @@ if (!$dosearch) {
 
     # ICQ 
     if ($data->{icquin}->[0]) {
-      $icquin = sprintf("<a href=\"http://wwp.icq.com/?icqnumber=%s\">%s</a>", $data->{icquin}->[0], $data->{icquin}->[0]);
+      $icquin = sprintf("<a href=\"http://wwp.icq.com/%s\">%s</a>", $data->{icquin}->[0], $data->{icquin}->[0]);
     }
     
     # Format PGP/GPG key fingerprints
