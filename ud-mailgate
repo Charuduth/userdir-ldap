@@ -128,7 +128,7 @@ def DoDel(Str,Attrs):
       return None;
    G = Match.groups();
  
-   if ArbChanges.has_key(G[0]) == 0:
+   if DelItems.has_key(G[0]) == 0:
       return "Cannot erase entry %s"%(G[0]);
 
    Attrs.append((ldap.MOD_DELETE,G[0],None));
