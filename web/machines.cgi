@@ -1,5 +1,5 @@
 #!/usr/bin/perl
-# $Id: machines.cgi,v 1.8 2000/08/20 02:32:46 tausq Exp $
+# $Id: machines.cgi,v 1.9 2001/01/08 07:03:23 tausq Exp $
 
 # (c) 1999 Randolph Chung. Licensed under the GPL. <tausq@debian.org>
 
@@ -27,16 +27,18 @@ my (%attrs, @attrorder, %summaryattrs, @summaryorder);
 	  'bandwidth' => 'Bandwidth',
 	  'status' => 'Status',
 	  'notes' => 'Notes',
+	  'sshrsahostkey' => 'SSH host key (RSA)',
+	  'sshdsahostkey' => 'SSH host key (DSA)',
 	  'description' => 'Description',
 	  'createtimestamp' => 'Entry created',
 	  'modifytimestamp' => 'Entry modified'
 	 );
 
 # This defines what fields are displayed, and in what order
-@attrorder = ('hostname', 'admin', 'architecture', 'distribution', 'access',
-              'sponsor', 'sponsor-admin', 'location', 'machine', 'memory',
-	      'disk', 'bandwidth', 'status', 'notes', 'description',
-	      'createtimestamp', 'modifytimestamp');
+@attrorder = qw(hostname admin architecture distribution access
+                sponsor sponsor-admin location machine memory
+	        disk bandwidth status notes sshrsahostkey sshdsahostkey
+		description createtimestamp modifytimestamp);
 
 # ditto for summary
 %summaryattrs = ('hostname' => 'Host name',
