@@ -58,7 +58,10 @@ ln -sf "$HOST/ssh_known_hosts" .
 if [ -x /usr/bin/dchroot ]; then
 	CHROOTS=`dchroot --listpaths`
 	for c in $CHROOTS; do
-		if [ -e "$c/var/lib/misc/$HOST" ]; then
+		test -d "$c/var/lib/misc/HOST" || mkdir -p "$c/var/lib/misc/HOST"
+
+		rsync -ar ${verbose} $HOST/*.tdb $HOST/ssh* "$c/var/lib/misc/$HOST"
+
 			chroot "$c" makedb "/var/lib/misc/$HOST/passwd.tdb" -o /var/lib/misc/passwd.db.t
 			(umask 027 && chroot "$c" makedb "/var/lib/misc/$HOST/shadow.tdb" -o /var/lib/misc/shadow.db.t)
 			chown root.shadow "$c/var/lib/misc/shadow.db.t"
@@ -67,7 +70,8 @@ if [ -x /usr/bin/dchroot ]; then
 			mv -f "$c/var/lib/misc/passwd.db.t" "$c/var/lib/misc/passwd.db"
 			mv -f "$c/var/lib/misc/shadow.db.t" "$c/var/lib/misc/shadow.db"
 			mv -f "$c/var/lib/misc/group.db.t" "$c/var/lib/misc/group.db"
-		fi
+			ln -sf "$c/var/lib/misc/$HOST/ssh-rsa-shadow" "$c/var/lib/misc/"
+			ln -sf "$c/var/lib/misc/$HOST/ssh_known_hosts" "$c/var/lib/misc/"
 	done
 fi
 
