@@ -42,7 +42,7 @@ UserDn = "uid=" + AdminUser + "," + BaseDn;
 l.simple_bind_s(UserDn,Password);
 
 while 1:
-   Group = raw_input("Group name?");
+   Group = raw_input("Group name? ");
    if Group == "":
       sys.exit(1);
 
