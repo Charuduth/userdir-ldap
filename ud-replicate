@@ -17,21 +17,21 @@ makedb "$HOST/group.tdb" -o group.db.t
 mv -f passwd.db.t passwd.db
 mv -f shadow.db.t shadow.db
 mv -f group.db.t group.db
-if [ -x /usr/bin/dchroot ]; then
-	CHROOTS=`dchroot --listpaths`
-	for c in $CHROOTS; do
-		if [ -e "$c/var/lib/misc/$HOST" ]; then
-			chroot "$c" makedb "/var/lib/misc/$HOST/passwd.tdb" -o /var/lib/misc/passwd.db.t
-			(umask 027 && chroot "$c" makedb "/var/lib/misc/$HOST/shadow.tdb" -o /var/lib/misc/shadow.db.t)
-			chown root.shadow "$c/var/lib/misc/shadow.db.t"
-			chmod 0640 "$c/var/lib/misc/shadow.db.t"
-			chroot "$c" makedb "/var/lib/misc/$HOST/group.tdb" -o /var/lib/misc/group.db.t
-			mv -f "$c/var/lib/misc/passwd.db.t" "$c/var/lib/misc/passwd.db"
-			mv -f "$c/var/lib/misc/shadow.db.t" "$c/var/lib/misc/shadow.db"
-			mv -f "$c/var/lib/misc/group.db.t" "$c/var/lib/misc/group.db"
-		fi
-	done
-fi
+#if [ -x /usr/bin/dchroot ]; then
+#	CHROOTS=`dchroot --listpaths`
+#	for c in $CHROOTS; do
+#		if [ -e "$c/var/lib/misc/$HOST" ]; then
+#			chroot "$c" makedb "/var/lib/misc/$HOST/passwd.tdb" -o /var/lib/misc/passwd.db.t
+#			(umask 027 && chroot "$c" makedb "/var/lib/misc/$HOST/shadow.tdb" -o /var/lib/misc/shadow.db.t)
+#			chown root.shadow "$c/var/lib/misc/shadow.db.t"
+#			chmod 0640 "$c/var/lib/misc/shadow.db.t"
+#			chroot "$c" makedb "/var/lib/misc/$HOST/group.tdb" -o /var/lib/misc/group.db.t
+#			mv -f "$c/var/lib/misc/passwd.db.t" "$c/var/lib/misc/passwd.db"
+#			mv -f "$c/var/lib/misc/shadow.db.t" "$c/var/lib/misc/shadow.db"
+#			mv -f "$c/var/lib/misc/group.db.t" "$c/var/lib/misc/group.db"
+#		fi
+#	done
+#fi
 ln -sf "$HOST/ssh-rsa-shadow" .
 ln -sf "$HOST/ssh_known_hosts" .
 if [ -e "$HOST/bsmtp" ]; then
