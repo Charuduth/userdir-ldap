@@ -1,0 +1,66 @@
+#!/usr/bin/env python
+# -*- mode: python -*-
+
+import string, re, time, ldap, getopt, sys, os, pwd;
+from userdir_ldap import *;
+from userdir_gpg import *;
+
+# This tries to search for a free UID. There are two possible ways to do
+# this, one is to fetch all the entires and pick the highest, the other
+# is to randomly guess uids until one is free. This uses the former.
+# Regrettably ldap doesn't have an integer attribute comparision function
+# so we can only cut the search down slightly 
+def GetFreeID(l):
+   HighestUID = 1000;
+   Attrs = l.search_s(BaseDn,ldap.SCOPE_ONELEVEL,  
+                      "gidnumber>="+str(HighestUID),["gidnumber"]);
+   HighestUID = 0;
+   for I in Attrs:
+      ID = int(GetAttr(I,"gidnumber","0"));
+      if ID > HighestUID and ID < 60000: 
+         HighestUID = ID;
+   return HighestUID + 1;
+
+# Main starts here
+AdminUser = pwd.getpwuid(os.getuid())[0];
+
+# Process options
+ForceMail = 0;
+OldGPGKeyRings = GPGKeyRings;
+userdir_gpg.GPGKeyRings = [];
+(options, arguments) = getopt.getopt(sys.argv[1:], "u:")
+for (switch, val) in options:
+   if (switch == '-u'):
+      AdminUser = val;
+
+print "Accessing LDAP directory as '" + AdminUser + "'";
+Password = getpass(AdminUser + "'s password: ");
+
+# Connect to the ldap server
+l = ldap.open(LDAPServer);
+UserDn = "uid=" + AdminUser + "," + BaseDn;
+l.simple_bind_s(UserDn,Password);
+
+while 1:    
+   Group = raw_input("Group name?");
+   if Group == "":
+      sys.exit(1);
+
+   Attrs = l.search_s(BaseDn,ldap.SCOPE_ONELEVEL,"gid=" + Group);
+   if len(Attrs) == 0:
+      break;
+   print "Group already exists";
+  
+Id = GetFreeID(l);  
+print "Create group %s ID = %d"%(Group,Id);
+       
+# Submit the add request   
+Dn = "gid=" + Group + "," + BaseDn;
+print "Updating LDAP directory..",
+sys.stdout.flush();
+l.add_s(Dn,[("gid",Group),
+            ("gidnumber",str(Id)),
+            ("objectclass","top"),
+            ("objectclass","posixGroup")]);
+
+       
