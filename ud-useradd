@@ -9,7 +9,7 @@ from userdir_gpg import *;
 # this, one is to fetch all the entires and pick the highest, the other
 # is to randomly guess uids until one is free. This uses the former.
 # Regrettably ldap doesn't have an integer attribute comparision function
-# so we can only cut the search down slightly 
+# so we can only cut the search down slightly
 def GetFreeID(l):
    HighestUID = 1400;
    Attrs = l.search_s(BaseDn,ldap.SCOPE_ONELEVEL,
