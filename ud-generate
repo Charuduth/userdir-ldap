@@ -407,7 +407,7 @@ def GenDNS(l,File):
                F.write(Line);
 	       
 	       # Write some identication information
-               if string.lower(Split[2]) != "cname":
+               if string.lower(Split[2]) == "a":
    	          Line = "%s IN TXT \"%s\"\n"%(Split[0],EmailAddress(x));
                   for y in x[1]["keyfingerprint"]:
   	             Line = Line + "%s IN TXT \"PGP %s\"\n"%(Split[0],FormatPGPKey(y));

@@ -46,7 +46,7 @@ for (switch, val) in options:
        NoAct = 0;
 if len(arguments) == 0:
    print "Give some keyrings to probe";
-   os.exit(0);
+   sys.exit(0);
 
 # Main program starts here
 
