@@ -22,6 +22,12 @@ dit(bf(-u))
 Set the authentication user. This is the user who's authority is used when 
 accessing the LDAP directory. The default is to use the current system user
 name.
+
+dit(bf(-a))
+Anonomize the data. Coordinates are truncated and no names are printed. For
+best results the output should be sorted using 'sort -n'. Otherwise the output
+is sorted by name..
+
 enddit()
 
 manpagefiles()

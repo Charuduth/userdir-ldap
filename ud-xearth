@@ -17,6 +17,8 @@
 import string, re, time, ldap, getopt, sys, pwd, posix;
 from userdir_ldap import *;
 
+Anon = 0;
+
 # This needs to check for leading 0 to disambiguate some things
 def DecDegree(Attr,Type):
   Parts = re.match('[+-]?(\d*)\\.?(\d*)?',GetAttr(Attr,Type)).groups();
@@ -39,17 +41,23 @@ def DecDegree(Attr,Type):
      Min = Val - long(Val);
      Val = long(Val) + Min*100.0/60.0;
      
+  if Anon != 0:
+      Str = "%3.3f"%(Val);
+  else:
+      Str = str(Val);
   if Val >= 0:
-     return "+" + str(Val);
-  return str(Val);
+     return "+" + Str;
+  return Str;
 
 # Main program starts here
 User = pwd.getpwuid(posix.getuid())[0];
 BindUser = User;
-(options, arguments) = getopt.getopt(sys.argv[1:], "u:")
+(options, arguments) = getopt.getopt(sys.argv[1:], "au:")
 for (switch, val) in options:
    if (switch == '-u'):
-      User = val
+      User = val;
+   if (switch == '-a'):
+      Anon = 1;
 
 # Connect to the ldap server
 l = ldap.open(LDAPServer);
@@ -61,20 +69,27 @@ l.simple_bind_s(UserDn,Password);
 Attrs = l.search_s(BaseDn,ldap.SCOPE_ONELEVEL,"latitude=*",\
          ["uid","cn","mn","sn","latitude","longitude"]);
 
-#ttrs = [('uid=bma,ou=users,dc=debian,dc=org', {'longitude': ['-0771426.059'], 'sn': ['Almeida'], 'cn': ['Brian'], 'latitude': ['0384514.263'], 'uid': ['bma']}), ('uid=jgg,ou=users,dc=debian,dc=org', {'longitude': ['-11328'], 'sn': ['Gunthorpe'], 'cn': ['Jason'], 'latitude': ['+5333'], 'uid': ['jgg']})]
 Attrs.sort();
 
 print "Markers file will be written to markers.dat,",
 sys.stdout.flush();
 F = open("markers.dat","w");
 Count = 0;
+Failed = 0;
 for x in Attrs:
    if x[1].has_key("latitude") == 0 or x[1].has_key("longitude") == 0:
       continue;
    Count = Count + 1;
    try:
-      F.write("%16s %16s \"%s\" \t# %s\n"%(DecDegree(x,"latitude"),DecDegree(x,"longitude"),GetAttr(x,"uid"),EmailAddress(x)));
+      if Anon != 0:
+         F.write("%8s %8s \"\"\n"%(DecDegree(x,"latitude"),DecDegree(x,"longitude")));
+      else:
+         F.write("%16s %16s \"%s\" \t# %s\n"%(DecDegree(x,"latitude"),DecDegree(x,"longitude"),GetAttr(x,"uid"),EmailAddress(x)));
    except:
-      F.write("# Failed %s => %s: %s\n" %(x[0],sys.exc_type,sys.exc_value));
+      Failed = Failed + 1;
+      if Anon == 0:
+         F.write("# Failed %s => %s: %s\n" %(x[0],sys.exc_type,sys.exc_value));
+      else:
+         F.write("# Failed => %s: %s\n" %(sys.exc_type,sys.exc_value));
 F.close();
-print Count,"entries.";
+print Count,"entries,",Failed,"failures.";
