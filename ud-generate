@@ -10,6 +10,8 @@ GroupIDMap = {};
 Allowed = None;
 CurrentHost = "";
 
+EmailCheck = re.compile("^([^<>@]+@.+)?$");
+
 def Sanitize(Str):
   return string.translate(Str,string.maketrans("\n\r\t","$$$"));
 
@@ -254,6 +256,9 @@ def GenForward(l,File):
       if len(GetAttr(x,"emailforward")) > 200:
          continue;
 
+      # Check the forwarding address
+      if EmailCheck.match(GetAttr(x,"emailforward")) == None:
+         continue;
       Line = "%s: %s" % (GetAttr(x,"uid"),GetAttr(x,"emailforward"));
       Line = Sanitize(Line) + "\n";
       F.write(Line);
@@ -286,6 +291,10 @@ def GenAllForward(l,File):
       if len(Forward) > 200:
          continue;
 
+      # Check the forwarding address
+      if EmailCheck.match(Forward) == None:
+         continue;
+	 
       User = GetAttr(x,"uid");
       Fdb.write("+%d,%d:%s->%s\n"%(len(User),len(Forward),User,Forward));
    Fdb.write("\n");
