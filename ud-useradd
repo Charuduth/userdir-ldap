@@ -12,7 +12,8 @@ from userdir_gpg import *;
 # so we can only cut the search down slightly 
 def GetFreeID(l):
    HighestUID = 1400;
-   Attrs = l.search_s(BaseDn,ldap.SCOPE_ONELEVEL,"uidnumber>="+str(HighestUID),["uidnumber"]);
+   Attrs = l.search_s(BaseDn,ldap.SCOPE_ONELEVEL,\ 
+                      "uidnumber>="+str(HighestUID),["uidnumber"]);
    HighestUID = 0;
    for I in Attrs:
       ID = int(GetAttr(I,"uidnumber","0"));
