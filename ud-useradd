@@ -106,7 +106,7 @@ while 1:
    if len(Attrs) == 0:
       privsub = "%s@debian.org"%(account);
       break;
-   Res = raw_input("That account already exists, update [no]? ");
+   Res = raw_input("That account already exists, update [No/yes]? ");
    if Res == "yes":
       # Update mode, fetch the default values from the directory
       Update = 1;
@@ -185,7 +185,7 @@ print "   Private Subscription:",privsub;
 print "   GECOS Field: \"%s,,,,\"" % (FullName);
 print "   Login Shell: /bin/bash";
 print "   Key Fingerprint:",Keys[0][1];
-Res = raw_input("Continue [no]? ");
+Res = raw_input("Continue [No/yes]? ");
 if Res != "yes":
    sys.exit(1);
 
