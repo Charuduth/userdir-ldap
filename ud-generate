@@ -195,6 +195,34 @@ def GenForward(l,File,Allowed):
    raise;
   Done(File,F,Fdb);
 
+# Generate the anon XEarth marker file 
+def GenMarkers(l,File):
+  F = None;
+  Fdb = None;
+  try:
+   F = open(File + ".tmp","w");
+   Fdb = None;
+
+   # Fetch all the users
+   global PasswdAttrs;
+   if PasswdAttrs == None:
+      raise "No Users";
+
+   # Write out the email address for each user
+   for x in PasswdAttrs:
+      if x[1].has_key("latitude") == 0 or x[1].has_key("longitude") == 0:
+         continue;	 
+      try:
+         F.write("%8s %8s \"\"\n"%(DecDegree(x,"latitude",1),DecDegree(x,"longitude",1)));
+      except:
+         pass;
+      
+  # Oops, something unspeakable happened.
+  except:
+   Die(F,Fdb);
+   raise;
+  Done(File,F,Fdb);
+  
 # Connect to the ldap server
 l = ldap.open(LDAPServer);
 F = open(PassDir+"/pass-"+pwd.getpwuid(posix.getuid())[0],"r");
@@ -218,7 +246,7 @@ PasswdAttrs = l.search_s(BaseDn,ldap.SCOPE_ONELEVEL,"uid=*",\
                 ["uid","uidnumber","gidnumber","supplementarygid",\
                  "gecos","loginshell","userpassword","shadowlastchange",\
                  "shadowmin","shadowmax","shadowwarning","shadowinactive",
-	         "shadowexpire","emailforward"]);
+	         "shadowexpire","emailforward","latitude","longitude"]);
 
 # Open the control file
 if len(sys.argv) == 1:
@@ -251,3 +279,5 @@ while(1):
    GenGroup(l,OutDir+"group",GroupList);
    GenShadow(l,OutDir+"shadow",GroupList);
    GenForward(l,OutDir+"forward-alias",GroupList);
+   GenMarkers(l,OutDir+"markers");
+

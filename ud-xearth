@@ -19,36 +19,6 @@ from userdir_ldap import *;
 
 Anon = 0;
 
-# This needs to check for leading 0 to disambiguate some things
-def DecDegree(Attr,Type):
-  Parts = re.match('[+-]?(\d*)\\.?(\d*)?',GetAttr(Attr,Type)).groups();
-  Val = string.atof(GetAttr(Attr,Type));
-
-  if (abs(Val) >= 1806060.0):
-     raise ValueError,"Too Big";
-
-  # Val is in DGMS
-  if abs(Val) >= 18060.0 or len(Parts[0]) > 5:
-     Val = Val/100.0;
-     Secs = Val - long(Val);
-     Val = long(Val)/100.0;
-     Min = Val - long(Val);
-     Val = long(Val) + (Min*100.0 + Secs*100.0/60.0)/60.0;
-
-  # Val is in DGM
-  elif abs(Val) >= 180 or len(Parts[0]) > 3:
-     Val = Val/100.0;
-     Min = Val - long(Val);
-     Val = long(Val) + Min*100.0/60.0;
-     
-  if Anon != 0:
-      Str = "%3.3f"%(Val);
-  else:
-      Str = str(Val);
-  if Val >= 0:
-     return "+" + Str;
-  return Str;
-
 # Main program starts here
 User = pwd.getpwuid(posix.getuid())[0];
 BindUser = User;
@@ -82,9 +52,9 @@ for x in Attrs:
    Count = Count + 1;
    try:
       if Anon != 0:
-         F.write("%8s %8s \"\"\n"%(DecDegree(x,"latitude"),DecDegree(x,"longitude")));
+         F.write("%8s %8s \"\"\n"%(DecDegree(x,"latitude",Anon),DecDegree(x,"longitude",Anon)));
       else:
-         F.write("%16s %16s \"%s\" \t# %s\n"%(DecDegree(x,"latitude"),DecDegree(x,"longitude"),GetAttr(x,"uid"),EmailAddress(x)));
+         F.write("%16s %16s \"%s\" \t# %s\n"%(DecDegree(x,"latitude",Anon),DecDegree(x,"longitude",Anon),GetAttr(x,"uid"),EmailAddress(x)));
    except:
       Failed = Failed + 1;
       if Anon == 0:

@@ -168,3 +168,33 @@ def FlushOutstanding(l,Outstanding,Fast=0):
    if Fast == 0:
       print;
    return Outstanding;
+
+# Convert a lat/long attribute into Decimal degrees
+def DecDegree(Attr,Type,Anon=0):
+  Parts = re.match('[+-]?(\d*)\\.?(\d*)?',GetAttr(Attr,Type)).groups();
+  Val = string.atof(GetAttr(Attr,Type));
+
+  if (abs(Val) >= 1806060.0):
+     raise ValueError,"Too Big";
+
+  # Val is in DGMS
+  if abs(Val) >= 18060.0 or len(Parts[0]) > 5:
+     Val = Val/100.0;
+     Secs = Val - long(Val);
+     Val = long(Val)/100.0;
+     Min = Val - long(Val);
+     Val = long(Val) + (Min*100.0 + Secs*100.0/60.0)/60.0;
+
+  # Val is in DGM
+  elif abs(Val) >= 180 or len(Parts[0]) > 3:
+     Val = Val/100.0;
+     Min = Val - long(Val);
+     Val = long(Val) + Min*100.0/60.0;
+     
+  if Anon != 0:
+      Str = "%3.2f"%(Val);
+  else:
+      Str = str(Val);
+  if Val >= 0:
+     return "+" + Str;
+  return Str;
