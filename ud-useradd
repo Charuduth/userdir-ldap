@@ -10,10 +10,12 @@ from userdir_gpg import *;
 # is to randomly guess uids until one is free. This uses the former.
 # Regrettably ldap doesn't have an integer attribute comparision function
 # so we can only cut the search down slightly
+
+# [JT] This is broken with Woody LDAP and the Schema; for now just
+#      search through all UIDs.
 def GetFreeID(l):
-   HighestUID = 1400;
    Attrs = l.search_s(BaseDn,ldap.SCOPE_ONELEVEL,
-                      "uidnumber>="+str(HighestUID),["uidNumber"]);
+                      "uidNumber=*",["uidNumber"]);
    HighestUID = 0;
    for I in Attrs:
       ID = int(GetAttr(I,"uidNumber","0"));
@@ -196,60 +198,64 @@ Subst["__LOGIN__"] = account;
 Subst["__PRIVATE__"] = privsub;
 Subst["__EMAIL__"] = email;
 Subst["__PASSWORD__"] = CryptedPass;
-#Subst["__LISTPASS__"] = string.strip(open(pwd.getpwuid(os.getuid())[5]+"/.debian-lists_passwd","r").read());
-
-# Generate the LDAP request
-Rec = [(ldap.MOD_REPLACE,"uid",account),
-       (ldap.MOD_REPLACE,"uidNumber",str(uidNumber)),
-       (ldap.MOD_REPLACE,"gidNumber",str(gidNumber)),
-       (ldap.MOD_REPLACE,"gecos",FullName+",,,,"),
-       (ldap.MOD_REPLACE,"loginShell","/bin/bash"),
-       (ldap.MOD_REPLACE,"keyFingerPrint",Keys[0][1]),
-       (ldap.MOD_REPLACE,"cn",cn),
-       (ldap.MOD_REPLACE,"mn",mn),
-       (ldap.MOD_REPLACE,"sn",sn),
-       (ldap.MOD_REPLACE,"emailForward",email),
-       (ldap.MOD_REPLACE,"shadowLastChange",str(int(time.time()/24/60/60))),
-       (ldap.MOD_REPLACE,"shadowMin","0"),
-       (ldap.MOD_REPLACE,"shadowMax","99999"),
-       (ldap.MOD_REPLACE,"shadowWarning","7"),
-       (ldap.MOD_REPLACE,"shadowInactive",""),
-       (ldap.MOD_REPLACE,"shadowExpire","")];
-if privsub != " ":
-   Rec.append((ldap.MOD_REPLACE,"privateSub",privsub));
-if Pass != None:
-   Rec.append((ldap.MOD_REPLACE,"userPassword","{crypt}"+Pass));
 
 # Submit the modification request
 Dn = "uid=" + account + "," + BaseDn;
 print "Updating LDAP directory..",
 sys.stdout.flush();
-try:
-   l.add_s(Dn,[("uid",account),
-               ("objectclass","top"),
-               ("objectclass","account"),
-               ("objectclass","posixAccount"),
-               ("objectclass","shadowAccount"),
-               ("objectclass","debiandeveloper")]);
-except ldap.ALREADY_EXISTS:
-   pass;
 
-# Send the modify request
-l.modify_s(Dn,Rec);
+if Update == 0:
+   # New account
+   Details = [("uid",account),
+              ("objectClass",
+               ("top","inetOrgPerson","debianAccount","shadowAccount","debianDeveloper")),
+              ("uidNumber",str(uidNumber)),
+              ("gidNumber",str(gidNumber)),
+              ("gecos",FullName+",,,,"),
+              ("loginShell","/bin/bash"),
+              ("keyFingerPrint",Keys[0][1]),
+              ("cn",cn),
+              ("sn",sn),
+              ("emailForward",email),
+              ("shadowLastChange",str(int(time.time()/24/60/60))),
+              ("shadowMin","0"),
+              ("shadowMax","99999"),
+              ("shadowWarning","7"),
+              ("privateSub",privsub),
+              ("userPassword","{crypt}"+Pass)];
+   if mn:
+      Details.append(("mn",mn));
+   l.add_s(Dn,Details);
+else:
+   # Modification
+   Rec = [(ldap.MOD_REPLACE,"uidNumber",str(uidNumber)),
+          (ldap.MOD_REPLACE,"gidNumber",str(gidNumber)),
+          (ldap.MOD_REPLACE,"gecos",FullName+",,,,"),
+          (ldap.MOD_REPLACE,"loginShell","/bin/bash"),
+          (ldap.MOD_REPLACE,"keyFingerPrint",Keys[0][1]),
+          (ldap.MOD_REPLACE,"cn",cn),
+          (ldap.MOD_REPLACE,"mn",mn),
+          (ldap.MOD_REPLACE,"sn",sn),
+          (ldap.MOD_REPLACE,"emailForward",email),
+          (ldap.MOD_REPLACE,"shadowLastChange",str(int(time.time()/24/60/60))),
+          (ldap.MOD_REPLACE,"shadowMin","0"),
+          (ldap.MOD_REPLACE,"shadowMax","99999"),
+          (ldap.MOD_REPLACE,"shadowWarning","7"),
+          (ldap.MOD_REPLACE,"shadowInactive",""),
+          (ldap.MOD_REPLACE,"shadowExpire","")];
+   if privsub != " ":
+      Rec.append((ldap.MOD_REPLACE,"privateSub",privsub));
+   if Pass != None:
+      Rec.append((ldap.MOD_REPLACE,"userPassword","{crypt}"+Pass));
+   # Do it
+   l.modify_s(Dn,Rec);
+
 print;
 
 # Abort email sends for an update operation
 if Update == 1 and ForceMail == 0:
    print "Account is not new, Not sending mails"
    sys.exit(0);
-   
-# Do the subscription/welcome message
-#if privsub != " ":
-#   Sub = TemplateSubst(Subst,open(TemplatesDir+"/list-subscribe","r").read());
-#   Child = os.popen("/usr/sbin/sendmail -t","w");
-#   Child.write(Sub);
-#   if Child.close() != None:
-#       raise Error, "Sendmail gave a non-zero return code";
 
 # Send the Welcome message
 print "Sending Welcome Email"
