@@ -215,7 +215,7 @@ while(1):
 
    # Prompt
    Response = raw_input("Change? ");
-   if (Response == "x" or Response == "X" or Response == "q" or 
+   if (Response == "x" or Response == "X" or Response == "q" or
        Response == "quit" or Response == "exit"):
       break;
 
