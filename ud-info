@@ -43,7 +43,8 @@ AttrInfo = {"cn": ["First Name", 101],
 	    "latitude": ["Latitude",12],
 	    "longitude": ["Longitude",13],
 	    "icqUin": ["ICQ UIN",14],
-	    "privateSub": ["Debian-Private",15],
+	    "jabberJID": ["Jabber ID",15],
+	    "privateSub": ["Debian-Private",16],
 	    "comment": ["Comment",116],
 	    "userPassword": ["Crypted Password",117],
             "dnsZoneEntry": ["d.net Entry",118]};
@@ -71,6 +72,7 @@ AttrPrompt = {"cn": ["Common name or first name"],
 	      "longitude": ["XEarth latitude in ISO 6709 format - see /usr/share/zoneinfo/zone.tab or etak.com"],
 	      "dnsZoneEntry": ["DNS Zone fragment associated this this user"],
               "labledURI": ["Web home page"],
+              "jabberJID": ["Jabber ID"],
               "icqUin": ["ICQ UIN Number"]};
 
 # Create a map of IDs to desc,value,attr

@@ -1,5 +1,5 @@
 #!/usr/bin/perl
-# $Id: ud-fingerserv,v 1.18 2004/11/18 16:49:15 joey Exp $
+# $Id: ud-fingerserv,v 1.19 2004/11/18 19:10:57 joey Exp $
 
 # (c) 1999 Randolph Chung. Licensed under the GPL. <tausq@debian.org>
 # (c) 2004 Martin Schulze. Licensed under the GPL. <joey@debian.org>
@@ -30,10 +30,11 @@ my %attrs = (
   'key' => 'Key block',
   'ircnick' => 'IRC nickname',
   'icquin' => 'ICQ UIN',
+  'jabberjid' => 'Jabber ID',
   'labeleduri' => 'URL'
 );
 
-my @summarykeys = ('cn', 'mn', 'sn', 'email', 'labeleduri', 'ircnick', 'icquin', 'keyfingerprint', 'key');
+my @summarykeys = ('cn', 'mn', 'sn', 'email', 'labeleduri', 'ircnick', 'icquin', 'jabberjid', 'keyfingerprint', 'key');
 
 $SIG{__DIE__} = \&DieHandler;
 $SIG{INT} = \&DieHandler;
