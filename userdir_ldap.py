@@ -98,7 +98,14 @@ def getpass(prompt = "Password: "):
    new[3] = new[3] & ~termios.ECHO;          # lflags
    try:
       termios.tcsetattr(fd, termios.TCSADRAIN, new);
-      passwd = raw_input(prompt);
+      try:
+         passwd = raw_input(prompt);
+      except KeyboardInterrupt:
+         termios.tcsetattr(fd, termios.TCSADRAIN, old);
+         print
+         sys.exit(0)
+      except EOFError:
+         passwd = ""
    finally:
       termios.tcsetattr(fd, termios.TCSADRAIN, old);
    print;
