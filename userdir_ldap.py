@@ -11,7 +11,7 @@ File.close();
 
 # Cheap hack
 BaseDn = ConfModule.basedn;
-BaseDn = ConfModule.basedn;
+HostBaseDn = ConfModule.hostbasedn;
 LDAPServer = ConfModule.ldaphost;
 EmailAppend = ConfModule.emailappend;
 AdminUser = ConfModule.adminuser;

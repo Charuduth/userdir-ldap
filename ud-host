@@ -26,8 +26,8 @@ AttrInfo = {"description": ["Machine Descr.", 1],
             "machine": ["Machine Hardware", 10],
             "memory": ["Memory", 11],
             "disk": ["Disk", 12],
-            "sshrsahostkey": ["SSH RSA", 14],
-            "bandwidth": ["Bandwidth", 16]};
+            "sshrsahostkey": ["SSH Host Keys", 14],
+            "bandwidth": ["Bandwidth", 15]};
 
 AttrPrompt = {"description": ["Purpose of the machine"],
               "hostname": ["The hostnames for the box (ipv4/ipv6)"],
