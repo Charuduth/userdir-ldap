@@ -27,7 +27,8 @@ instdirs = \
 	var/cache/userdir-ldap/web-cookies \
 	var/cache/userdir-ldap/hosts \
 	usr/share/doc/$(package)/samples \
-	etc/userdir-ldap/templates
+	etc/userdir-ldap/templates \
+	etc/cron.d
 
 binary-indep: build
 	dh_testdir
@@ -40,6 +41,7 @@ binary-indep: build
 	install -m 644 userdir_ldap.py userdir_gpg.py \
 		$(i)/$(pysite)/userdir_ldap/
 	install -m 755 {ud-forwardlist,ud-gpgimport,ud-info,ud-ldapshow,ud-userimport,ud-mailgate,ud-generate,ud-passchk,ud-useradd,ud-replicate,ud-xearth,ud-fingerserv,ud-echelon,ud-groupadd,ud-host} $(i)/usr/bin/
+	install -m 644 debian/ud-replicate.cron.d $(i)/etc/cron.d/ud-replicate
 	install -m 644 web/*.tab $(i)/var/www/userdir-ldap/
 	install -m 644 web/*.html $(i)/var/www/userdir-ldap/
 	install -m 644 web/*.cfg $(i)/var/www/userdir-ldap/
