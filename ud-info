@@ -43,9 +43,10 @@ AttrInfo = {"cn": ["First Name", 101],
 	    "latitude": ["Latitude",12],
 	    "longitude": ["Longitude",13],
 	    "icqUIN": ["ICQ UIN",14],
-	    "comment": ["Comment",115],
-	    "userpassword": ["Crypted Password",116],
-            "dnszoneentry": ["d.net Entry",117]};
+	    "privatesub": ["Debian-Private",15],
+	    "comment": ["Comment",116],
+	    "userpassword": ["Crypted Password",117],
+            "dnszoneentry": ["d.net Entry",118]};
 
 AttrPrompt = {"cn": ["Common name or first name"],
               "mn": ["Middle name (or initial if it ends in a dot)"],
@@ -64,6 +65,7 @@ AttrPrompt = {"cn": ["Common name or first name"],
               "comment": ["Admin Comment about the account"],
               "supplementarygid": ["Groups the user is in"],
 	      "allowedhosts": ["Grant access to certain hosts"],
+              "privatesub": ["Debian-Private mailing list subscription"],
               "member": ["LDAP Group Member for slapd ACLs"],
 	      "latitude": ["XEarth latitude in ISO 6709 format - see /usr/share/zoneinfo/zone.tab or etak.com"],
 	      "longitude": ["XEarth latitude in ISO 6709 format - see /usr/share/zoneinfo/zone.tab or etak.com"],
@@ -298,6 +300,7 @@ while(1):
 
    if RootMode == 1:
       print "   a) Arbitary Change";
+      print "   R) Randomize Password";
    print "   p) Change Password";
    print "   u) Switch Users";
    print "   x) Exit";
@@ -336,21 +339,38 @@ while(1):
          raw_input("Press a key");
          continue;
 
-      # Hash it telling glibc to use the MD5 algorithm - if you dont have
-      # glibc then just change Salt = "$1$" to Salt = "";
-      SaltVals = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ/.";
-      Salt  = "$1$";
-      for x in range(0,10):
-         Salt = Salt + SaltVals[whrandom.randint(0,len(SaltVals)-1)];
-      Pass = crypt.crypt(Pass1,Salt);
-      if len(Pass) < 14:
-         print "Caution! MD5 Password hashing failed, not changing password!";
+      try:
+         Pass = HashPass(Pass1);
+      except:
+         print "%s: %s\n" %(sys.exc_type,sys.exc_value);
          raw_input("Press a key");
          continue;
 
       print "Setting password..";
       Pass = "{crypt}" + Pass;
       l.modify_s(UserDn,[(ldap.MOD_REPLACE,"userpassword",Pass)]);
+      Attrs[0][1]["userpassword"] = [Pass];
+      continue;
+
+   # Randomize password
+   if Response == 'R' and RootMode == 1:
+      Resp = raw_input("Randomize Users Password? [no/yes]");
+      if Resp != "yes":
+         continue;
+	 
+      # Generate a random password
+      try:
+         Password = GenPass();
+         Pass = HashPass(Password);
+      except:
+         print "%s: %s\n" %(sys.exc_type,sys.exc_value);
+         raw_input("Press a key");
+         continue;
+	 
+      print "Setting password..";
+      Pass = "{crypt}" + Pass;
+      l.modify_s(UserDn,[(ldap.MOD_REPLACE,"userpassword",Pass)]);
+      Attrs[0][1]["userpassword"] = [Pass];
       continue;
 
    # Handle changing an arbitary value
