@@ -27,7 +27,7 @@ Ech_MainLog = ConfModule.ech_mainlog;
 userdir_gpg.SetKeyrings(string.split(ConfModule.keyrings,":"));
 
 # This is a list of common last-name prefixes
-LastNamesPre = {"van": None, "le": None, "de": None, "di": None};
+LastNamesPre = {"van": None, "von": None, "le": None, "de": None, "di": None};
 
 # SSH Key splitting. The result is:
 # (options,size,modulous,exponent,comment)
@@ -356,4 +356,3 @@ def GetUID(l,Name,UnknownMap = {}):
 
    return (None,None);
 
-   
