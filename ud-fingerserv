@@ -1,5 +1,5 @@
 #!/usr/bin/perl
-# $Id: ud-fingerserv,v 1.15 2004/10/24 18:28:50 joey Exp $
+# $Id: ud-fingerserv,v 1.16 2004/10/24 18:34:12 joey Exp $
 
 # (c) 1999 Randolph Chung. Licensed under the GPL. <tausq@debian.org>
 
@@ -25,13 +25,14 @@ my %attrs = (
   'mn' => 'Middle name',
   'sn' => 'Last name',
   'email' => 'Email',
-  'keyFingerPrint' => 'Fingerprint',
+  'keyfingerprint' => 'Fingerprint',
   'key' => 'Key block',
   'ircnick' => 'IRC nickname',
+  'icquin' => 'ICQ UIN',
   'labeleduri' => 'URL'
 );
 
-my @summarykeys = ('cn', 'mn', 'sn', 'email', 'labeleduri', 'ircnick', 'keyFingerPrint', 'key');
+my @summarykeys = ('cn', 'mn', 'sn', 'email', 'labeleduri', 'ircnick', 'icquin', 'keyfingerprint', 'key');
 
 $SIG{__DIE__} = \&DieHandler;
 $SIG{INT} = \&DieHandler;
@@ -123,7 +124,7 @@ sub ProcessQuery {
     $data = $entries->{$dn};
 
     $data->{key} = [];    
-    foreach (@{$data->{keyFingerPrint}}) {
+    foreach (@{$data->{keyfingerprint}}) {
       push (@{$data->{key}}, "\n".&Util::FetchKey($_));
     }
     
@@ -133,6 +134,10 @@ sub ProcessQuery {
 				  
     $data->{email}->[0] =~ s/\s+/ /g;				  
  
+    for (my $i=0; $i <= $#{$data->{'keyfingerprint'}}; $i++) {
+      $data->{keyfingerprint}->[$i] = &Util::FormatFingerPrint($data->{keyfingerprint}->[$i]);
+      $data->{keyfingerprint}->[$i] =~ s,&nbsp;, ,;
+    }
     print $client "$dn\n";
     if (!$fields) {
       foreach $key (@summarykeys) {
