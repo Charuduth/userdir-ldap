@@ -80,7 +80,7 @@ if [ -x /usr/bin/dchroot ]; then
 			chroot "$c" makedb "/var/lib/misc/$HOST/group.tdb" -o /var/lib/misc/group.db.t
 			mv -f "$c/var/lib/misc/passwd.db.t" "$c/var/lib/misc/passwd.db"
 			mv -f "$c/var/lib/misc/group.db.t" "$c/var/lib/misc/group.db"
-			ln -sf "$c/var/lib/misc/$HOST/ssh_known_hosts" "$c/var/lib/misc/"
+			ln -sf "$HOST/ssh_known_hosts" "$c/var/lib/misc/"
 			ln -sf ../../var/lib/misc/ssh_known_hosts "$c/etc/ssh"
 		fi
 	done
