@@ -192,7 +192,7 @@ Subst["__LOGIN__"] = account;
 Subst["__PRIVATE__"] = privsub;
 Subst["__EMAIL__"] = email;
 Subst["__PASSWORD__"] = CryptedPass;
-Subst["__LISTPASS__"] = string.strip(open(pwd.getpwuid(os.getuid())[5]+"/.debian-lists_passwd","r").read());
+#Subst["__LISTPASS__"] = string.strip(open(pwd.getpwuid(os.getuid())[5]+"/.debian-lists_passwd","r").read());
 
 # Generate the LDAP request
 Rec = [(ldap.MOD_REPLACE,"uid",account),
