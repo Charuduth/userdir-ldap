@@ -19,6 +19,12 @@ list of machines available to Debian developers can be found at
 familiarize yourself with the Debian Machine Usage Policy, available
 at <URL:http://www.debian.org/devel/dmup>.
 
+Requests for Debian software to be installed on the machines (either
+in the host system or a chroot environment) should be directed at
+debian-admin@lists.debian.org.  Please note that not all software is
+available on all architectures.  The chroot environments can be
+entered with the 'dchroot' command.
+
 You have been subscribed to the debian-private mailing list as
 <__PRIVATE__>.  Please respect the privacy of that list and don't forward
 mail from it elsewhere.  E-mail to <__LOGIN__@debian.org> will be

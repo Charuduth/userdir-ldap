@@ -15,9 +15,11 @@ be found encrypted with your PGP key and appended to this message.
 See <URL:http://db.debian.org/machines.cgi> for a list of machines that are
 available. The ones marked 'public' are available to non-developers.
 
-Requests for Debian software to be installed should be directed at
-debian-admin@lists.debian.org. Please note that not all software is available
-on all architectures.
+Requests for Debian software to be installed on the machines (either
+in the host system or a chroot environment) should be directed at
+debian-admin@lists.debian.org.  Please note that not all software is
+available on all architectures.  The chroot environments can be
+entered with the 'dchroot' command.
 
 You should use ssh to log into the machines instead of regular telnet
 or rlogin. Our LDAP directory is able to share ssh RSA keys among machines,
