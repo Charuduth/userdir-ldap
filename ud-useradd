@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+y#!/usr/bin/env python
 # -*- mode: python -*-
 
 import string, re, time, ldap, getopt, sys, os, pwd;
@@ -12,12 +12,12 @@ from userdir_gpg import *;
 # so we can only cut the search down slightly 
 def GetFreeID(l):
    HighestUID = 1400;
-   Attrs = l.search_s(BaseDn,ldap.SCOPE_ONELEVEL,  
+   Attrs = l.search_s(BaseDn,ldap.SCOPE_ONELEVEL,
                       "uidnumber>="+str(HighestUID),["uidnumber"]);
    HighestUID = 0;
    for I in Attrs:
       ID = int(GetAttr(I,"uidnumber","0"));
-      if ID > HighestUID: 
+      if ID > HighestUID:
          HighestUID = ID;
    return HighestUID + 1;
 
@@ -67,8 +67,8 @@ while (1):
    print "A matching key was found:"
    GPGPrintKeyInfo(Keys[0]);
    break;
-   
-# Crack up the email address from the key into a best guess 
+
+# Crack up the email address from the key into a best guess
 # first/middle/last name
 Addr = SplitEmail(Keys[0][2]);
 (cn,mn,sn) = NameSplit(re.sub('["]','',Addr[0]))
@@ -170,7 +170,7 @@ else:
    Pass = None;
 
 # Now we have all the bits of information.
-if mn != "": 
+if mn != "":
    FullName = "%s %s %s" % (cn,mn,sn);
 else:
    FullName = "%s %s" % (cn,sn);
@@ -220,7 +220,7 @@ if privsub != " ":
 if Pass != None:
    Rec.append((ldap.MOD_REPLACE,"userPassword","{crypt}"+Pass));
 
-# Submit the modification request   
+# Submit the modification request
 Dn = "uid=" + account + "," + BaseDn;
 print "Updating LDAP directory..",
 sys.stdout.flush();
@@ -250,7 +250,7 @@ if Update == 1 and ForceMail == 0:
 #   Child.write(Sub);
 #   if Child.close() != None:
 #       raise Error, "Sendmail gave a non-zero return code";
-   
+
 # Send the Welcome message
 print "Sending Welcome Email"
 Reply = TemplateSubst(Subst,open(TemplatesDir+"/welcome-message-"+gidnumber,"r").read());
