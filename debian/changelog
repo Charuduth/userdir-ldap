@@ -1,3 +1,9 @@
+userdir-ldap (0.3.9) unstable; urgency=low
+
+  * Added an explicit PATH statement to ud-replicate
+
+ -- Martin Schulze <joey@infodrom.org>  Tue, 25 Jan 2005 10:50:54 +0100
+
 userdir-ldap (0.3.8) stable; urgency=low
 
   * ud-replicate:

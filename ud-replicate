@@ -28,6 +28,8 @@ else
     verbose=-v
 fi
 
+PATH=/sbin:/usr/sbin:/bin:/usr/bin
+export PATH
 HOST=`hostname -f`
 cd /tmp/
 cd /var/lib/misc || cd /var/state/glibc/ || cd /var/db/
