@@ -21,32 +21,32 @@ DNS = {}
 
 ArbChanges = {"c": "..",
 	      "l": ".*",
-	      "facsimiletelephonenumber": ".*",
-	      "telephonenumber": ".*",
-	      "postaladdress": ".*",
-	      "postalcode": ".*",
-              "loginshell": ".*",
-              "emailforward": "^([^<>@]+@.+)?$",
-              "ircnick": ".*",
-              "icquin": "^[0-9]*$",
-              "onvacation": ".*",
-              "labeledurl": ".*"};
+	      "facsimileTelephoneNumber": ".*",
+	      "telephoneNumber": ".*",
+	      "postalAddress": ".*",
+	      "postalCode": ".*",
+              "loginShell": ".*",
+              "emailForward": "^([^<>@]+@.+)?$",
+              "ircNick": ".*",
+              "icqUin": "^[0-9]*$",
+              "onVacation": ".*",
+              "labledURI": ".*"};
 
 DelItems = {"c": None,
             "l": None,
-            "facsimiletelephonenumber": None,
-            "telephonenumber": None,
-            "postaladdress": None,
-            "postalcode": None,
-            "emailforward": None,
-            "ircnick": None,
-            "onvacation": None,
-            "labeledurl": None,
+            "facsimileTelephoneNumber": None,
+            "telephoneNumber": None,
+            "postalAddress": None,
+            "postalCode": None,
+            "emailForward": None,
+            "ircNick": None,
+            "onVacation": None,
+            "labledURI": None,
 	    "latitude": None,
 	    "longitude": None,
-            "icquin": None,
-	    "sshrsaauthkey": None,
-	    "sshdsaauthkey": None};
+            "icqUin": None,
+	    "sshRSAAuthKey": None,
+	    "sshDSAAuthKey": None};
 
 # Decode a GPS location from some common forms
 def LocDecode(Str,Dir):
@@ -169,10 +169,10 @@ def DoSSH(Str,Attrs):
    
    global SeenKey;
    if SeenKey:
-     Attrs.append((ldap.MOD_ADD,"sshrsaauthkey",Str));
+     Attrs.append((ldap.MOD_ADD,"sshRSAAuthKey",Str));
      return "SSH Key added "+FormatSSHAuth(Str);
       
-   Attrs.append((ldap.MOD_REPLACE,"sshrsaauthkey",Str));
+   Attrs.append((ldap.MOD_REPLACE,"sshRSAAuthKey",Str));
    SeenKey = 1;
    return "SSH Keys replaced with "+FormatSSHAuth(Str);
 
@@ -191,7 +191,7 @@ def DoDNS(Str,Attrs,DnRecord):
 
    # Check for collisions
    global l;
-   Rec = l.search_s(BaseDn,ldap.SCOPE_ONELEVEL,"dnszoneentry="+G[0]+" *",["uid"]);
+   Rec = l.search_s(BaseDn,ldap.SCOPE_ONELEVEL,"dnsZoneEntry="+G[0]+" *",["uid"]);
    for x in Rec:
       if GetAttr(x,"uid") != GetAttr(DnRecord,"uid"):
          return "DNS entry is already owned by " + GetAttr(x,"uid")
@@ -211,10 +211,10 @@ def DoDNS(Str,Attrs,DnRecord):
        DNS[G[0]] = 1
      
    if SeenDNS:
-     Attrs.append((ldap.MOD_ADD,"dnszoneentry",Str));
+     Attrs.append((ldap.MOD_ADD,"dnsZoneEntry",Str));
      return "DNS Entry added "+Str;
       
-   Attrs.append((ldap.MOD_REPLACE,"dnszoneentry",Str));
+   Attrs.append((ldap.MOD_REPLACE,"dnsZoneEntry",Str));
    SeenDNS = 1;
    return "DNS Entry replaced with "+Str;
 
@@ -328,7 +328,7 @@ def HandleChPass(Reply,DnRecord,Key):
 
    # Check for a locked account
    Attrs = l.search_s(BaseDn,ldap.SCOPE_ONELEVEL,"uid="+GetAttr(DnRecord,"uid"));
-   if (string.find(GetAttr(Attrs[0],"userpassword"),"*LK*")  != -1):
+   if (string.find(GetAttr(Attrs[0],"userPassword"),"*LK*")  != -1):
       raise Error, "This account is locked";
 
    # Modify the password
@@ -400,7 +400,7 @@ try:
    l.simple_bind_s("","");
 
    # Search for the matching key fingerprint
-   Attrs = l.search_s(BaseDn,ldap.SCOPE_ONELEVEL,"keyfingerprint=" + Res[2][1]);
+   Attrs = l.search_s(BaseDn,ldap.SCOPE_ONELEVEL,"keyFingerPrint=" + Res[2][1]);
    if len(Attrs) == 0:
       raise Error, "Key not found"
    if len(Attrs) != 1:
@@ -415,7 +415,7 @@ try:
    if Sender == None:
       raise Error, "Unable to determine the sender's address";
 
-   if (string.find(GetAttr(Attrs[0],"userpassword"),"*LK*")  != -1):
+   if (string.find(GetAttr(Attrs[0],"userPassword"),"*LK*")  != -1):
       raise Error, "This account is locked";
 
    # Formulate a reply
