@@ -14,7 +14,13 @@ cd /tmp/
 cd /var/lib/misc || cd /var/state/glibc/ || cd /var/db/
 lockfile -r 1 -l 3600 lock
 trap "rm -f lock" exit
-rsync ${verbose} -e ssh -rp "sshdist@samosa:/var/cache/userdir-ldap/hosts/$HOST" .
+case $(hostname) in
+*samosa*)
+    udhost=;;
+*)
+    udhost="sshdist@samosa:";;
+esac
+rsync ${verbose} -e ssh -rp "${udhost}/var/cache/userdir-ldap/hosts/$HOST" .
 makedb "$HOST/passwd.tdb" -o passwd.db.t
 (umask 027 && makedb "$HOST/shadow.tdb" -o shadow.db.t)
 chown root.shadow shadow.db.t; chmod 0640 shadow.db.t
