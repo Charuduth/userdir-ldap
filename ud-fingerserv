@@ -1,5 +1,5 @@
 #!/usr/bin/perl
-# $Id: ud-fingerserv,v 1.5 1999/10/16 21:50:52 tausq Exp $
+# $Id: ud-fingerserv,v 1.6 1999/10/17 01:36:33 tausq Exp $
 
 # (c) 1999 Randolph Chung. Licensed under the GPL. <tausq@debian.org>
 
@@ -16,7 +16,7 @@ use Net::LDAP qw(:all);
 # Global settings...
 my %config = &Util::ReadConfigFile;
 my %opts;
-getopts("iqh", \%opts);
+getopts("iqhv", \%opts);
 my $use_inetd = $config{use_inetd} || $opts{i}; 
 $| = 1;
 
@@ -42,7 +42,7 @@ $SIG{CHLD} = \&Reaper;
 my $ldap = Net::LDAP->new($config{ldaphost}) || die $1; 
 $ldap->bind;
 
-if ($use_inetd == 0) {
+if (!$use_inetd) {
   &log("Binding to port 79") if (defined($opts{v}));
   my $server = IO::Socket::INET->new(Proto => 'tcp', 
                                      LocalPort => 'finger(79)',
