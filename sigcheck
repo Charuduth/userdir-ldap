@@ -65,12 +65,31 @@ def CheckLDAP(FingerPrint):
    if len(Attrs) != 1:
       raise Error, "Oddly your key fingerprint is assigned to more than one account.."
 
+   gidnumber_found = 0;
+   for key in Attrs[0][1].keys():
+      if (key == "gidNumber"):
+         gidnumber_found = 1
+
+   if (gidnumber_found != 1):
+      raise Error, "No gidnumber in attributes for fingerprint %s" % FingerPrint
+
+   # Look for the group with the gid of the user
+   GAttr = l.search_s(LDAPDn,ldap.SCOPE_ONELEVEL,"(&(objectClass=debianGroup)(gidnumber=%s))" % Attrs[0][1]["gidNumber"][0], ["gid"])
+   if len(GAttr) == 0:
+	   raise Error, "Database inconsistency found: main group for account not found in database"
+
    # See if the group membership is OK
+   # Only if a group was given on the commandline
    if GroupMember != None:
       Hit = 0;
-      for x in Attrs[0][1].get("supplementarygid",[]):
-         if x == GroupMember:
-	   Hit = 1;
+      # Check primary group first
+      if GAttr[0][1]["gid"][0] == GroupMember:
+	 Hit = 1
+      else:
+	  # Check supplementary groups
+	  for x in Attrs[0][1].get("supplementaryGid",[]):
+	      if x == GroupMember:
+		  Hit = 1;
       if Hit != 1:
 	  raise Error, "You don't have %s group permissions."%(GroupMember);
    
@@ -140,6 +159,7 @@ try:
       if Rply != None:
          raise Error, Rply;
       RC.Add(Res[1]);
+      RC.close();
 
    # Do LDAP stuff
    if LDAPDn != None:
