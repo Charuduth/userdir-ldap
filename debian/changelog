@@ -1,3 +1,9 @@
+userdir-ldap (0.3.4) unstable; urgency=low
+
+  * Use the right python version in the maintainer scripts
+
+ -- Ryan Murray <rmurray@gluck.debian.org>  Tue, 18 Mar 2003 19:26:31 -0700
+
 userdir-ldap (0.3.3) unstable; urgency=low
 
   * Rebuild for python2.1 and woody

@@ -1,17 +1,17 @@
 #! /bin/bash -e
 #
-# Debian postinst script for Python 1.5 hierarchical modules
+# Debian postinst script for Python hierarchical modules
 # Written by Gregor Hoffleit <flight@debian.org>
 #
 
-NAME=userdir-ldap
-DIRLIST="/usr/lib/python1.5/site-packages"
+PYTHON_VER="2.1"
+DIRLIST="/usr/lib/python$PYTHON_VER/site-packages"
 
 case "$1" in
     configure|abort-upgrade|abort-remove|abort-deconfigure)
         for i in $DIRLIST ; do
-            python -O /usr/lib/python1.5/compileall.py -q $i
-            python /usr/lib/python1.5/compileall.py -q $i
+            python -O /usr/lib/python$PYTHON_VER/compileall.py -q $i
+            python /usr/lib/python$PYTHON_VER/compileall.py -q $i
         done
     ;;
 
