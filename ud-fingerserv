@@ -1,5 +1,5 @@
 #!/usr/bin/perl
-# $Id: ud-fingerserv,v 1.2 1999/10/05 02:54:29 tausq Exp $
+# $Id: ud-fingerserv,v 1.3 1999/10/14 04:28:59 tausq Exp $
 
 # (c) 1999 Randolph Chung. Licensed under the GPL. <tausq@debian.org>
 
@@ -7,6 +7,7 @@ use lib 'web';
 use strict vars;
 #use Apache::Registry;
 use IO::Socket;
+use POSIX qw(:sys_wait_h);
 use Util;
 use Net::LDAP qw(:all);
 
@@ -29,7 +30,13 @@ sub DieHandler {
   $ldap->unbind if (defined($ldap));
 }
 
+sub Reaper {
+  1 until (-1 == waitpid(-1, WNOHANG));
+  $SIG{CHLD} = \&Reaper;
+}
+
 $SIG{__DIE__} = \&DieHandler;
+$SIG{CHLD} = \&Reaper;
 
 $ldap = Net::LDAP->new($config{ldaphost}) || &Util::HTMLError($!);
 $mesg;
@@ -43,10 +50,14 @@ my $server = IO::Socket::INET->new(Proto => 'tcp',
 die "Cannot listen on finger port" unless $server;
 print "[Server listening for connections]\n";
 
-my ($mesg, %entries, $dn, $key);
+my ($mesg, %entries, $dn, $key, $pid);
 
 my $client;
 while ($client = $server->accept()) {
+  next if $pid = fork; # parent
+  die "fork: $!" unless defined $pid;
+  
+  # child
   $client->autoflush(1);
   my $hostinfo = gethostbyaddr($client->peeraddr, AF_INET);
   printf "[Connect from %s]\n", $hostinfo || $client->peerhost;
@@ -54,7 +65,7 @@ while ($client = $server->accept()) {
   $query =~ s/[^\/,0-9a-z]//gi; # be paranoid about input
   my ($uid, $fields) = split(/\//, $query, 2);
   
-  print "Looking up $uid at $config{basedn}, uid=$uid\n";
+#  print "Looking up $uid at $config{basedn}, uid=$uid\n";
 
   $mesg = $ldap->search(base  => $config{basedn}, filter => "uid=$uid");
   $mesg->code && die $mesg->error;
@@ -86,6 +97,9 @@ while ($client = $server->accept()) {
       }
     }
   }
+  $client->close;
+  exit;
+} continue {
   $client->close;
 }
 
