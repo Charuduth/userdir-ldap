@@ -247,7 +247,7 @@ while(1):
       if NewHost == "":
          continue;
       Dn = "host=" + NewHost + "," + HBaseDn;
-      l.add_s(Dn,[("host",NewHost),
+      l.add_s(Dn,[("host", NewHost),
                   ("hostname", NewHostName),
                   ("objectClass", ("top", "debianServer"))]);
 
