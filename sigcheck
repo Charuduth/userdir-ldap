@@ -19,7 +19,7 @@
 #  -v  Verbose mode
 
 # Typical Debian invokation may look like:
-# ./gpgwrapper -k /usr/share/keyrings/debian-keyring.gpg:/usr/share/keyrings/debian-keyring.pgp \
+# sigcheck -k /usr/share/keyrings/debian-keyring.gpg:/usr/share/keyrings/debian-keyring.pgp \
 #      -d ou=users,dc=debian,dc=org -l db.debian.org \
 #      -m debian.org -a admin@db.debian.org \
 #      -e /etc/userdir-ldap/templtes/error-reply -- test.sh
@@ -52,7 +52,7 @@ def CheckLDAP(FingerPrint):
    # Connect to the ldap server
    global ErrTyp, ErrMsg;
    ErrType = EX_TEMPFAIL;
-   ErrMsg = "An error occured while performing the LDAP lookup:";
+   ErrMsg = "An error occurred while performing the LDAP lookup:";
    global l;
    l = ldap.open(LDAPServer);
    l.simple_bind_s("","");
@@ -126,7 +126,7 @@ try:
    # Check the signature
    ErrMsg = "Unable to check the signature or the signature was invalid:";
    Res = GPGCheckSig(Msg[0]);
-   
+
    if Res[0] != None:
       raise Error, Res[0];
       
