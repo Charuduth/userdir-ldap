@@ -7,7 +7,7 @@ from userdir_gpg import *;
 
 # This tries to search for a free UID. There are two possible ways to do
 # this, one is to fetch all the entires and pick the highest, the other
-# is to randomly guess uids until one is free. This uses the formar.
+# is to randomly guess uids until one is free. This uses the former.
 # Regrettably ldap doesn't have an integer attribute comparision function
 # so we can only cut the search down slightly 
 def GetFreeID(l):
@@ -26,13 +26,17 @@ AdminUser = pwd.getpwuid(os.getuid())[0];
 
 # Process options
 ForceMail = 0;
-(options, arguments) = getopt.getopt(sys.argv[1:], "u:m")
+OldGPGKeyRings = GPGKeyRings;
+GPGKeyRings = [];
+(options, arguments) = getopt.getopt(sys.argv[1:], "u:ma")
 for (switch, val) in options:
    if (switch == '-u'):
       AdminUser = val;
    elif (switch == '-m'):
       ForceMail = 1;
-      
+   elif (switch == '-a'):
+      GPGKeyRings = OldGPGKeyRings;
+
 print "Accessing LDAP directory as '" + AdminUser + "'";
 Password = getpass(AdminUser + "'s password: ");
 

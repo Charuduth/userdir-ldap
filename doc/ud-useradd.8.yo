@@ -93,6 +93,9 @@ name.
 
 dit(bf(-m))
 Force resending of the greeting emails.
+
+dit(bf(-a))
+Use all available key rings.
 enddit()
 
 manpagefiles()
