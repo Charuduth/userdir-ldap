@@ -90,6 +90,9 @@ dit(bf(-u))
 Set the authentication user. This is the user who's authority is used when 
 accessing the LDAP directory. The default is to use the current system user
 name.
+
+dit(bf(-m))
+Force resending of the greeting emails.
 enddit()
 
 manpagefiles()

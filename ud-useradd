@@ -12,7 +12,7 @@ from userdir_gpg import *;
 # so we can only cut the search down slightly 
 def GetFreeID(l):
    HighestUID = 1400;
-   Attrs = l.search_s(BaseDn,ldap.SCOPE_ONELEVEL,\ 
+   Attrs = l.search_s(BaseDn,ldap.SCOPE_ONELEVEL,  
                       "uidnumber>="+str(HighestUID),["uidnumber"]);
    HighestUID = 0;
    for I in Attrs:
@@ -22,13 +22,17 @@ def GetFreeID(l):
    return HighestUID + 1;
 
 # Main starts here
+AdminUser = pwd.getpwuid(os.getuid())[0];
 
 # Process options
-(options, arguments) = getopt.getopt(sys.argv[1:], "u:")
+ForceMail = 0;
+(options, arguments) = getopt.getopt(sys.argv[1:], "u:m")
 for (switch, val) in options:
    if (switch == '-u'):
-      AdminUser = val
-
+      AdminUser = val;
+   elif (switch == '-m'):
+      ForceMail = 1;
+      
 print "Accessing LDAP directory as '" + AdminUser + "'";
 Password = getpass(AdminUser + "'s password: ");
 
@@ -134,7 +138,7 @@ if uidnumber == 0:
    uidnumber = GetFreeID(l);
 
 # Generate a random password
-if Update == 0:
+if Update == 0 or ForceMail == 1:
    Password = raw_input("User's Password (Enter for random)? ");
 
    if Password == "":
@@ -226,17 +230,21 @@ l.modify_s(Dn,Rec);
 print;
 
 # Abort email sends for an update operation
-if Update == 1:
+if Update == 1 and ForceMail == 0:
    print "Account is not new, Not sending mails"
    sys.exit(0);
    
 # Do the subscription/welcome message
 if privsub != " ":
-   print TemplateSubst(Subst,open("templates/list-subscribe","r").read());
-
+   Sub = TemplateSubst(Subst,open(TemplatesDir+"/list-subscribe","r").read());
+   Child = os.popen("/usr/sbin/sendmail -t","w");
+   Child.write(Sub);
+   if Child.close() != None:
+       raise Error, "Sendmail gave a non-zero return code";
+   
 # Send the Welcome message
 print "Sending Welcome Email"
-Reply = TemplateSubst(Subst,open("templates/welcome-message-"+gidnumber,"r").read());
+Reply = TemplateSubst(Subst,open(TemplatesDir+"/welcome-message-"+gidnumber,"r").read());
 Child = os.popen("/usr/sbin/sendmail -t","w");
 #Child = os.popen("cat","w");
 Child.write(Reply);
