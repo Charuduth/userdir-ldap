@@ -2,7 +2,7 @@
 # -*- mode: python -*-
 # Generates passwd, shadow and group files from the ldap directory.
 
-import string, re, time, ldap, getopt, sys, os, pwd, posix;
+import string, re, time, ldap, getopt, sys, os, pwd, posix, socket;
 from userdir_ldap import *;
 
 PasswdAttrs = None;
