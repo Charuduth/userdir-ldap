@@ -1,0 +1,13 @@
+From: __ADMIN__
+Subject: Mail Gateway failed: __ERROR__
+
+Hello!
+
+Your request to the mail gateway is malformed, or an internal processing
+error occured. The information below may help you, or the gateway
+administrator to identify the problem.
+
+Error: __ERROR__
+__TRACE__
+
+Please email __ADMIN__ if you have any questions.

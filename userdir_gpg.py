@@ -342,6 +342,7 @@ def GPGKeySearch(SearchCriteria):
    Result = [];
    Owner = "";
    KeyID = "";
+   Hits = {};
    try:
       Strm = os.popen(string.join(Args," "),"r");
       
@@ -360,6 +361,9 @@ def GPGKeySearch(SearchCriteria):
 
          # Output the key
          if Split[0] == 'fpr':
+            if Hits.has_key(Split[9]):
+               continue;
+            Hits[Split[9]] = None;
             Result.append( (KeyID,Split[9],Owner,Length) );
    finally:
       if Strm != None:

@@ -100,6 +100,12 @@ dit(Show Function)
 If the single word bf('show') appears on a line then a PGP encrypted version
 of the entire record will be attached to the result email.
 
+dit(Erasing an entry)
+The command bf('del foo') can be used to erase any of the entries settable by
+the user. The erasable attributes are: c, l, facsimiletelephonenumber, 
+telephonenumber, postaladdress, postalcode, emailforward, ircnick, 
+onvacation, labeledurl, latitude, longitude, and sshrsaauthkey.
+
 enddit()
 
 After processing the requests the daemon will generate a report which contains

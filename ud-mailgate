@@ -30,6 +30,20 @@ ArbChanges = {"c": "..",
               "onvacation": ".*",
               "labeledurl": ".*"};
 
+DelItems = {"c": None,
+            "l": None,
+            "facsimiletelephonenumber": None,
+            "telephonenumber": None,
+            "postaladdress": None,
+            "postalcode": None,
+            "emailforward": None,
+            "ircnick": None,
+            "onvacation": None,
+            "labeledurl": None,
+	    "latitude": None,
+	    "longitude": None,
+	    "sshrsaauthkey": None};
+
 # Decode a GPS location from some common forms
 def LocDecode(Str,Dir):
    # Check for Decimal degrees, DGM, or DGMS
@@ -106,6 +120,20 @@ def DoArbChange(Str,Attrs):
    Attrs.append((ldap.MOD_REPLACE,G[0],G[1]));
    return "Changed entry %s to %s"%(G[0],G[1]);
 
+# Handle changing a set of arbitary fields
+#  <field>: value
+def DoDel(Str,Attrs):
+   Match = re.match("^del (.*)$",Str);
+   if Match == None:
+      return None;
+   G = Match.groups();
+ 
+   if ArbChanges.has_key(G[0]) == 0:
+      return "Cannot erase entry %s"%(G[0]);
+
+   Attrs.append((ldap.MOD_DELETE,G[0],None));
+   return "Removed entry %s"%(G[0]);
+
 # Handle a position change message, the line format is:
 #  Lat: -12412.23 Long: +12341.2342
 def DoPosition(Str,Attrs):
@@ -177,6 +205,7 @@ def HandleChange(Reply,DnRecord,Key):
 
    Result = "";
    Attrs = [];
+   Show = 0;
    for Line in Lines: 
       Line = string.strip(Line);
       if Line == "":
@@ -184,14 +213,14 @@ def HandleChange(Reply,DnRecord,Key):
 
       # Try to process a command line
       Result = Result + "> "+Line+"\n";
-      Show = 0;
       try:
          if Line == "show":
            Show = 1;
 	   Res = "OK";
          else:
            Res = DoPosition(Line,Attrs) or DoDNS(Line,Attrs,DnRecord) or \
-                 DoArbChange(Line,Attrs) or DoSSH(Line,Attrs);
+                 DoArbChange(Line,Attrs) or DoSSH(Line,Attrs) or \
+                 DoDel(Line,Attrs);
       except:
          Res = None;
          Result = Result + "==> %s: %s\n" %(sys.exc_type,sys.exc_value);
@@ -285,6 +314,11 @@ def HandleChPass(Reply,DnRecord,Key):
    return Reply;
       
 # Start of main program
+
+# Drop messages from a mailer daemon.
+if posix.environ.has_key('SENDER') == 0 or len(posix.environ['SENDER']) == 0:
+   sys.exit(0);
+
 ErrMsg = "Indeterminate Error";
 ErrType = EX_TEMPFAIL;
 try:
@@ -300,7 +334,11 @@ try:
    Email = mimetools.Message(sys.stdin,0);
    Msg = GetClearSig(Email);
 
-   # Check the signature   
+   ErrMsg = "Message is not PGP signed:"
+   if string.find(Msg[0],"-----BEGIN PGP SIGNED MESSAGE-----") == -1:
+      raise Error, "No PGP signature";
+   
+   # Check the signature
    ErrMsg = "Unable to check the signature or the signature was invalid:";
    Res = GPGCheckSig(Msg[0]);
 
@@ -381,12 +419,37 @@ try:
       raise Error, "Sendmail gave a non-zero return code";
 
 except:
-   print ErrMsg;
-   print "==> %s: %s" %(sys.exc_type,sys.exc_value);
+   # Error Reply Header
+   Date = time.strftime("%a, %d %b %Y %H:%M:%S +0000",time.gmtime(time.time()));
+   ErrReplyHead = "To: %s\nReply-To: %s\nDate: %s\n" % (posix.environ['SENDER'],ReplyTo,Date);
+
+   # Error Body
+   Subst = {};
+   Subst["__ERROR__"] = ErrMsg;
+   Subst["__ADMIN__"] = ReplyTo;
+
+   Trace = "==> %s: %s\n" %(sys.exc_type,sys.exc_value);
    List = traceback.extract_tb(sys.exc_traceback);
    if len(List) > 1:
-      print "Trace: ";
+      Trace = Trace + "Python Stack Trace:\n";
       for x in List:
-         print "   %s %s:%u: %s" %(x[2],x[0],x[1],x[3]);
-   sys.exit(ErrType);
+         Trace = Trace +  "   %s %s:%u: %s\n" %(x[2],x[0],x[1],x[3]);
+
+   Subst["__TRACE__"] = Trace;
+
+   # Try to send the bounce
+   try:
+      ErrReply = TemplateSubst(Subst,open(TemplatesDir+"error-reply","r").read());
+
+      Child = posix.popen("/usr/sbin/sendmail -t","w");
+      Child.write(ErrReplyHead);
+      Child.write(ErrReply);
+      if Child.close() != None:
+         raise Error, "Sendmail gave a non-zero return code";
+   except:
+      sys.exit(EX_TEMPFAIL);
+      
+   if ErrType != EX_PERMFAIL:
+      sys.exit(ErrType);
+   sys.exit(0);
    

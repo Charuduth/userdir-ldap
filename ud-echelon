@@ -12,7 +12,16 @@ Debug = None;
 # Try to extract a key fingerprint from a PGP siged message
 def TryGPG(Email):
    # Try to get a pgp text
-   Msg = GetClearSig(Email);
+   try:
+      Msg = GetClearSig(Email);
+   except:
+      # Log an exception.. but continue. This is to deal with 'sort of' 
+      # PGP-MIME things
+      S = "%s: %s -> %s\n" %(Now,MsgID,ErrMsg);
+      S = S + " %s: %s\n" %(sys.exc_type,sys.exc_value);
+      ErrLog.write(S);
+      return None;
+
    if string.find(Msg[0],"-----BEGIN PGP SIGNED MESSAGE-----") == -1:
       return None;
       
