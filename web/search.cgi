@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 
-# $Id: search.cgi,v 1.4 2000/01/11 04:52:53 tausq Exp $
+# $Id: search.cgi,v 1.5 2000/01/11 05:43:18 tausq Exp $
 # (c) 1999 Randolph Chung. Licensed under the GPL. <tausq@debian.org>
 
 use lib '.';
@@ -154,7 +154,7 @@ if (!$dosearch) {
     $created =  &Util::FormatTimestamp($data->{createtimestamp}->[0]);
 
     # Last seen information (Echelon)
-    $lastseen = &Util::FormatLastSeen($data->{"activity-pgp"}->[0] || 
+    $lastseen = &Util::FormatLastSeen($data->{"activity-pgp"}->[0],
                                       $data->{"activity-from"}->[0]);
 
     # Link in the debian login id 
