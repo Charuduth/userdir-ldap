@@ -110,6 +110,19 @@ def ShowAttrs(Attrs):
             print "'%s'" % (re.sub('[\n\r]','?',x)),
          print;
 
+def Overview(Attrs):
+   """Display a one-line overview for a given host"""
+   if 'status' in Attrs[1].keys():
+      status = Attrs[1]['status'][0]
+   else:
+      status = ''
+   print "%-12s  %-10s  %-38s  %-25s %s" % (\
+      Attrs[1]['host'][0], \
+      Attrs[1]['architecture'][0], \
+      Attrs[1]['distribution'][0], \
+      Attrs[1]['access'][0], \
+      status)
+
 # Change a single attribute
 def ChangeAttr(Attrs,Attr):
    if (Attr == "sponsor" or Attr == "hostname" or Attr == "sshRSAHostKey"):
@@ -182,7 +195,7 @@ def MultiChangeAttr(Attrs,Attr):
 User = pwd.getpwuid(os.getuid())[0];
 BindUser = User;
 # Process options
-(options, arguments) = getopt.getopt(sys.argv[1:], "nh:a:r")
+(options, arguments) = getopt.getopt(sys.argv[1:], "nh:a:rl")
 for (switch, val) in options:
    if (switch == '-h'):
       Host = val;
@@ -192,6 +205,8 @@ for (switch, val) in options:
       RootMode = 1;
    elif (switch == '-n'):
       BindUser = "";
+   elif (switch == '-l'):
+      ListMode = 1
 
 if (BindUser != ""):
    l = passwdAccessLDAP(LDAPServer, BaseDn, BindUser)
@@ -200,6 +215,22 @@ else:
    l.simple_bind_s("","")
 
 HBaseDn = "ou=hosts,dc=debian,dc=org";
+
+if ListMode == 1:
+   Attrs = l.search_s(HBaseDn,ldap.SCOPE_ONELEVEL,"host=*")
+   hosts = []
+   for hAttrs in Attrs:
+      hosts.append(hAttrs[1]['host'][0])
+   hosts.sort()
+
+   print "%-12s  %-10s  %-38s  %-25s %s" % ("Host name","Arch","Distribution","Access","Status")
+   print "-"*115
+   for host in hosts:
+      for hAttrs in Attrs:
+         if host == hAttrs[1]['host'][0]:
+            Overview(hAttrs)
+   sys.exit(0)
+
 HostDn = "host=" + Host + "," + HBaseDn;
 
 # Query the server for all of the attributes
