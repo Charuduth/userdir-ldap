@@ -8,7 +8,7 @@ Standards-Version: 3.5.8.0
 Package: userdir-ldap
 Architecture: all
 Depends: ${python:Depends}, python-ldap, perl5, procmail, rsync
-Suggests: libnet-ldap-perl, libcrypt-blowfish-perl, gnupg (>= 1.0.3), python-net, python-gdbm, libdate-manip-perl, liburi-perl
+Suggests: libnet-ldap-perl, libcrypt-blowfish-perl, gnupg (>= 1.0.3), python-net, python-gdbm, libdate-manip-perl, liburi-perl, userdir-ldap-cgi
 Description: Login User Directory in LDAP support scripts
  These scripts simplifiy the creation and management of a LDAP based user
  directory. Included are scripts to import existing passwd, group and shadow
