@@ -89,6 +89,11 @@ while len(Keys[0][1]) < 40:
    if Res == "":
       break;
 
+Attrs = l.search_s(BaseDn,ldap.SCOPE_ONELEVEL,"keyfingerprint=" + Keys[0][1]);
+if len(Attrs) != 0:
+   print "*** This key already belongs to",GetAttr(Attrs[0],"uid");
+   account = GetAttr(Attrs[0],"uid");
+
 # Try to get a uniq account name
 Update=0
 while 1:
