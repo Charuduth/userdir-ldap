@@ -11,7 +11,7 @@ Allowed = None;
 CurrentHost = "";
 
 EmailCheck = re.compile("^([^ <>@]+@[^ ,<>@]+)?$");
-BSMTPCheck = re.compile(".*mx 0 klecker\.debian\.org\..*",re.DOTALL);
+BSMTPCheck = re.compile(".*mx 0 (klecker|gluck)\.debian\.org\..*",re.DOTALL);
 DNSZone = ".debian.net"
 
 def Sanitize(Str):
@@ -69,17 +69,14 @@ def Done(File,F,Fdb):
 # Generate the password list
 def GenPasswd(l,File,HomePrefix):
   F = None;
-  Fdb = None;
   try:
    F = open(File + ".tmp","w");
-   Fdb = open(File + ".tdb.tmp","w");
 
    # Fetch all the users
    global PasswdAttrs;
    if PasswdAttrs == None:
       raise "No Users";
 
-   I = 0;
    for x in PasswdAttrs:
       if x[1].has_key("uidnumber") == 0 or IsInGroup(x) == 0:
          continue;
@@ -93,25 +90,19 @@ def GenPasswd(l,File,HomePrefix):
               GetAttr(x,"gecos"),HomePrefix,GetAttr(x,"uid"),\
               GetAttr(x,"loginshell"));
       F.write(Line);
-      Fdb.write("0%u %s" % (I,Line));
-      Fdb.write(".%s %s" % (GetAttr(x,"uid"),Line));
-      Fdb.write("=%s %s" % (GetAttr(x,"uidnumber"),Line));
-      I = I + 1;
 
   # Oops, something unspeakable happened.
   except:
-   Die(File,F,Fdb);
+   Die(File,F,None);
    raise;
-  Done(File,F,Fdb);
+  Done(File,F,None);
 
 # Generate the shadow list
 def GenShadow(l,File):
   F = None;
-  Fdb = None;
   try:
    OldMask = os.umask(0077);
    F = open(File + ".tmp","w",0600);
-   Fdb = open(File + ".tdb.tmp","w",0600);
    os.umask(OldMask);
 
    # Fetch all the users
@@ -119,7 +110,6 @@ def GenShadow(l,File):
    if PasswdAttrs == None:
       raise "No Users";
 
-   I = 0;
    for x in PasswdAttrs:
       if x[1].has_key("uidnumber") == 0 or IsInGroup(x) == 0:
          continue;
@@ -136,24 +126,19 @@ def GenShadow(l,File):
               GetAttr(x,"shadowexpire"));
       Line = Sanitize(Line) + "\n";
       F.write(Line);
-      Fdb.write("0%u %s" % (I,Line));
-      Fdb.write(".%s %s" % (GetAttr(x,"uid"),Line));
-      I = I + 1;
 
   # Oops, something unspeakable happened.
   except:
-   Die(File,F,Fdb);
+   Die(File,F,None);
    raise;
-  Done(File,F,Fdb);
+  Done(File,F,None);
 
 # Generate the shadow list
 def GenSSHShadow(l,File):
   F = None;
-  Fdb = None;
   try:
    OldMask = os.umask(0077);
    F = open(File + ".tmp","w",0600);
-   Fdb = os.popen("cdbmake %s.cdb %s.cdb.tmp"%(File,File),"w");
    os.umask(OldMask);
 
    # Fetch all the users
@@ -161,7 +146,6 @@ def GenSSHShadow(l,File):
    if PasswdAttrs == None:
       raise "No Users";
 
-   I = 0;
    for x in PasswdAttrs:
       if x[1].has_key("uidnumber") == 0 or \
          x[1].has_key("sshrsaauthkey") == 0:
@@ -171,23 +155,17 @@ def GenSSHShadow(l,File):
          Line = "%s: %s" %(User,I);
          Line = Sanitize(Line) + "\n";
          F.write(Line);
-         Fdb.write("+%d,%d:%s->%s\n"%(len(User),len(I),User,I));
-   Fdb.write("\n");
   # Oops, something unspeakable happened.
   except:
-   Die(File,F,Fdb);
+   Die(File,F,None);
    raise;
-  if Fdb.close() != None:
-     raise "cdbmake gave an error";
   Done(File,F,None);
 
 # Generate the group list
 def GenGroup(l,File):
   F = None;
-  Fdb = None;
   try:
    F = open(File + ".tmp","w");
-   Fdb = open(File + ".tdb.tmp","w");
 
    # Generate the GroupMap
    GroupMap = {};
@@ -213,7 +191,6 @@ def GenGroup(l,File):
             print "Group does not exist ",I,"but",GetAttr(x,"uid"),"is in it";
 	    
    # Output the group file.
-   Counter = 0; 
    for x in GroupMap.keys():
       if GroupIDMap.has_key(x) == 0:
          continue;
@@ -224,16 +201,12 @@ def GenGroup(l,File):
         Comma = ',';
       Line = Sanitize(Line) + "\n";
       F.write(Line);
-      Fdb.write("0%u %s" % (Counter,Line));
-      Fdb.write(".%s %s" % (x,Line));
-      Fdb.write("=%u %s" % (GroupIDMap[x],Line));
-      Counter = Counter + 1;
       
   # Oops, something unspeakable happened.
   except:
-   Die(File,F,Fdb);
+   Die(File,F,None);
    raise;
-  Done(File,F,Fdb);
+  Done(File,F,None);
 
 # Generate the email forwarding list
 def GenForward(l,File):
@@ -440,11 +413,9 @@ def GenDNS(l,File,BSMTPFile,HomePrefix):
 # Generate the shadow list
 def GenSSHKnown(l,File):
   F = None;
-  Fdb = None;
   try:
    OldMask = os.umask(0022);
    F = open(File + ".tmp","w",0644);
-   Fdb = os.popen("cdbmake %s.cdb %s.cdb.tmp"%(File,File),"w");
    os.umask(OldMask);
 
    # Fetch all the hosts
@@ -454,7 +425,6 @@ def GenSSHKnown(l,File):
    if HostKeys == None:
       raise "No Hosts";
 
-   I = 0;
    for x in HostKeys:
       if x[1].has_key("hostname") == 0 or \
          x[1].has_key("sshrsahostkey") == 0:
@@ -468,14 +438,10 @@ def GenSSHKnown(l,File):
             Line = "%s,%s,%s %s" %(Host,Host[0:SHost],socket.gethostbyname(Host),I);
          Line = Sanitize(Line) + "\n";
          F.write(Line);
-         Fdb.write("+%d,%d:%s->%s\n"%(len(Host),len(I),Host,I));
-   Fdb.write("\n");
   # Oops, something unspeakable happened.
   except:
-   Die(File,F,Fdb);
+   Die(File,F,None);
    raise;
-  if Fdb.close() != None:
-     raise "cdbmake gave an error";
   Done(File,F,None);
 
 
@@ -561,7 +527,6 @@ while(1):
 	
    # Link in global things   
    DoLink(GlobalDir,OutDir,"ssh-rsa-shadow");
-   DoLink(GlobalDir,OutDir,"ssh-rsa-shadow.cdb");
    DoLink(GlobalDir,OutDir,"markers");
    DoLink(GlobalDir,OutDir,"mail-forward.cdb");
    DoLink(GlobalDir,OutDir,"ssh_known_hosts");
