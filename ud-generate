@@ -589,6 +589,8 @@ while(1):
          GroupList[str(GroupIDMap[I])] = None;
 
    Allowed = GroupList;
+   if Allowed == {}:
+     Allowed = None
    CurrentHost = Split[0];
 
    sys.stdout.flush();
