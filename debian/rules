@@ -36,7 +36,7 @@ binary-indep: build
 	echo "userdir_gpg" >> $(i)/$(pysite)/userdir_ldap.pth
 	install -m 644 userdir_ldap.py userdir_gpg.py \
 		$(i)/$(pysite)/userdir_ldap/
-	install -m 755 {ud-forwardlist,ud-gpgimport,ud-info,ud-ldapshow,ud-userimport,ud-mailgate,ud-generate,ud-passchk,ud-useradd,ud-replicate,ud-xearth,ud-fingerserv,ud-echelon,ud-groupadd,ud-host,ud-zoneupdate} $(i)/usr/bin/
+	install -m 755 {ud-forwardlist,ud-gpgimport,ud-info,ud-ldapshow,ud-userimport,ud-mailgate,ud-generate,ud-passchk,ud-useradd,ud-replicate,ud-xearth,ud-fingerserv,ud-echelon,ud-groupadd,ud-host,ud-zoneupdate,ud-roleadd} $(i)/usr/bin/
 	install -m 755 sigcheck $(i)/usr/bin/
 	install -m 644 debian/ud-replicate.cron.d $(i)/etc/cron.d/ud-replicate
 
