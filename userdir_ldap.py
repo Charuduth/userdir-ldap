@@ -32,7 +32,7 @@ LastNamesPre = {"van": None, "le": None, "de": None, "di": None};
 # SSH Key splitting. The result is:
 # (options,size,modulous,exponent,comment)
 SSHAuthSplit = re.compile('^(.* )?(\d+) (\d+) (\d+) ?(.+)$');
-SSH2AuthSplit = re.compile('^(.* )?ssh-(dss|rsa) ([a-zA-Z0-9=/+]+) (.+)$');
+SSH2AuthSplit = re.compile('^(.* )?ssh-(dss|rsa) ([a-zA-Z0-9=/+]+) ?(.+)$');
 #'^([^\d](?:[^ "]+(?:".*")?)*)? ?(\d+) (\d+) (\d+) (.+)$');
 
 AddressSplit = re.compile("(.*).*<([^@]*)@([^>]*)>");
@@ -186,7 +186,7 @@ def FlushOutstanding(l,Outstanding,Fast=0):
 
 # Convert a lat/long attribute into Decimal degrees
 def DecDegree(Posn,Anon=0):
-  Parts = re.match('[+-]?(\d*)\\.?(\d*)?',Posn).groups();
+  Parts = re.match('[-+]?(\d*)\\.?(\d*)',Posn).groups();
   Val = string.atof(Posn);
 
   if (abs(Val) >= 1806060.0):
