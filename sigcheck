@@ -16,6 +16,7 @@
 #  -g  supplementary group membership
 #  -p  File of Phrases that must be in the plaintext.
 #  -m  Disallow PGP/MIME
+#  -v  Verbose mode
 
 # Typical Debian invokation may look like:
 # ./gpgwrapper -k /usr/share/keyrings/debian-keyring.gpg:/usr/share/keyrings/debian-keyring.pgp \
@@ -38,6 +39,11 @@ LDAPServer = None;
 GroupMember = None;
 Phrases = None;
 AllowMIME = 1;
+Verbose = 0;
+
+def verbmsg(msg):
+   if Verbose:
+      sys.stderr.write(msg + "\n")
 
 # Match the key fingerprint against an LDAP directory
 def CheckLDAP(FingerPrint):
@@ -52,6 +58,7 @@ def CheckLDAP(FingerPrint):
    l.simple_bind_s("","");
 
    # Search for the matching key fingerprint
+   verbmsg("Processing fingerprint %s" % FingerPrint)
    Attrs = l.search_s(LDAPDn,ldap.SCOPE_ONELEVEL,"keyfingerprint=" + FingerPrint);
    if len(Attrs) == 0:
       raise Error, "Key not found"
@@ -69,7 +76,7 @@ def CheckLDAP(FingerPrint):
    
 # Start of main program
 # Process options
-(options, arguments) = getopt.getopt(sys.argv[1:], "r:k:d:l:g:mp:");
+(options, arguments) = getopt.getopt(sys.argv[1:], "r:k:d:l:g:mp:v");
 for (switch, val) in options:
    if (switch == '-r'):
       ReplayCacheFile = val;
@@ -83,6 +90,8 @@ for (switch, val) in options:
       GroupMember = val;
    elif (switch == '-m'):
       AllowMIME = 0;
+   elif (switch == '-v'):
+      Verbose = 1;
    elif (switch == '-p'):
       Phrases = val;
       
@@ -103,7 +112,10 @@ try:
    ErrMsg = "Failed to understand the email or find a signature:";
    Email = mimetools.Message(sys.stdin,0);
    MsgID = Email.getheader("Message-ID");
+   print "Inspecting message %s"%MsgID;
+   verbmsg("Processing message %s" % MsgID)
    Msg = GetClearSig(Email,1);
+   # print Msg
    if AllowMIME == 0 and Msg[1] != 0:
       raise Error, "PGP/MIME disallowed";
   
@@ -157,4 +169,5 @@ except:
    sys.exit(EX_PERMFAIL);
 
 # For Main   
+print "Message %s passed"%MsgID;
 sys.exit(0);
