@@ -1,6 +1,7 @@
 #!/usr/bin/perl
 
-# (c) 1999 Debian and Randolph Chung. Licensed under the GPL. <tausq@debian.org>
+# $Id: update.cgi,v 1.2 1999/09/26 01:20:39 tausq Exp $
+# (c) 1999 Randolph Chung. Licensed under the GPL. <tausq@debian.org>
 
 use lib '.';
 use strict vars;

@@ -1,5 +1,8 @@
 #!/usr/bin/perl
 
+# $Id: fetchkey.cgi,v 1.2 1999/09/26 01:20:39 tausq Exp $
+# (c) 1999 Randolph Chung. Licensed under the GPL. <tausq@debian.org>
+
 use strict;
 use CGI;
 use Util;
