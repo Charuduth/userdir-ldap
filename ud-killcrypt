@@ -1,0 +1,40 @@
+#!/usr/bin/env python
+# -*- mode: python -*-
+
+import string, re, time, ldap, getopt, sys, pwd, os, posix;
+from userdir_ldap import *;
+
+# Main program starts here
+User = pwd.getpwuid(posix.getuid())[0];
+BindUser = User;
+(options, arguments) = getopt.getopt(sys.argv[1:], "au:")
+for (switch, val) in options:
+    if (switch == '-u'):
+	User = val;
+    if (switch == '-a'):
+	Anon = 1;
+			      
+# Connect to the ldap server
+l = ldap.open(LDAPServer);
+print "Accessing LDAP directory as '" + User + "'";
+Password = getpass(User + "'s password: ");
+UserDn = "uid=" + User + "," + BaseDn;
+l.simple_bind_s(UserDn,Password);
+
+Attrs = l.search_s(BaseDn,ldap.SCOPE_ONELEVEL,"userpassword=*",\
+         ["uid","cn","mn","sn","userpassword"]);
+
+Attrs.sort();
+for x in Attrs:
+    if x[1].has_key("userpassword") == 0: continue;
+    Passwd = x[1]["userpassword"][0];
+    if string.find(Passwd,"*LK*") != -1 or string.find(Passwd,"}*") != -1:
+	continue;
+    if len(Passwd) > 21: continue;
+    
+    print EmailAddress(x);
+
+    UserDn = "uid=" + x[1]["uid"][0] + "," + BaseDn;
+    Password = GenPass();
+    Pass = "{crypt}" + HashPass(Password);
+    l.modify_s(UserDn,[(ldap.MOD_REPLACE,"userpassword",Pass)]);
