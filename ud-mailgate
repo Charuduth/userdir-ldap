@@ -310,7 +310,7 @@ def HandleChPass(Reply,DnRecord,Key):
 
    # Check for a locked account
    Attrs = l.search_s(BaseDn,ldap.SCOPE_ONELEVEL,"uid="+GetAttr(DnRecord,"uid"));
-   if (string.find(GetAttr(Attrs[0],"userPassword"),"*LK*")  != -1):
+   if (string.find(GetAttr(Attrs[0],"userpassword"),"*LK*")  != -1):
       raise Error, "This account is locked";
 
    # Modify the password
@@ -397,7 +397,7 @@ try:
    if Sender == None:
       raise Error, "Unable to determine the sender's address";
 
-   if (string.find(GetAttr(Attrs[0],"userPassword"),"*LK*")  != -1):
+   if (string.find(GetAttr(Attrs[0],"userpassword"),"*LK*")  != -1):
       raise Error, "This account is locked";
 
    # Formulate a reply
