@@ -1,6 +1,6 @@
 #   Copyright (c) 1999-2000  Jason Gunthorpe <jgg@debian.org>
 #   Copyright (c) 2001-2003  Ryan Murray <rmurray@debian.org>
-#   Copyright (c) 2004  Joey Schulze <joey@infodrom.org>
+#   Copyright (c) 2004-2005  Joey Schulze <joey@infodrom.org>
 #
 #   This program is free software; you can redistribute it and/or modify
 #   it under the terms of the GNU General Public License as published by
@@ -48,7 +48,11 @@ userdir_gpg.SetKeyrings(string.split(ConfModule.keyrings,":"));
 LastNamesPre = {"van": None, "von": None, "le": None, "de": None, "di": None};
 
 # This is a list of common groups on Debian hosts
-DebianGroups = {"Debian": 800, "guest": 60000}
+DebianGroups = {
+   "Debian": 800,
+   "guest": 60000,
+   "nogroup": 65534
+   }
 
 # SSH Key splitting. The result is:
 # (options,size,modulous,exponent,comment)
