@@ -1,8 +1,9 @@
 #!/usr/bin/env python
 # -*- mode: python -*-
 
-#   Copyright (c) 2000  Jason Gunthorpe <jgg@debian.org>
+#   Copyright (c) 2000       Jason Gunthorpe <jgg@debian.org>
 #   Copyright (c) 2001-2003  James Troup <troup@debian.org>
+#   Copyright (c) 2004       Joey Schulze <joey@debian.org>
 #
 #   This program is free software; you can redistribute it and/or modify
 #   it under the terms of the GNU General Public License as published by
@@ -52,13 +53,7 @@ for (switch, val) in options:
    if (switch == '-u'):
       AdminUser = val;
 
-print "Accessing LDAP directory as '" + AdminUser + "'";
-Password = getpass(AdminUser + "'s password: ");
-
-# Connect to the ldap server
-l = ldap.open(LDAPServer);
-UserDn = "uid=" + AdminUser + "," + BaseDn;
-l.simple_bind_s(UserDn,Password);
+l = passwdAccessLDAP(LDAPServer, BaseDn, AdminUser)
 
 while 1:
    Group = raw_input("Group name? ");

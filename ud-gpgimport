@@ -51,13 +51,10 @@ if len(arguments) == 0:
 # Main program starts here
 
 # Connect to the ldap server
-l = ldap.open(LDAPServer);
 if NoAct == 0:
-   print "Accessing LDAP directory as '" + AdminUser + "'";
-   Password = getpass(AdminUser + "'s password: ");
-   UserDn = "uid=" + AdminUser + "," + BaseDn;
-   l.simple_bind_s(UserDn,Password);
+   l = passwdAccessLDAP(LDAPServer, BaseDn, AdminUser)
 else:
+   l = ldap.open(LDAPServer);
    l.simple_bind_s("","");
 
 # Download the existing key list and put it into a map

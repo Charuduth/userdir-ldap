@@ -15,11 +15,7 @@ for (switch, val) in options:
 	Anon = 1;
 			      
 # Connect to the ldap server
-l = ldap.open(LDAPServer);
-print "Accessing LDAP directory as '" + User + "'";
-Password = getpass(User + "'s password: ");
-UserDn = "uid=" + User + "," + BaseDn;
-l.simple_bind_s(UserDn,Password);
+l = passwdAccessLDAP(LDAPServer, BaseDn, User)
 
 Attrs = l.search_s(BaseDn,ldap.SCOPE_ONELEVEL,"userpassword=*",\
          ["uid","cn","mn","sn","userpassword"]);

@@ -220,13 +220,9 @@ for (switch, val) in options:
       AdminUser = val
 
 # Main program starts here
-print "Accessing LDAP directory as '" + AdminUser + "'";
-Password = getpass(AdminUser + "'s password: ");
 
 # Connect to the ldap server
-l = ldap.open(LDAPServer);
-UserDn = "uid=" + AdminUser + "," + BaseDn;
-l.simple_bind_s(UserDn,Password);
+l = passwdAccessLDAP(LDAPServer, BaseDn, User)
 
 if (Passwd != ""):
    DoPasswd(l,Passwd);
