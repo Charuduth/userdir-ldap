@@ -15,8 +15,7 @@ ReplayCacheFile = ConfModule.replaycachefile;
 EX_TEMPFAIL = 75;
 EX_PERMFAIL = 65;      # EX_DATAERR
 Error = 'Message Error';
-SeenRSA = 0;
-SeenDSA = 0;
+SeenKey = 0;
 SeenDNS = 0;
 
 ArbChanges = {"c": "..",
@@ -158,37 +157,23 @@ def DoPosition(Str,Attrs):
    Attrs.append((ldap.MOD_REPLACE,"longitude",sLong));
    return "Position set to %s/%s (%s/%s decimal degrees)"%(sLat,sLong,Lat,Long);
 
-# Handle a SSH RSA authentication key, the line format is:
+# Handle an SSH authentication key, the line format is:
 #  [options] 1024 35 13188913666680[..] [comment]
 def DoSSH(Str,Attrs):
    Match = SSHAuthSplit.match(Str);
    if Match == None:
-      return None;
+      Match = SSH2AuthSplit.match(Str);
+      if Match == None:
+         return None;
    
-   global SeenRSA;
-   if SeenRSA:
+   global SeenKey;
+   if SeenKey:
      Attrs.append((ldap.MOD_ADD,"sshrsaauthkey",Str));
      return "SSH Key added "+FormatSSHAuth(Str);
       
    Attrs.append((ldap.MOD_REPLACE,"sshrsaauthkey",Str));
-   SeenRSA = 1;
+   SeenKey = 1;
    return "SSH Keys replaced with "+FormatSSHAuth(Str);
-
-# Handle a SSH DSA authentication key, the line format is:
-#  ssh-dss [key] [comment]
-def DoSSH2(Str,Attrs):
-   Match = SSHDSAAuthSplit.match(Str);
-   if Match == None:
-      return None;
-
-   global SeenDSA;
-   if SeenDSA:
-     Attrs.append((ldap.MOD_ADD,"sshdsaauthkey",Str));
-     return "SSH2 Key added "+FormatSSH2Auth(Str);
-      
-   Attrs.append((ldap.MOD_REPLACE,"sshdsaauthkey",Str));
-   SeenDSA = 1;
-   return "SSH2 Keys replaced with "+FormatSSH2Auth(Str);
 
 # Handle changing a dns entry
 #  host in a 12.12.12.12
@@ -241,7 +226,7 @@ def HandleChange(Reply,DnRecord,Key):
          else:
            Res = DoPosition(Line,Attrs) or DoDNS(Line,Attrs,DnRecord) or \
                  DoArbChange(Line,Attrs) or DoSSH(Line,Attrs) or \
-		 DoSSH2(Line,Attrs) or DoDel(Line,Attrs);
+		 DoDel(Line,Attrs);
       except:
          Res = None;
          Result = Result + "==> %s: %s\n" %(sys.exc_type,sys.exc_value);

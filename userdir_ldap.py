@@ -32,7 +32,7 @@ LastNamesPre = {"van": None, "le": None, "de": None, "di": None};
 # SSH Key splitting. The result is:
 # (options,size,modulous,exponent,comment)
 SSHAuthSplit = re.compile('^(.* )?(\d+) (\d+) (\d+) ?(.+)$');
-SSHDSAAuthSplit = re.compile('^ssh-dss ([a-zA-Z0-9=/+]+) (.+)$');
+SSH2AuthSplit = re.compile('^(.* )?ssh-(dss|rsa) ([a-zA-Z0-9=/+]+) (.+)$');
 #'^([^\d](?:[^ "]+(?:".*")?)*)? ?(\d+) (\d+) (\d+) (.+)$');
 
 AddressSplit = re.compile("(.*).*<([^@]*)@([^>]*)>");
@@ -215,17 +215,19 @@ def DecDegree(Posn,Anon=0):
   return Str;
 
 def FormatSSH2Auth(Str):
-   Match = SSHDSAAuthSplit.match(Str);
+   Match = SSH2AuthSplit.match(Str);
    if Match == None:
       return "<unknown format>";
    G = Match.groups();
 
-   return "ssh-dss %s..%s %s"%(G[0][:8],G[0][-8:],G[1]);
+   if G[0] == None:
+      return "ssh-%s %s..%s %s"%(G[1],G[2][:8],G[2][-8:],G[3]);
+   return "%s ssh-%s %s..%s %s"%(G[0],G[1],G[2][:8],G[2][-8:],G[3]);
 
 def FormatSSHAuth(Str):
    Match = SSHAuthSplit.match(Str);
    if Match == None:
-      return "<unknown format>";
+      return FormatSSH2Auth(Str);
    G = Match.groups();
 
    # No options

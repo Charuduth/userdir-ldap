@@ -27,7 +27,6 @@ AttrInfo = {"description": ["Machine Descr.", 1],
             "memory": ["Memory", 11],
             "disk": ["Disk", 12],
             "sshrsahostkey": ["SSH RSA", 14],
-            "sshdsahostkey": ["SSH DSA", 15],
             "bandwidth": ["Bandwidth", 16]};
 
 AttrPrompt = {"description": ["Purpose of the machine"],
@@ -42,8 +41,7 @@ AttrPrompt = {"description": ["Purpose of the machine"],
               "machine": ["Hardware description"],
               "memory": ["Installed RAM"],
               "disk": ["Disk Space, RAID levels, etc"],
-	      "sshrsahostkey": ["A copy of /etc/ssh/ssh_host_key.pub"],
-	      "sshdsahostkey": ["A copy of /etc/ssh/ssh_host_key.pub.dsa"],
+	      "sshrsahostkey": ["A copy of /etc/ssh/ssh_*host_key.pub"],
               "bandwidth": ["Available outbound"]};
 
 # Create a map of IDs to desc,value,attr
@@ -94,7 +92,7 @@ def ShowAttrs(Attrs):
 
 # Change a single attribute
 def ChangeAttr(Attrs,Attr):
-   if (Attr == "sponsor" or Attr == "hostname"):
+   if (Attr == "sponsor" or Attr == "hostname" or Attr == "sshrsahostkey"):
       return MultiChangeAttr(Attrs,Attr);
 
    print "Old value: '%s'" % (GetAttr(Attrs,Attr,""));
