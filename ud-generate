@@ -146,7 +146,7 @@ def GenGroup(l,File,Allowed):
          if GroupMap.has_key(I):
 	    GroupMap[I].append(GetAttr(x,"uid"));
 	 else:
-	    GroupMap[I] = [GetAttr(x,"uid")];
+            print "Group does not exist ",I,"but",GetAttr(x,"uid"),"is in it";
 	    
    # Output the group file.
    Counter = 0; 

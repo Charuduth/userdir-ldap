@@ -103,6 +103,7 @@ itemize(
  it() Map Blast! Canadian, US and some European maps - http://www.mapblast.com/
  it() Australian Database http://www.environment.gov.au/database/MAN200R.html
  it() Canadian Database http://GeoNames.NRCan.gc.ca/
+ it() Atlas of the World, indexed by city http://www.astro.com/atlas/
  it() GNU Timezone database, organized partially by country /usr/share/zoneinfo/zone.tab
 )
 

@@ -16,6 +16,10 @@ The output is place in a file called ./markers.dat
 Since lat/long information is restricted to developers only a valid login is
 required to extract the information. 
 
+A good way to make use of the coordinates is the following command: 
+verb(xplanet --shade 100 --marker developers.coords --color white \
+--output developers.map.jpeg --geometry 750x450)
+	  
 manpageoptions()
 startdit()
 dit(bf(-u))

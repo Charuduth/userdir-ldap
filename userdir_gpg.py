@@ -264,15 +264,21 @@ def GPGCheckSig(Message):
             Why = "Verification of signature failed";
 
 	 # Bad signature response
-	 if Split[1] == "ERRSIG" or Split[1] == "NO_PUBKEY":
+	 if Split[1] == "ERRSIG":
 	    GoodSig = 0;
 	    KeyID = Split[2];
-	    if Split[7] == '9':
+            if len(Split) <= 7:
+               Why = "GPG error, ERRSIG status tag is invalid";
+            elif Split[7] == '9':
                Why = "Unable to verify signature, signing key missing.";
             elif Split[7] == '4':
                Why = "Unable to verify signature, unknown packet format/key type";
 	    else:   
                Why = "Unable to verify signature, unknown reason";
+
+         if Split[1] == "NO_PUBKEY":
+	    GoodSig = 0;
+            Why = "Unable to verify signature, signing key missing.";
 
 	 # Expired signature
 	 if Split[1] == "SIGEXPIRED":
