@@ -576,7 +576,7 @@ while(1):
    GenPasswd(l,OutDir+"passwd",Split[1]);
    sys.stdout.flush();
    GenGroup(l,OutDir+"group");
-   if CurrentHost == "haydn.debian.org":
+   if CurrentHost == "haydn.debian.org" or CurrentHost == "costa.debian.org":
 	continue;
    GenShadow(l,OutDir+"shadow");
 	
