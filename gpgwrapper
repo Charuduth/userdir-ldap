@@ -105,7 +105,7 @@ for (switch, val) in options:
    if (switch == '-r'):
       ReplayCacheFile = val;
    elif (switch == '-e'):
-      ErrorTempalte  = val;
+      ErrorTemplate  = val;
    elif (switch == '-k'):
       SetKeyrings(string.split(val,":"));
    elif (switch == '-a'):

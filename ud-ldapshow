@@ -95,6 +95,14 @@ if arguments[0] == "echelon":
          PGPCount = PGPCount + 1;
    print "Echelon has seen",Count,"developers, with",PGPCount,"PGP confirms as of",time.strftime("%a, %d %b %Y %H:%M:%S +0000",time.gmtime(time.time()));
 
+if arguments[0] == "missing":
+   Attrs = l.search_s(BaseDn,ldap.SCOPE_ONELEVEL,\
+   "(&(!(|(activity-pgp=*)(activity-from=*)))(&(keyfingerprint=*)(gidnumber=800)))",\
+           ["uid","cn","sn","mn"]);
+   Attrs.sort();
+   for x in Attrs:
+      print EmailAddress(x);
+
 if arguments[0] == "keystat":
    Attrs = l.search_s(BaseDn,ldap.SCOPE_ONELEVEL,"keyfingerprint=*",\
            ["keyfingerprint"]);
