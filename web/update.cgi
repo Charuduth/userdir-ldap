@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 
-# $Id: update.cgi,v 1.5 1999/12/13 04:56:48 tausq Exp $
+# $Id: update.cgi,v 1.6 2000/03/26 22:13:25 tausq Exp $
 # (c) 1999 Randolph Chung. Licensed under the GPL. <tausq@debian.org>
 
 use lib '.';
@@ -130,6 +130,7 @@ if (!($query->param('doupdate'))) {
   LDAPUpdate($ldap, $editdn, 'emailForward', $query->param('email'));
   LDAPUpdate($ldap, $editdn, 'privatesub', $query->param('privatesub'));
   LDAPUpdate($ldap, $editdn, 'ircNick', $query->param('ircnick'));
+  LDAPUpdate($ldap, $editdn, 'icquin', $query->param('icquin'));
   LDAPUpdate($ldap, $editdn, 'labeledUrl', $query->param('labeledurl'));
   LDAPUpdate($ldap, $editdn, 'onvacation', $query->param('onvacation'));
 
