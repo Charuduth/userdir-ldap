@@ -7,7 +7,7 @@ Your password has been updated. Enclosed below is the new password encrypted
 with your key. __CRYPTTYPE__
 
 Currently LDAP information is replicated to each machine every 15 mins, 
-va, pandora and master are not presently in the LDAP system.
+however master is not presently in the LDAP system.
 
 Please email __ADMIN__ if you have any questions.
 
