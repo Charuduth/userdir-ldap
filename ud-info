@@ -139,6 +139,20 @@ def PrintSshRSAKeys(Attrs):
 
       print FormatSSHAuth(x);
       
+# Print the SSH RSA Authentication keys for a user
+def PrintSshDSAKeys(Attrs):
+   if Attrs[1].has_key("sshdsaauthkey") == 0:
+      return;
+   First = 0;
+   for x in Attrs[1]["sshdsaauthkey"]:
+      if First == 0:
+         print "%-24s:" % ("SSH DSA Auth Keys"),
+         First = 1;
+      else:
+         print "%-24s:" % (""),
+
+      print FormatSSH2Auth(x);
+      
 # Display all of the attributes in a numbered list
 def ShowAttrs(Attrs):
    print;
@@ -147,6 +161,7 @@ def ShowAttrs(Attrs):
    PrintShadow(Attrs);
    PrintKeys(Attrs);
    PrintSshRSAKeys(Attrs);
+   PrintSshDSAKeys(Attrs);
 
    for at in Attrs[1].keys():
       if AttrInfo.has_key(at):

@@ -32,6 +32,7 @@ LastNamesPre = {"van": None, "le": None, "de": None, "di": None};
 # SSH Key splitting. The result is:
 # (options,size,modulous,exponent,comment)
 SSHAuthSplit = re.compile('^(.* )?(\d+) (\d+) (\d+) ?(.+)$');
+SSHDSAAuthSplit = re.compile('^ssh-dss ([a-zA-Z0-9=/+]+) (.+)$');
 #'^([^\d](?:[^ "]+(?:".*")?)*)? ?(\d+) (\d+) (\d+) (.+)$');
 
 AddressSplit = re.compile("(.*).*<([^@]*)@([^>]*)>");
@@ -212,6 +213,14 @@ def DecDegree(Posn,Anon=0):
   if Val >= 0:
      return "+" + Str;
   return Str;
+
+def FormatSSH2Auth(Str):
+   Match = SSHDSAAuthSplit.match(Str);
+   if Match == None:
+      return "<unknown format>";
+   G = Match.groups();
+
+   return "ssh-dss %s..%s %s"%(G[0][:8],G[0][-8:],G[1]);
 
 def FormatSSHAuth(Str):
    Match = SSHAuthSplit.match(Str);
