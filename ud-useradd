@@ -61,7 +61,7 @@ SetKeyrings(["/org/keyring.debian.org/keyrings/debian-keyring.gpg"])
 while (1):
    Foo = raw_input("Who are you going to add (for a GPG search)? ");
    if Foo == "":
-      continue;
+      sys.exit(0);
 
    Keys = GPGKeySearch(Foo);
 
