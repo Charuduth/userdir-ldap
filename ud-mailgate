@@ -45,6 +45,7 @@ DelItems = {"c": None,
 	    "latitude": None,
 	    "longitude": None,
             "icqUin": None,
+            "dnsZoneEntry": None,
 	    "sshRSAAuthKey": None,
 	    "sshDSAAuthKey": None};
 
