@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 
-# $Id: login.cgi,v 1.2 1999/09/26 01:20:39 tausq Exp $
+# $Id: login.cgi,v 1.3 1999/12/09 02:18:14 tausq Exp $
 # (c) 1999 Randolph Chung. Licensed under the GPL. <tausq@debian.org>
 
 use lib '.';
@@ -39,11 +39,11 @@ if ($mesg->code == LDAP_SUCCESS) {
   my $cryptid = &Util::SavePasswordToFile($username, $password, $cipher);
 
   if ($query->param('update')) {
-    my $url = "$proto://$ENV{SERVER_NAME}/$config{webupdateurl}?id=$username&authtoken=$cryptid:$hrkey&editdn=";
+    my $url = "$proto://$ENV{SERVER_NAME}/$config{webupdateurl}?id=$username&authtoken=$cryptid,$hrkey&editdn=";
     $url .= uri_escape("uid=$username,$config{basedn}", "\x00-\x40\x7f-\xff");
     print "Location: $url\n\n";
   } else {
-    print "Location: $proto://$ENV{SERVER_NAME}/$config{websearchurl}?id=$username&authtoken=$cryptid:$hrkey\n\n";
+    print "Location: $proto://$ENV{SERVER_NAME}/$config{websearchurl}?id=$username&authtoken=$cryptid,$hrkey\n\n";
   }
 
   $ldap->unbind;
