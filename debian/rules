@@ -11,12 +11,14 @@ pysite:=usr/lib/python$(pyversion)/site-packages
 
 build:
 	dh_testdir
+	$(MAKE) -C web
 	touch build
 
 clean:
 	dh_testdir
 	-rm -f build
 	-find . -name '*.py[co]' | xargs rm -f
+	$(MAKE) -C web clean
 	-rm -rf $(i) debian/files* core debian/substvars
 
 instdirs = \
@@ -58,6 +60,7 @@ binary-indep: build
 	chmod 644 $(i)/etc/userdir-ldap/generate.conf
 	install -m 644 templates/*-* $(i)/etc/userdir-ldap/templates/
 	
+	dh_installchangelogs
 	dh_installmanpages
 	dh_fixperms --exclude=web-cookies
 	dh_compress
