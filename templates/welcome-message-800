@@ -70,7 +70,9 @@ The machine ftp-master.debian.org is our main archive server.  Every
 uploaded package finds it's way there (except for Packages covered by US 
 crypto laws which go to non-us.debian.org) eventually. master.debian.org is 
 the home of our bug tracking system. Project web pages and CVS archives are 
-hosted on va.debian.org (aka cvs/www.debian.org).
+hosted on klecker.debian.org (aka cvs/www.debian.org), klecker is also our
+general shell server. Web pages should be placed in public_html on klecker 
+and refered to by http://people.debian.org/~__LOGIN__
 
 You should use ssh to log into the machines instead of regular telnet
 or rlogin. Our LDAP directory is able to share ssh RSA keys among machines,
