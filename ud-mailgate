@@ -27,6 +27,7 @@ ArbChanges = {"c": "..",
               "loginshell": ".*",
               "emailforward": "^([^<>@]+@.+)?$",
               "ircnick": ".*",
+              "icquin": "^[0-9]*$",
               "onvacation": ".*",
               "labeledurl": ".*"};
 
@@ -42,6 +43,7 @@ DelItems = {"c": None,
             "labeledurl": None,
 	    "latitude": None,
 	    "longitude": None,
+            "icquin": None,
 	    "sshrsaauthkey": None};
 
 # Decode a GPS location from some common forms
