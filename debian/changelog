@@ -1,3 +1,26 @@
+userdir-ldap (0.3.8) stable; urgency=low
+
+  * ud-replicate:
+     - Update the ssh shadow files in /etc if they don't exist
+     - Corrected the verbosity detection
+     - Only fiddle inside the chroot if the makedb program exist
+  * userdir_ldap.py:
+     - Support pressing C-d and C-c
+     - Support for alphanumeric group names
+     - Added passwdAccessLDAP() for wider use by programs
+  * ud-useradd:
+     - Support for mistyped passwords
+     - Support for alphanumerical group ids
+     - Support for no debian-private subscription
+  * ud-host:
+     - Support for -l to list all hosts
+  * ud-info:
+    - Corrected spelling for labeledURI
+  * ud-mailgate:
+    - Corrected spelling for labeledURI
+
+ --
+
 userdir-ldap (0.3.7) stable; urgency=low
 
   * ud-fingerserv: Corrected the key/fingerprint feature
