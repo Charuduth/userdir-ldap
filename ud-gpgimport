@@ -203,7 +203,7 @@ while(1):
 
    Rec = [(ldap.MOD_ADD,"keyfingerprint",Split2[9])];
    Dn = "uid=" + UID + "," + BaseDn;
-   print "Adding key 0x",Split2[9],"to",UID;
+   print "Adding key 0x"+Split2[9],"to",UID;
    if KeyCount.has_key(UID):
       KeyCount[UID] = KeyCount[UID] + 1;
    else:
