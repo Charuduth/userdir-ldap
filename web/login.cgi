@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 
-# $Id: login.cgi,v 1.7 2000/05/10 05:01:55 tausq Exp $
+# $Id: login.cgi,v 1.8 2003/03/13 04:25:56 rmurray Exp $
 # (c) 1999 Randolph Chung. Licensed under the GPL. <tausq@debian.org>
 
 use lib '.';
@@ -17,8 +17,8 @@ my %config = &Util::ReadConfigFile;
 my $query = new CGI;
 my $proto = ($ENV{HTTPS} ? "https" : "http");
 
-if (!($query->param('username')) || !($query->param('password'))) {
-  print "Location: $proto://$ENV{SERVER_NAME}/$config{webloginurl}\n\n";
+if ($proto eq "http" || !($query->param('username')) || !($query->param('password'))) {
+  print "Location: https://$ENV{SERVER_NAME}/$config{webloginurl}\n\n";
   exit;
 }
 

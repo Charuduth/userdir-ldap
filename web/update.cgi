@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 
-# $Id: update.cgi,v 1.8 2000/05/13 18:39:05 tausq Exp $
+# $Id: update.cgi,v 1.9 2003/03/13 04:25:56 rmurray Exp $
 # (c) 1999 Randolph Chung. Licensed under the GPL. <tausq@debian.org>
 
 use lib '.';
@@ -43,7 +43,7 @@ $auth = ($mesg->code == LDAP_SUCCESS);
 
 if (!$auth) {
   $ldap->unbind;
-  &Util::HTMLError("You have not been authenticated. Please <a href=\"$proto://$ENV{SERVER_NAME}/$config{webloginurl}\">Login</a>");
+  &Util::HTMLError("You have not been authenticated. Please <a href=\"https://$ENV{SERVER_NAME}/$config{webloginurl}\">Login</a>");
 }
 
 # Authenticated....
