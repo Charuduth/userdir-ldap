@@ -137,7 +137,7 @@ def GenPass():
    SaltVals = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ/.";
    Rand = open("/dev/urandom");
    Password = "";
-   for i in range(0,10):
+   for i in range(0,15):
       Password = Password + SaltVals[ord(Rand.read(1)[0]) % len(SaltVals)];
    return Password;
 
@@ -147,8 +147,9 @@ def HashPass(Password):
    # glibc then just change Salt = "$1$" to Salt = "";
    SaltVals = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ/.";
    Salt  = "$1$";
+   Rand = open("/dev/urandom");
    for x in range(0,10):
-      Salt = Salt + SaltVals[whrandom.randint(0,len(SaltVals)-1)];
+      Salt = Salt + SaltVals[ord(Rand.read(1)[0]) % len(SaltVals)];
    Pass = crypt.crypt(Password,Salt);
    if len(Pass) < 14:
       raise "Password Error", "MD5 password hashing failed, not changing the password!";
