@@ -70,13 +70,14 @@ def Done(File,F,Fdb):
 def GenPasswd(l,File,HomePrefix):
   F = None;
   try:
-   F = open(File + ".tmp","w");
+   F = open(File + ".tdb.tmp","w");
 
    # Fetch all the users
    global PasswdAttrs;
    if PasswdAttrs == None:
       raise "No Users";
 
+   I = 0;
    for x in PasswdAttrs:
       if x[1].has_key("uidnumber") == 0 or IsInGroup(x) == 0:
          continue;
@@ -85,24 +86,29 @@ def GenPasswd(l,File,HomePrefix):
       if len(GetAttr(x,"gecos")) > 100 or len(GetAttr(x,"loginshell")) > 50:
          continue;
 
-      Line = "%s:x:%s:%s:%s:%s%s:%s\n" % (GetAttr(x,"uid"),\
+      Line = "%s:x:%s:%s:%s:%s%s:%s" % (GetAttr(x,"uid"),\
               GetAttr(x,"uidnumber"),GetAttr(x,"gidnumber"),\
               GetAttr(x,"gecos"),HomePrefix,GetAttr(x,"uid"),\
               GetAttr(x,"loginshell"));
-      F.write(Line);
+
+      Line = Sanitize(Line) + "\n";
+      F.write("0%u %s" % (I,Line));
+      F.write(".%s %s" % (GetAttr(x,"uid"),Line));
+      F.write("=%s %s" % (GetAttr(x,"uidnumber"),Line));
+      I = I + 1;
 
   # Oops, something unspeakable happened.
   except:
-   Die(File,F,None);
+   Die(File,None,F);
    raise;
-  Done(File,F,None);
+  Done(File,None,F);
 
 # Generate the shadow list
 def GenShadow(l,File):
   F = None;
   try:
    OldMask = os.umask(0077);
-   F = open(File + ".tmp","w",0600);
+   F = open(File + ".tdb.tmp","w",0600);
    os.umask(OldMask);
 
    # Fetch all the users
@@ -110,6 +116,7 @@ def GenShadow(l,File):
    if PasswdAttrs == None:
       raise "No Users";
 
+   I = 0;
    for x in PasswdAttrs:
       if x[1].has_key("uidnumber") == 0 or IsInGroup(x) == 0:
          continue;
@@ -125,13 +132,15 @@ def GenShadow(l,File):
               GetAttr(x,"shadowwarning"),GetAttr(x,"shadowinactive"),\
               GetAttr(x,"shadowexpire"));
       Line = Sanitize(Line) + "\n";
-      F.write(Line);
+      F.write("0%u %s" % (I,Line));
+      F.write(".%s %s" % (GetAttr(x,"uid"),Line));
+      I = I + 1;
 
   # Oops, something unspeakable happened.
   except:
-   Die(File,F,None);
+   Die(File,None,F);
    raise;
-  Done(File,F,None);
+  Done(File,None,F);
 
 # Generate the shadow list
 def GenSSHShadow(l,File):
@@ -165,7 +174,7 @@ def GenSSHShadow(l,File):
 def GenGroup(l,File):
   F = None;
   try:
-   F = open(File + ".tmp","w");
+   F = open(File + ".tdb.tmp","w");
 
    # Generate the GroupMap
    GroupMap = {};
@@ -191,6 +200,7 @@ def GenGroup(l,File):
             print "Group does not exist ",I,"but",GetAttr(x,"uid"),"is in it";
 	    
    # Output the group file.
+   J = 0;
    for x in GroupMap.keys():
       if GroupIDMap.has_key(x) == 0:
          continue;
@@ -200,13 +210,16 @@ def GenGroup(l,File):
         Line = Line + ("%s%s" % (Comma,I));
         Comma = ',';
       Line = Sanitize(Line) + "\n";
-      F.write(Line);
+      F.write("0%u %s" % (J,Line));
+      F.write(".%s %s" % (x,Line));
+      F.write("=%u %s" % (GroupIDMap[x],Line));
+      J = J + 1;
       
   # Oops, something unspeakable happened.
   except:
-   Die(File,F,None);
+   Die(File,None,F);
    raise;
-  Done(File,F,None);
+  Done(File,None,F);
 
 # Generate the email forwarding list
 def GenForward(l,File):
@@ -405,7 +418,7 @@ def GenDNS(l,File,HomePrefix):
   Done(File,F,None);
 
 # Generate the BSMTP file
-def GenBSMTP(l,File):
+def GenBSMTP(l,File,HomePrefix):
   F = None;
   try:
    F = open(File + ".tmp","w");
@@ -433,7 +446,6 @@ def GenBSMTP(l,File):
 		   F.write("%s: user=%s group=Debian file=%s%s/bsmtp/%s\n"%(Host,
  		               GetAttr(x,"uid"),HomePrefix,GetAttr(x,"uid"),Host));
 			       
-         F.write("\n");
       except:
 	 F.write("; Errors\n");
          pass;
@@ -572,7 +584,7 @@ while(1):
       GenDNS(l,OutDir+"dns-zone",Split[1]);
       
    if ExtraList.has_key("[BSMTP]"):
-      GenBSMTP(l,OutDir+"bsmtp");
+      GenBSMTP(l,OutDir+"bsmtp",Split[1]);
 
    if ExtraList.has_key("[PRIVATE]"):
       DoLink(GlobalDir,OutDir,"debian-private");
