@@ -251,6 +251,10 @@ def FormatPGPKey(Str):
 
 # Take an email address and split it into 3 parts, (Name,UID,Domain)
 def SplitEmail(Addr):
+   # Is not an email address at all
+   if string.find(Addr,'@') == -1:
+      return (Addr,"","");
+  
    Res1 = rfc822.AddrlistClass(Addr).getaddress();
    if len(Res1) != 1:
       return ("","",Addr);
@@ -290,6 +294,11 @@ def GetUID(l,Name,UnknownMap = {}):
       Stat = "unknown map hit for"+str(Name);
       return (UnknownMap[Name[2]],[Stat]);
 
+   # Then the name component (another ie there was no email address to match)
+   if UnknownMap.has_key(Name[0]):
+      Stat = "unknown map hit for"+str(Name);
+      return (UnknownMap[Name[0]],[Stat]);
+  
    # Search for a possible first/last name hit
    try:
       Attrs = l.search_s(BaseDn,ldap.SCOPE_ONELEVEL,"(&(cn=%s)(sn=%s))"%(cn,sn),["uid"]);
