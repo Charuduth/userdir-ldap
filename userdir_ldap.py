@@ -111,6 +111,29 @@ def getpass(prompt = "Password: "):
    print;
    return passwd;
 
+def passwdAccessLDAP(LDAPServer, BaseDn, AdminUser):
+   """
+   Ask for the AdminUser's password and connect to the LDAP server.
+   Returns the connection handle.
+   """
+   print "Accessing LDAP directory as '" + AdminUser + "'";
+   while (1):
+      Password = getpass(AdminUser + "'s password: ");
+
+      if len(Password) == 0:
+         sys.exit(0)
+
+      l = ldap.open(LDAPServer);
+      UserDn = "uid=" + AdminUser + "," + BaseDn;
+
+      # Connect to the ldap server
+      try:
+         l.simple_bind_s(UserDn,Password);
+      except ldap.INVALID_CREDENTIALS:
+         continue
+      break
+   return l
+
 # Split up a name into multiple components. This tries to best guess how
 # to split up a name
 def NameSplit(Name):
