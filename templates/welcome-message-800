@@ -16,7 +16,7 @@ with username '__LOGIN__'.  The password for this account can be found
 encrypted with your PGP or GPG key and appended to this message. A list 
 of machines available to Debian developers can be found at
 <URL:http://db.debian.org/machines.cgi>. Please take a minute now to
-familiarize yourself with the Debian Machine Usage Policy, available
+familiarise yourself with the Debian Machine Usage Policy, available
 at <URL:http://www.debian.org/devel/dmup>
 
 You have been subscribed to the debian-private mailing list as
@@ -72,7 +72,7 @@ crypto laws which go to non-us.debian.org) eventually. master.debian.org is
 the home of our bug tracking system. Project web pages and CVS archives are 
 hosted on klecker.debian.org (aka cvs/www.debian.org), klecker is also our
 general shell server. Web pages should be placed in public_html on klecker 
-and refered to by http://people.debian.org/~__LOGIN__
+and referred to by http://people.debian.org/~__LOGIN__
 
 You should use ssh to log into the machines instead of regular telnet
 or rlogin. Our LDAP directory is able to share ssh RSA keys among machines,
