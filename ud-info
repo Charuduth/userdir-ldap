@@ -153,11 +153,8 @@ def PrintSshRSAKeys(Attrs):
          First = 1;
       else:
          print "%-24s:" % (""),
-      Split = string.split(x," ");
-      
-      if len(Split) != 4:
-         del Split[0];
-      print Split[0],Split[1],Split[2][:8]+".."+Split[2][-8:],string.join(Split[3:]);
+
+      print FormatSSHAuth(x);
       
 # Display all of the attributes in a numbered list
 def ShowAttrs(Attrs):

@@ -21,7 +21,12 @@ PassDir = ConfModule.passdir;
 
 # This is a list of common last-name prefixes
 LastNamesPre = {"van": None, "le": None, "de": None, "di": None};
-   
+
+# SSH Key splitting. The result is:
+# (options,size,modulous,exponent,comment)
+SSHAuthSplit = re.compile('^(.* )?(\d+) (\d+) (\d+) (.+)$');
+#'^([^\d](?:[^ "]+(?:".*")?)*)? ?(\d+) (\d+) (\d+) (.+)$');
+
 # Safely get an attribute from a tuple representing a dn and an attribute
 # list. It returns the first attribute if there are multi.
 def GetAttr(DnRecord,Attribute,Default = ""):
@@ -170,9 +175,9 @@ def FlushOutstanding(l,Outstanding,Fast=0):
    return Outstanding;
 
 # Convert a lat/long attribute into Decimal degrees
-def DecDegree(Attr,Type,Anon=0):
-  Parts = re.match('[+-]?(\d*)\\.?(\d*)?',GetAttr(Attr,Type)).groups();
-  Val = string.atof(GetAttr(Attr,Type));
+def DecDegree(Posn,Anon=0):
+  Parts = re.match('[+-]?(\d*)\\.?(\d*)?',Posn).groups();
+  Val = string.atof(Posn);
 
   if (abs(Val) >= 1806060.0):
      raise ValueError,"Too Big";
@@ -198,3 +203,14 @@ def DecDegree(Attr,Type,Anon=0):
   if Val >= 0:
      return "+" + Str;
   return Str;
+
+def FormatSSHAuth(Str):
+   Match = SSHAuthSplit.match(Str);
+   if Match == None:
+      return "<unknown format>";
+   G = Match.groups();
+
+   # No options
+   if G[0] == None:
+      return "%s %s %s..%s %s"%(G[1],G[2],G[3][:8],G[3][-8:],G[4]);
+   return "%s %s %s %s..%s %s"%(G[0],G[1],G[2],G[3][:8],G[3][-8:],G[4]);

@@ -1,0 +1,14 @@
+From: __FROM__
+Subject: DB Change Request
+
+Hello __EMAIL__!
+
+Your request to change your directory information has been processed.
+Note that there is a propogation time for many of the entries so please
+be patient. Here are the results:
+
+__RESULT__
+
+Please email __ADMIN__ if you have any questions.
+
+__ATTR__

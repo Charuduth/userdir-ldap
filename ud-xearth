@@ -52,9 +52,9 @@ for x in Attrs:
    Count = Count + 1;
    try:
       if Anon != 0:
-         F.write("%8s %8s \"\"\n"%(DecDegree(x,"latitude",Anon),DecDegree(x,"longitude",Anon)));
+         F.write("%8s %8s \"\"\n"%(DecDegree(GetAttr(x,"latitude"),Anon),DecDegree(GetAttr(x,"longitude"),Anon)));
       else:
-         F.write("%16s %16s \"%s\" \t# %s\n"%(DecDegree(x,"latitude",Anon),DecDegree(x,"longitude",Anon),GetAttr(x,"uid"),EmailAddress(x)));
+         F.write("%16s %16s \"%s\" \t# %s\n"%(DecDegree(GetAttr(x,"latitude"),Anon),DecDegree(GetAttr(x,"longitude"),Anon),GetAttr(x,"uid"),EmailAddress(x)));
    except:
       Failed = Failed + 1;
       if Anon == 0:

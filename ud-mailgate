@@ -9,19 +9,234 @@ from userdir_ldap import *;
 ReplyTo = ConfModule.replyto;
 PingFrom = ConfModule.pingfrom;
 ChPassFrom = ConfModule.chpassfrom;
+ChangeFrom = ConfModule.changefrom;
 ReplayCacheFile = ConfModule.replaycachefile;
 
 EX_TEMPFAIL = 75;
 EX_PERMFAIL = 65;      # EX_DATAERR
 Error = 'Message Error';
+SeenRSA = 0;
+SeenDNS = 0;
 
+ArbChanges = {"c": "..",
+	      "l": ".*",
+	      "facsimiletelephonenumber": ".*",
+	      "telephonenumber": ".*",
+	      "postaladdress": ".*",
+	      "postalcode": ".*",
+              "loginshell": ".*",
+              "emailforward": "^([^<>@]+@.+)?$",
+              "ircnick": ".*",
+              "onvacation": ".*",
+              "labeledurl": ".*"};
+
+# Decode a GPS location from some common forms
+def LocDecode(Str,Dir):
+   # Check for Decimal degrees, DGM, or DGMS
+   if re.match("^[+-]?[\d.]+$",Str) != None:
+      return Str;
+
+   Deg = '0'; Min = None; Sec = None; Dr = Dir[0];
+   
+   # Check for DDDxMM.MMMM where x = [nsew]
+   Match = re.match("^(\d+)(["+Dir+"])([\d.]+)$",Str);
+   if Match != None:
+      G = Match.groups();
+      Deg = G[0]; Min = G[2]; Dr = G[1];
+
+   # Check for DD.DD x 
+   Match = re.match("^([\d.]+) ?(["+Dir+"])$",Str);
+   if Match != None:
+      G = Match.groups();
+      Deg = G[0]; Dr = G[1];
+
+   # Check for DD:MM.MM x 
+   Match = re.match("^(\d+):([\d.]+) ?(["+Dir+"])$",Str);
+   if Match != None:
+      G = Match.groups();
+      Deg = G[0]; Min = G[1]; Dr = G[2];
+
+   # Check for DD:MM:SS.SS x
+   Match = re.match("^(\d+):(\d+):([\d.]+) ?(["+Dir+"])$",Str);
+   if Match != None:
+      G = Match.groups();
+      Deg = G[0]; Min = G[1]; Sec = G[2]; Dr = G[3];
+      
+   # Some simple checks
+   if float(Deg) > 180:
+      raise "Failed","Bad degrees";
+   if Min != None and float(Min) > 60:
+      raise "Failed","Bad minutes";
+   if Sec != None and float(Sec) > 60:
+      raise "Failed","Bad seconds";
+      
+   # Pad on an extra leading 0 to disambiguate small numbers
+   if len(Deg) <= 1 or Deg[1] == '.':
+      Deg = '0' + Deg;
+   if Min != None and (len(Min) <= 1 or Min[1] == '.'):
+      Min = '0' + Min;
+   if Sec != None and (len(Sec) <= 1 or Sec[1] == '.'):
+      Sec = '0' + Sec;
+   
+   # Construct a DGM/DGMS type value from the components.
+   Res = "+"
+   if Dr == Dir[1]:
+      Res = "-";
+   Res = Res + Deg;
+   if Min != None:
+      Res = Res + Min;
+   if Sec != None:
+      Res = Res + Sec;
+   return Res;
+	      
+# Handle changing a set of arbitary fields
+#  <field>: value
+def DoArbChange(Str,Attrs):
+   Match = re.match("^([^ :]+): (.*)$",Str);
+   if Match == None:
+      return None;
+   G = Match.groups();
+   
+   if ArbChanges.has_key(G[0]) == 0:
+      return None;
+      
+   if re.match(ArbChanges[G[0]],G[1]) == None:
+      raise Error, "Item does not match the required format"+ArbChanges[G[0]];
+
+   Attrs.append((ldap.MOD_REPLACE,G[0],G[1]));
+   return "Changed entry %s to %s"%(G[0],G[1]);
+
+# Handle a position change message, the line format is:
+#  Lat: -12412.23 Long: +12341.2342
+def DoPosition(Str,Attrs):
+   Match = re.match("^lat: ([+\-]?[\d:.ns]+(?: ?[ns])?) long: ([+\-]?[\d:.ew]+(?: ?[ew])?)$",string.lower(Str));
+   if Match == None:
+      return None;
+
+   G = Match.groups();
+   try:
+      sLat = LocDecode(G[0],"ns");
+      sLong = LocDecode(G[1],"ew");
+      Lat = DecDegree(sLat,1);
+      Long = DecDegree(sLong,1);
+   except:
+      raise Error, "Positions were found, but they are not correctly formed";
+
+   Attrs.append((ldap.MOD_REPLACE,"latitude",sLat));
+   Attrs.append((ldap.MOD_REPLACE,"longitude",sLong));
+   return "Position set to %s/%s (%s/%s decimal degrees)"%(sLat,sLong,Lat,Long);
+
+# Handle a SSH RSA authentication key, the line format is:
+#  [options] 1024 35 13188913666680[..] [comment]
+def DoSSH(Str,Attrs):
+   Match = SSHAuthSplit.match(Str);
+   if Match == None:
+      return None;
+   
+   global SeenRSA;
+   if SeenRSA:
+     Attrs.append((ldap.MOD_ADD,"sshrsaauthkey",Str));
+     return "SSH Key added "+FormatSSHAuth(Str);
+      
+   Attrs.append((ldap.MOD_REPLACE,"sshrsaauthkey",Str));
+   SeenRSA = 1;
+   return "SSH Keys replaced with "+FormatSSHAuth(Str);
+
+# Handle changing a dns entry
+#  host in a 12.12.12.12
+#  host in cname foo.bar.    <- Trailing dot is required
+def DoDNS(Str,Attrs,DnRecord):
+   if re.match('^[\w-]+\s+in\s+a\s+\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$',\
+        Str,re.IGNORECASE) == None and \
+      re.match("^[\w-]+\s+in\s+cname\s+[\w.\-]+\.$",Str,re.IGNORECASE) == None:
+     return None;     
+
+   # Check if the name is already taken
+   G = re.match('^([\w-+]+)\s',Str).groups();
+
+   # Check for collisions
+   global l;
+   Rec = l.search_s(BaseDn,ldap.SCOPE_ONELEVEL,"dnszoneentry="+G[0]+" *",["uid"]);
+   for x in Rec:
+      if GetAttr(x,"uid") != GetAttr(DnRecord,"uid"):
+         return "DNS entry is already owned by " + GetAttr(x,"uid")
+
+   global SeenDNS;
+   if SeenDNS:
+     Attrs.append((ldap.MOD_ADD,"dnszoneentry",Str));
+     return "DNS Entry added "+Str;
+      
+   Attrs.append((ldap.MOD_REPLACE,"dnszoneentry",Str));
+   SeenDNS = 1;
+   return "DNS Entry replaced with "+Str;
+
+# Handle an [almost] arbitary change
+def HandleChange(Reply,DnRecord,Key):
+   global PlainText;
+   Lines = string.split(PlainText,"\r\n");
+
+   Result = "";
+   Attrs = [];
+   for Line in Lines: 
+      Line = string.strip(Line);
+      if Line == "":
+         continue;
+
+      # Try to process a command line
+      Result = Result + "> "+Line+"\n";
+      Show = 0;
+      try:
+         if Line == "show":
+           Show = 1;
+	   Res = "OK";
+         else:
+            Res = DoPosition(Line,Attrs) or DoSSH(Line,Attrs) or \
+                  DoDNS(Line,Attrs,DnRecord) or DoArbChange(Line,Attrs);
+      except:
+         Res = None;
+         Result = Result + "==> %s: %s\n" %(sys.exc_type,sys.exc_value);
+	 
+      # Fail, if someone tries to send someone elses signed email to the
+      # daemon then we want to abort ASAP.
+      if Res == None:
+         Result = Result + "Command is not understood. Halted\n";
+         break;
+      Result = Result + Res + "\n";
+
+   # Connect to the ldap server
+   l = ldap.open(LDAPServer);
+   F = open(PassDir+"/pass-"+pwd.getpwuid(posix.getuid())[0],"r");
+   AccessPass = string.split(string.strip(F.readline())," ");
+   F.close();
+
+   # Modify the record
+   l.simple_bind_s("uid="+AccessPass[0]+","+BaseDn,AccessPass[1]);
+   Dn = "uid=" + GetAttr(DnRecord,"uid") + "," + BaseDn;
+   l.modify_s(Dn,Attrs);
+
+   Attribs = "";
+   if Show == 1:
+      Attrs = l.search_s(BaseDn,ldap.SCOPE_ONELEVEL,"uid="+GetAttr(DnRecord,"uid"));
+      if len(Attrs) == 0:
+         raise Error, "User not found"
+      Attribs = GPGEncrypt(PrettyShow(Attrs[0])+"\n","0x"+Key[1],Key[4]);
+      
+   Subst = {};
+   Subst["__FROM__"] = ChangeFrom;
+   Subst["__EMAIL__"] = EmailAddress(DnRecord);
+   Subst["__ADMIN__"] = ReplyTo;
+   Subst["__RESULT__"] = Result;
+   Subst["__ATTR__"] = Attribs;
+
+   return Reply + TemplateSubst(Subst,open(TemplatesDir+"change-reply","r").read());
+   
 # Handle ping handles an email sent to the 'ping' address (ie this program
 # called with a ping argument) It replies with a dump of the public records.
 def HandlePing(Reply,DnRecord,Key):
    Subst = {};
    Subst["__FROM__"] = PingFrom;
    Subst["__EMAIL__"] = EmailAddress(DnRecord);
-   Subst["__LDAPFIELDS__"] = PrettyShow(Attrs[0]);
+   Subst["__LDAPFIELDS__"] = PrettyShow(DnRecord);
    Subst["__ADMIN__"] = ReplyTo;
 
    return Reply + TemplateSubst(Subst,open(TemplatesDir+"ping-reply","r").read());
@@ -66,7 +281,7 @@ def HandleChPass(Reply,DnRecord,Key):
    Rec = [(ldap.MOD_REPLACE,"userPassword","{crypt}"+Pass)];
    Dn = "uid=" + GetAttr(DnRecord,"uid") + "," + BaseDn;
    l.modify_s(Dn,Rec);
-   
+
    return Reply;
       
 # Start of main program
@@ -96,6 +311,7 @@ try:
       raise Error, "Null signature text";
 
    # Extract the plain message text in the event of mime encoding
+   global PlainText;
    ErrMsg = "Problem stripping MIME headers from the decoded message"
    if Msg[1] == 1:
       try:
@@ -116,6 +332,7 @@ try:
    # Connect to the ldap server
    ErrType = EX_TEMPFAIL;
    ErrMsg = "An error occured while performing the LDAP lookup";
+   global l;
    l = ldap.open(LDAPServer);
    l.simple_bind_s("","");
 
@@ -146,6 +363,8 @@ try:
       if string.find(string.strip(PlainText),"Please change my Debian password") != 0:
          raise Error,"Please send a signed message where the first line of text is the string 'Please change my Debian password'";
       Reply = HandleChPass(Reply,Attrs[0],Res[2]);
+   elif sys.argv[1] == "change":
+      Reply = HandleChange(Reply,Attrs[0],Res[2]);
    else:
       print sys.argv;
       raise Error, "Incorrect Invokation";

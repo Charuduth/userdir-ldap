@@ -272,7 +272,7 @@ def GenMarkers(l,File):
       if x[1].has_key("latitude") == 0 or x[1].has_key("longitude") == 0:
          continue;	 
       try:
-         Line = "%8s %8s \"\""%(DecDegree(x,"latitude",1),DecDegree(x,"longitude",1));
+         Line = "%8s %8s \"\""%(DecDegree(GetAttr(x,"latitude"),1),DecDegree(GetAttr(x,"longitude"),1));
          Line = Sanitize(Line) + "\n";
          F.write(Line);
       except:
