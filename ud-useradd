@@ -57,7 +57,7 @@ while (1):
    break
 
 # Locate the key of the user we are adding
-GPGBasicOptions[0] = "--batch"           # Permit loading of the config file
+SetKeyrings(["/org/keyring.debian.org/keyrings/debian-keyring.gpg"])
 while (1):
    Foo = raw_input("Who are you going to add (for a GPG search)? ");
    if Foo == "":
