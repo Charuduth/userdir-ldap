@@ -10,10 +10,12 @@ from userdir_gpg import *;
 # is to randomly guess uids until one is free. This uses the former.
 # Regrettably ldap doesn't have an integer attribute comparision function
 # so we can only cut the search down slightly
+
+# [JT] This is broken with Woody LDAP and the Schema; for now just
+#      search through all GIDs.
 def GetFreeID(l):
-   HighestUID = 1000;
    Attrs = l.search_s(BaseDn,ldap.SCOPE_ONELEVEL,
-                      "gidNumber>="+str(HighestUID),["gidNumber"]);
+                      "gidNumber=*",["gidNumber"]);
    HighestUID = 0;
    for I in Attrs:
       ID = int(GetAttr(I,"gidNumber","0"));
