@@ -174,22 +174,10 @@ for (switch, val) in options:
       BindUser = "";
 
 if (BindUser != ""):
-   print "Accessing LDAP entry",
-if (BindUser != User):
-   if (BindUser != ""):
-      print "as '" + BindUser + "'";
+   l = passwdAccessLDAP(LDAPServer, BaseDn, BindUser)
 else:
-   print;
-if (BindUser != ""):
-   Password = getpass(BindUser + "'s password: ");
-
-# Connect to the ldap server
-l = ldap.open(LDAPServer);
-UserDn = "uid=" + BindUser + "," + BaseDn;
-if (BindUser != ""):
-   l.simple_bind_s(UserDn,Password);
-else:
-   l.simple_bind_s("","");
+   l = ldap.open(LDAPServer);
+   l.simple_bind_s("","")
 
 HBaseDn = "ou=hosts,dc=debian,dc=org";
 HostDn = "host=" + Host + "," + HBaseDn;
