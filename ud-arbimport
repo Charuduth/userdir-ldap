@@ -21,13 +21,7 @@ if len(arguments) == 0:
    os.exit(0);
 
 # Main program starts here
-print "Accessing LDAP directory as '" + AdminUser + "'";
-Password = getpass(AdminUser + "'s password: ");
-
-# Connect to the ldap server
-l = ldap.open(LDAPServer);
-UserDn = "uid=" + AdminUser + "," + BaseDn;
-#l.simple_bind_s(UserDn,Password);
+l = passwdAccessLDAP(LDAPServer, BaseDn, AdminUser)
 
 List = open(arguments[1],"r");
 Set = [];
