@@ -58,12 +58,12 @@ ln -sf "$HOST/ssh_known_hosts" .
 if [ -x /usr/bin/dchroot ]; then
 	CHROOTS=`dchroot --listpaths`
 	for c in $CHROOTS; do
-		test -d "$c/var/lib/misc/HOST" || mkdir -p "$c/var/lib/misc/HOST"
+		test ! -d "$c/var/lib/misc/HOST" || mkdir -p "$c/var/lib/misc/HOST"
 
 		rsync -a ${verbose} $HOST/group.tdb $HOST/passwd.tdb $HOST/ssh* "$c/var/lib/misc/$HOST"
 
-		test -f "$c/var/lib/misc/$HOST/shadow.tdb" || rm -f "$c/var/lib/misc/$HOST/shadow.tdb"
-		test -f "$c/var/lib/misc/shadow.db" || rm -f "$c/var/lib/misc/shadow.db"
+		test ! -f "$c/var/lib/misc/$HOST/shadow.tdb" || rm -f "$c/var/lib/misc/$HOST/shadow.tdb"
+		test ! -f "$c/var/lib/misc/shadow.db" || rm -f "$c/var/lib/misc/shadow.db"
 
 			chroot "$c" makedb "/var/lib/misc/$HOST/passwd.tdb" -o /var/lib/misc/passwd.db.t
 			chroot "$c" makedb "/var/lib/misc/$HOST/group.tdb" -o /var/lib/misc/group.db.t
