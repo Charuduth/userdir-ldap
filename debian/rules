@@ -20,12 +20,12 @@ clean:
 
 instdirs = \
 	usr/bin \
-	usr/man/man1 \
+	usr/share/man/man1 \
 	$(pysite)/userdir_ldap \
 	var/www/userdir-ldap \
 	var/cache/userdir-ldap/web-cookies \
 	var/cache/userdir-ldap/hosts \
-	usr/doc/$(package)/samples \
+	usr/share/doc/$(package)/samples \
 	etc/userdir-ldap/templates
 
 binary-indep: build
@@ -47,11 +47,11 @@ binary-indep: build
 	chown www-data.www-data $(i)/var/cache/userdir-ldap/web-cookies/
 	chmod u=rwx,g=,o= $(i)/var/cache/userdir-ldap/web-cookies/
 	
-	install -m 644 doc/{apache-config.txt,slapd-config.txt} $(i)/usr/doc/$(package)
-	install -m 644 doc/samples/ud-* $(i)/usr/doc/$(package)/samples
-	gzip -9 $(i)/usr/doc/$(package)/*.txt
+	install -m 644 doc/{apache-config.txt,slapd-config.txt} $(i)/usr/share/doc/$(package)
+	install -m 644 doc/samples/ud-* $(i)/usr/share/doc/$(package)/samples
+	gzip -9 $(i)/usr/share/doc/$(package)/*.txt
 	install -m 644 userdir-ldap.conf $(i)/etc/userdir-ldap/
-	echo "# See /usr/doc/userdir-ldap" > $(i)/etc/userdir-ldap/generate.conf
+	echo "# See /usr/share/doc/userdir-ldap" > $(i)/etc/userdir-ldap/generate.conf
 	chmod 644 $(i)/etc/userdir-ldap/generate.conf
 	install -m 644 templates/*-* $(i)/etc/userdir-ldap/templates/
 	

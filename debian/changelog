@@ -1,3 +1,10 @@
+userdir-ldap (0.3) unstable; urgency=low
+
+  * Only use sshrsa{host,}key variable, and store all three types of keys
+    in that attribute.
+
+ -- Jason Gunthrope <jgg@debian.org>  Sun,  2 Dec 2001 20:21:26 -0800
+
 userdir-ldap (0.2) unstable; urgency=low
 
   * What the hey, a new version number.
