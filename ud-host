@@ -1,0 +1,276 @@
+#!/usr/bin/env python
+# -*- mode: python -*-
+# This script is an interactive way to manipulate fields in the LDAP directory.
+# When run it connects to the directory using the current users ID and fetches
+# all the attributes for the first machine. It then formats them nicely and 
+# allows the user to change them.
+#
+#  Usage: userinfo -a <user> -u <user> -c <user> -r
+#    -a    Set the authentication user (the user whose password you are 
+#          going to enter)
+#    -h    Set the host to display
+
+import string, time, os, pwd, sys, getopt, ldap, crypt, whrandom, readline, copy;
+from userdir_ldap import *;
+
+RootMode = 0;
+AttrInfo = {"description": ["Machine Descr.", 1],
+            "hostname": ["Host names", 2],
+            "status": ["Status", 3],
+            "l": ["Location", 4],
+            "sponsor": ["Sponsors", 5],
+            "distribution": ["Distribution", 6],
+            "access": ["Access", 7],
+            "admin": ["Admin", 8],
+            "architecture": ["Architecture", 9],
+            "machine": ["Machine Hardware", 10],
+            "memory": ["Memory", 11],
+            "disk": ["Disk", 12],
+            "bandwidth": ["Bandwidth", 13]};
+
+AttrPrompt = {"description": ["Purpose of the machine"],
+              "hostname": ["The hostnames for the box (ipv4/ipv6)"],
+              "status": ["Blank if Up, explaination if not"],
+              "l": ["Physical location"],
+              "sponsor": ["Sponsors and their URLs"],
+              "distribution": ["The distribution version"],
+              "access": ["all, developer only, restricted"],
+              "admin": ["Admin email address"],
+              "architecture": ["Debian Arhitecture string"],
+              "machine": ["Hardware description"],
+              "memory": ["Installed RAM"],
+              "disk": ["Disk Space, RAID levels, etc"],
+              "bandwidth": ["Available outbound"]};
+
+# Create a map of IDs to desc,value,attr
+OrderedIndex = {};
+for at in AttrInfo.keys():
+   if (AttrInfo[at][1] != 0):
+      OrderedIndex[AttrInfo[at][1]] = [AttrInfo[at][0], "", at];
+OrigOrderedIndex = copy.deepcopy(OrderedIndex);
+
+# Print out the automatic time stamp information
+def PrintModTime(Attrs):
+   Stamp = GetAttr(Attrs,"modifytimestamp","");
+   if len(Stamp) >= 13:
+      Time = (int(Stamp[0:4]),int(Stamp[4:6]),int(Stamp[6:8]),
+              int(Stamp[8:10]),int(Stamp[10:12]),int(Stamp[12:14]),0,0,-1);
+      print "%-24s:" % ("Record last modified on"), time.strftime("%a %d/%m/%Y %X UTC",Time),
+      print "by",ldap.explode_dn(GetAttr(Attrs,"modifiersname"),1)[0];
+
+   Stamp = GetAttr(Attrs,"createtimestamp","");
+   if len(Stamp) >= 13:
+      Time = (int(Stamp[0:4]),int(Stamp[4:6]),int(Stamp[6:8]),
+              int(Stamp[8:10]),int(Stamp[10:12]),int(Stamp[12:14]),0,0,-1);
+      print "%-24s:" % ("Record created on"), time.strftime("%a %d/%m/%Y %X UTC",Time);
+
+# Display all of the attributes in a numbered list
+def ShowAttrs(Attrs):
+   print;
+   PrintModTime(Attrs);
+
+   for at in Attrs[1].keys():
+      if AttrInfo.has_key(at):
+         if AttrInfo[at][1] == 0:
+            print "      %-18s:" % (AttrInfo[at][0]),
+	    for x in Attrs[1][at]:
+	       print "'%s'" % (x),
+            print;
+         else:
+            OrderedIndex[AttrInfo[at][1]][1] = Attrs[1][at];
+				       
+   Keys = OrderedIndex.keys();
+   Keys.sort();
+   for at in Keys:
+      if at < 100 or RootMode != 0:
+         print " %3u) %-18s: " % (at,OrderedIndex[at][0]),
+         for x in OrderedIndex[at][1]:
+            print "'%s'" % (re.sub('[\n\r]','?',x)),
+         print;
+
+# Change a single attribute
+def ChangeAttr(Attrs,Attr):
+   if (Attr == "sponsor" or Attr == "hostname"):
+      return MultiChangeAttr(Attrs,Attr);
+
+   print "Old value: '%s'" % (GetAttr(Attrs,Attr,""));
+   print "Press enter to leave unchanged and a single space to set to empty";
+   NewValue = raw_input("New? ");
+  
+   # Empty string
+   if (NewValue == ""):
+      print "Leaving unchanged.";
+      return;
+
+   # Single space designates delete, trap the delete error
+   if (NewValue == " "):
+      print "Deleting.",;
+      try:
+         l.modify_s(HostDn,[(ldap.MOD_DELETE,Attr,None)]);
+      except ldap.NO_SUCH_ATTRIBUTE:
+         pass;
+
+      print;
+      Attrs[1][Attr] = [""];
+      return;
+
+   # Set a new value
+   print "Setting.",;
+   l.modify_s(HostDn,[(ldap.MOD_REPLACE,Attr,NewValue)]);
+   Attrs[1][Attr] = [NewValue];
+   print;
+
+def MultiChangeAttr(Attrs,Attr):
+   # Make sure that we have an entry
+   if not Attrs[1].has_key(Attr):
+      Attrs[1][Attr] = [];
+
+   Attrs[1][Attr].sort();
+   print "Old values: ",Attrs[1][Attr];
+
+   Mode = string.upper(raw_input("[D]elete or [A]dd? "));
+   if (Mode != 'D' and Mode != 'A'):
+      return;
+
+   NewValue = raw_input("Value? ");
+   # Empty string
+   if (NewValue == ""):
+      print "Leaving unchanged.";
+      return;
+   
+   # Delete   
+   if (Mode == "D"):
+      print "Deleting.",;
+      try:
+         l.modify_s(HostDn,[(ldap.MOD_DELETE,Attr,NewValue)]);
+      except ldap.NO_SUCH_ATTRIBUTE:
+         print "Failed";
+
+      print;
+      Attrs[1][Attr].remove(NewValue);
+      return;
+
+   # Set a new value
+   print "Setting.",;
+   l.modify_s(HostDn,[(ldap.MOD_ADD,Attr,NewValue)]);
+   Attrs[1][Attr].append(NewValue);
+   print;
+
+# Main program starts here
+User = pwd.getpwuid(os.getuid())[0];
+BindUser = User;
+# Process options
+(options, arguments) = getopt.getopt(sys.argv[1:], "nh:a:r")
+for (switch, val) in options:
+   if (switch == '-h'):
+      Host = val;
+   elif (switch == '-a'):
+      BindUser = val;
+   elif (switch == '-r'):
+      RootMode = 1;
+   elif (switch == '-n'):
+      BindUser = "";
+
+if (BindUser != ""):
+   print "Accessing LDAP entry",
+if (BindUser != User):
+   if (BindUser != ""):
+      print "as '" + BindUser + "'";
+else:
+   print;
+if (BindUser != ""):
+   Password = getpass(BindUser + "'s password: ");
+
+# Connect to the ldap server
+l = ldap.open(LDAPServer);
+UserDn = "uid=" + BindUser + "," + BaseDn;
+if (BindUser != ""):
+   l.simple_bind_s(UserDn,Password);
+else:
+   l.simple_bind_s("","");
+   
+HBaseDn = "ou=hosts,dc=debian,dc=org";    
+HostDn = "host=" + Host + "," + HBaseDn;
+
+# Query the server for all of the attributes
+Attrs = l.search_s(HBaseDn,ldap.SCOPE_ONELEVEL,"host=" + Host);
+if len(Attrs) == 0:
+   print "Host",Host,"was not found.";
+   sys.exit(0); 
+
+# repeatedly show the account configuration
+while(1):
+   ShowAttrs(Attrs[0]);
+   if (BindUser == ""):
+      sys.exit(0);
+
+   if RootMode == 1:
+      print "   a) Arbitary Change";
+   print "   n) New Host";
+   print "   u) Switch Hosts";
+   print "   x) Exit";
+   
+   # Prompt
+   Response = raw_input("Change? ");
+   if (Response == "x" or Response == "X" or Response == "q" or 
+       Response == "quit" or Response == "exit"):
+      break;
+
+   # Change who we are looking at
+   if (Response == 'u' or Response == 'U'):
+      NewHost = raw_input("Host? ");
+      if NewHost == "":
+         continue;
+      NAttrs = l.search_s(HBaseDn,ldap.SCOPE_ONELEVEL,"host=" + NewHost);
+      if len(NAttrs) == 0:
+         print "Host",NewHost,"was not found.";
+         continue;
+      Attrs = NAttrs;
+      Host = NewHost;
+      HostDn = "host=" + Host + "," + HBaseDn;
+      OrderedIndex = copy.deepcopy(OrigOrderedIndex);
+      continue;
+
+   # Create a new entry and change to it Change who we are looking at
+   if (Response == 'n' or Response == 'N'):
+      NewHost = raw_input("Host? ");
+      if NewHost == "":
+         continue;
+      NAttrs = l.search_s(HBaseDn,ldap.SCOPE_ONELEVEL,"host=" + NewHost);
+      if len(NAttrs) != 0:
+         print "Host",NewHost,"already exists.";
+         continue;
+      Dn = "host=" + NewHost + "," + HBaseDn;
+      l.add_s(Dn,[("host",NewHost),
+                  ("objectclass","top")]);
+		  
+      # Switch		  
+      NAttrs = l.search_s(HBaseDn,ldap.SCOPE_ONELEVEL,"host=" + NewHost);
+      if len(NAttrs) == 0:
+         print "Host",NewHost,"was not found.";
+         continue;
+      Attrs = NAttrs;
+      Host = NewHost;
+      HostDn = "host=" + Host + "," + HBaseDn;
+      OrderedIndex = copy.deepcopy(OrigOrderedIndex);
+      continue;
+  
+   # Handle changing an arbitary value
+   if (Response == "a"):
+      Attr = raw_input("Attr? ");
+      ChangeAttr(Attrs[0],Attr);
+      continue;
+
+   # Convert the integer response
+   try:
+      ID = int(Response);
+      if (not OrderedIndex.has_key(ID) or (ID > 100 and RootMode == 0)):
+         raise ValueError;
+   except ValueError:
+      print "Invalid";
+      continue;
+
+   # Print the what to do prompt
+   print "Changing LDAP entry '%s' (%s)" % (OrderedIndex[ID][0],OrderedIndex[ID][2]);
+   print AttrPrompt[OrderedIndex[ID][2]][0];
+   ChangeAttr(Attrs[0],OrderedIndex[ID][2]);
