@@ -88,7 +88,7 @@ def GetClearSig(Msg):
       if Msg.getparam('micalg') != None:
           Output = Output + "Hash: %s\r\n"%(string.upper(Msg.getparam('micalg')[4:]));
       Output = Output + "\r\n";
-      Output = Output + Signed.getvalue() + Signature;
+      Output = Output +  string.replace(Signed.getvalue(),"\n---","\n- ---") + Signature;
       return (Output,1);
    else:
       # Just return the message body

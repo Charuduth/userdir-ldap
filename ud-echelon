@@ -24,7 +24,7 @@ def TryGPG(Email):
 
    if string.find(Msg[0],"-----BEGIN PGP SIGNED MESSAGE-----") == -1:
       return None;
-      
+
    Res = GPGCheckSig(Msg[0]);
 
    # Failed to find a matching sig
