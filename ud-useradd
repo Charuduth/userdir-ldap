@@ -119,17 +119,19 @@ while len(Keys[0][1]) < 40:
    if Res == "":
       break;
 
+Update = 0
 Attrs = l.search_s(BaseDn,ldap.SCOPE_ONELEVEL,"keyFingerPrint=" + Keys[0][1]);
 if len(Attrs) != 0:
    print "*** This key already belongs to",GetAttr(Attrs[0],"uid");
    account = GetAttr(Attrs[0],"uid");
+   Update = 1
 
 # Try to get a uniq account name
-Update=0
 while 1:
-   Res = raw_input("Login account [" + account + "]? ");
-   if Res != "":
-      account = Res;
+   if Update == 0:
+      Res = raw_input("Login account [" + account + "]? ");
+      if Res != "":
+         account = Res;
    Attrs = l.search_s(BaseDn,ldap.SCOPE_ONELEVEL,"uid=" + account);
    if len(Attrs) == 0:
       privsub = "%s@debian.org"%(account);
@@ -148,6 +150,8 @@ while 1:
       if privsub == None or privsub == "":
          privsub = " ";
       break;
+   else:
+      sys.exit(1)
 
 # Prompt for the first/last name and email address
 Res = raw_input("First name [" + cn + "]? ");
