@@ -1,15 +1,21 @@
+userdir-ldap (0.3.6) unstable; urgency=low
+
+  * Specify full path to postmap
+
+ -- Ryan Murray <rmurray@debian.org>  Fri, 26 Sep 2003 11:48:25 -0600
+
 userdir-ldap (0.3.5) unstable; urgency=low
 
   * Add depends on rsync
   * Generate db of debian.org on postfix systems
 
- -- Ryan Murray <rmurray@gluck.debian.org>  Sat, 30 Aug 2003 18:41:29 -0600
+ -- Ryan Murray <rmurray@debian.org>  Sat, 30 Aug 2003 18:41:29 -0600
 
 userdir-ldap (0.3.4) unstable; urgency=low
 
   * Use the right python version in the maintainer scripts
 
- -- Ryan Murray <rmurray@gluck.debian.org>  Tue, 18 Mar 2003 19:26:31 -0700
+ -- Ryan Murray <rmurray@debian.org>  Tue, 18 Mar 2003 19:26:31 -0700
 
 userdir-ldap (0.3.3) unstable; urgency=low
 
