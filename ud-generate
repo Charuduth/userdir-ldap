@@ -174,8 +174,10 @@ def GenForward(l,File,Allowed):
   F = None;
   Fdb = None;
   try:
-   F = open(File + ".tmp","w");
+   OldMask = os.umask(0022);
+   F = open(File + ".tmp","w",0644);
    Fdb = None;
+   os.umask(OldMask);
 
    # Fetch all the users
    global PasswdAttrs;
