@@ -1,5 +1,5 @@
 # Some routines and configuration that are used by the ldap progams
-import termios, TERMIOS, re, string, imp, ldap, sys, whrandom, crypt, rfc822;
+import termios, re, string, imp, ldap, sys, whrandom, crypt, rfc822;
 import userdir_gpg
 
 try:
@@ -70,16 +70,16 @@ def PrettyShow(DnRecord):
 
 # Function to prompt for a password 
 def getpass(prompt = "Password: "):
-   import termios, TERMIOS, sys;
+   import termios, sys;
    fd = sys.stdin.fileno();
    old = termios.tcgetattr(fd);
    new = termios.tcgetattr(fd);
-   new[3] = new[3] & ~TERMIOS.ECHO;          # lflags
+   new[3] = new[3] & ~termios.ECHO;          # lflags
    try:
-      termios.tcsetattr(fd, TERMIOS.TCSADRAIN, new);
+      termios.tcsetattr(fd, termios.TCSADRAIN, new);
       passwd = raw_input(prompt);
    finally:
-      termios.tcsetattr(fd, TERMIOS.TCSADRAIN, old);
+      termios.tcsetattr(fd, termios.TCSADRAIN, old);
    print;
    return passwd;
 

@@ -5,6 +5,9 @@
 import string, re, time, ldap, getopt, sys, os, pwd, posix, socket;
 from userdir_ldap import *;
 
+global Allowed;
+global CurrentHost;
+
 PasswdAttrs = None;
 GroupIDMap = {};
 Allowed = None;
@@ -24,7 +27,6 @@ def DoLink(From,To,File):
 
 # See if this user is in the group list
 def IsInGroup(DnRecord):
-  global Allowed,CurrentHost;
   if Allowed == None:
      return 1;
 
@@ -561,7 +563,6 @@ while(1):
       if GroupIDMap.has_key(I):
          GroupList[str(GroupIDMap[I])] = None;
 
-   global Allowed,CurrentHost;
    Allowed = GroupList;
    CurrentHost = Split[0];
 
