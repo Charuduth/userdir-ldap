@@ -1,9 +1,10 @@
 #!/usr/bin/perl
-# $Id: ud-fingerserv,v 1.8 1999/10/17 02:01:28 tausq Exp $
+# $Id: ud-fingerserv,v 1.9 1999/10/17 02:19:07 tausq Exp $
 
 # (c) 1999 Randolph Chung. Licensed under the GPL. <tausq@debian.org>
 
-use lib '/var/www/userdir-ldap/';
+#use lib '/var/www/userdir-ldap/';
+use lib '/home/randolph/projects/userdir-ldap/web';
 use strict vars;
 #use Apache::Registry;
 use IO::Handle;
@@ -102,6 +103,11 @@ sub ProcessQuery {
   $query =~ s/[^\/,0-9a-z]//gi; # be paranoid about input
   my ($uid, $fields) = split(/\//, $query, 2);
   
+  if ($uid =~ /^help$/i) {
+    &sendhelp($client);
+    return;
+  }
+  
   &log("Looking up $uid at $config{basedn}, uid=$uid");
 
   $mesg = $ldap->search(base  => $config{basedn}, filter => "uid=$uid");
@@ -157,4 +163,21 @@ sub log {
   
   my $time = localtime;
   print STDERR "$time $msg\n";
+}
+
+sub sendhelp {
+  my $client = shift;
+  
+  print $client "userdir-ldap finger daemon\n";
+  print $client "--------------------------\n";
+  print $client "finger <uid>[/<attributes>]\@db.debian.org\n";
+  print $client "  where uid is the user id of the user\n";
+  print $client "  the optional attributes parameter specifies what to return\n";
+  print $client "    if nothing is specified, all attributes are returned.\n";
+  print $client "    The following attributes are current supported:\n";
+  foreach (@summarykeys) {
+    print $client "      $_ : $attrs{$_}\n";
+  }
+  print $client "    Multiple attributes can be separated by commas, like this:\n";
+  print $client "    finger tux/email,key\@db.debian.org\n";
 }
