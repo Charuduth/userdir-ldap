@@ -1,0 +1,84 @@
+#!/usr/bin/perl
+# $Id: ud-fingerserv,v 1.1 1999/10/04 06:51:45 tausq Exp $
+
+# (c) 1999 Randolph Chung. Licensed under the GPL. <tausq@debian.org>
+
+use lib 'web';
+use strict vars;
+#use Apache::Registry;
+use IO::Socket;
+use Util;
+use Net::LDAP qw(:all);
+
+# Global settings...
+my %config = &Util::ReadConfigFile;
+
+my %attrs = (
+  'cn' => 'First name',
+  'mn' => 'Middle name',
+  'sn' => 'Last name',
+  'keyfingerprint' => 'Fingerprint'
+);
+
+my @summarykeys = ('cn', 'mn', 'sn', 'keyfingerprint');
+
+my ($ldap, $mesg, $dn, $entries, $data, %output, $key, $hostlist, $hostdetails, $selected, %summary);
+sub DieHandler {
+  $ldap->unbind if (defined($ldap));
+}
+
+$SIG{__DIE__} = \&DieHandler;
+
+$ldap = Net::LDAP->new($config{ldaphost}) || &Util::HTMLError($!);
+$mesg;
+$ldap->bind;
+
+my $server = IO::Socket::INET->new(Proto => 'tcp', 
+                                   LocalPort => 'finger(79)',
+				   Listen => SOMAXCONN,
+				   Reuse => 1);
+
+die "Cannot listen on finger port" unless $server;
+print "[Server listening for connections]\n";
+
+my ($mesg, %entries, $dn, $key);
+
+my $client;
+while ($client = $server->accept()) {
+  $client->autoflush(1);
+  my $hostinfo = gethostbyaddr($client->peeraddr, AF_INET);
+  printf "[Connect from %s]\n", $hostinfo || $client->peerhost;
+  my $query = <$client>;
+  $query =~ s/[^\/,0-9a-z]//gi; # be paranoid about input
+  my ($uid, $fields) = split(/\//, $query, 2);
+  
+  print "Looking up $uid at $config{basedn}, uid=$uid\n";
+
+  $mesg = $ldap->search(base  => $config{basedn}, filter => "uid=$uid");
+  $mesg->code && die $mesg->error;
+  $entries = $mesg->as_struct;
+
+  foreach $dn (sort {$entries->{$a}->{sn}->[0] <=> $entries->{$b}->{sn}->[0]} keys(%$entries)) {
+    $data = $entries->{$dn};
+
+    if (!$fields) {
+      foreach $key (@summarykeys) {
+        foreach (@{$data->{$key}}) {
+          print $client "$attrs{$key}: ";
+          print $client "$_\n";
+        }
+      }
+    } else {
+      print "$fields\n";
+      foreach $key (split(/,/, $fields)) {
+        foreach (@{$data->{$key}}) {
+          print $client "$attrs{$key}: ";
+          print $client "$_\n";
+        }
+      }
+    }
+  }
+  $client->close;
+}
+
+$ldap->unbind;
