@@ -1,5 +1,5 @@
 #!/usr/bin/perl
-# $Id: ud-fingerserv,v 1.14 2000/02/21 06:08:32 tausq Exp $
+# $Id: ud-fingerserv,v 1.15 2004/10/24 18:28:50 joey Exp $
 
 # (c) 1999 Randolph Chung. Licensed under the GPL. <tausq@debian.org>
 
@@ -25,13 +25,13 @@ my %attrs = (
   'mn' => 'Middle name',
   'sn' => 'Last name',
   'email' => 'Email',
-  'keyfingerprint' => 'Fingerprint',
+  'keyFingerPrint' => 'Fingerprint',
   'key' => 'Key block',
   'ircnick' => 'IRC nickname',
-  'labeledurl' => 'URL'
+  'labeleduri' => 'URL'
 );
 
-my @summarykeys = ('cn', 'mn', 'sn', 'email', 'labeledurl', 'ircnick', 'keyfingerprint', 'key');
+my @summarykeys = ('cn', 'mn', 'sn', 'email', 'labeleduri', 'ircnick', 'keyFingerPrint', 'key');
 
 $SIG{__DIE__} = \&DieHandler;
 $SIG{INT} = \&DieHandler;
@@ -123,7 +123,7 @@ sub ProcessQuery {
     $data = $entries->{$dn};
 
     $data->{key} = [];    
-    foreach (@{$data->{keyfingerprint}}) {
+    foreach (@{$data->{keyFingerPrint}}) {
       push (@{$data->{key}}, "\n".&Util::FetchKey($_));
     }
     
