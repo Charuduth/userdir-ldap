@@ -114,15 +114,20 @@ def DoArbChange(Str,Attrs):
    if Match == None:
       return None;
    G = Match.groups();
-   
-   if ArbChanges.has_key(G[0]) == 0:
-      return None;
-      
-   if re.match(ArbChanges[G[0]],G[1]) == None:
-      raise Error, "Item does not match the required format"+ArbChanges[G[0]];
 
-   Attrs.append((ldap.MOD_REPLACE,G[0],G[1]));
-   return "Changed entry %s to %s"%(G[0],G[1]);
+   attrName = G[0].lower();
+   for i in ArbChanges.keys():
+      if i.lower() == attrName:
+         attrName = i;
+         break;
+   if ArbChanges.has_key(attrName) == 0:
+      return None;
+
+   if re.match(ArbChanges[attrName],G[1]) == None:
+      raise Error, "Item does not match the required format"+ArbChanges[attrName];
+
+   Attrs.append((ldap.MOD_REPLACE,attrName,G[1]));
+   return "Changed entry %s to %s"%(attrName,G[1]);
 
 # Handle changing a set of arbitary fields
 #  <field>: value
@@ -132,11 +137,16 @@ def DoDel(Str,Attrs):
       return None;
    G = Match.groups();
  
-   if DelItems.has_key(G[0]) == 0:
-      return "Cannot erase entry %s"%(G[0]);
+   attrName = G[0].lower();
+   for i in DelItems.keys():
+      if i.lower() == attrName:
+         attrName = i;
+         break;
+   if DelItems.has_key(attrName) == 0:
+      return "Cannot erase entry %s"%(attrName);
 
-   Attrs.append((ldap.MOD_DELETE,G[0],None));
-   return "Removed entry %s"%(G[0]);
+   Attrs.append((ldap.MOD_DELETE,attrName,None));
+   return "Removed entry %s"%(attrName);
 
 # Handle a position change message, the line format is:
 #  Lat: -12412.23 Long: +12341.2342
