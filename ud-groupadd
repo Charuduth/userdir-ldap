@@ -13,10 +13,10 @@ from userdir_gpg import *;
 def GetFreeID(l):
    HighestUID = 1000;
    Attrs = l.search_s(BaseDn,ldap.SCOPE_ONELEVEL,
-                      "gidnumber>="+str(HighestUID),["gidnumber"]);
+                      "gidNumber>="+str(HighestUID),["gidNumber"]);
    HighestUID = 0;
    for I in Attrs:
-      ID = int(GetAttr(I,"gidnumber","0"));
+      ID = int(GetAttr(I,"gidNumber","0"));
       if ID > HighestUID and ID < 60000:
          HighestUID = ID;
    return HighestUID + 1;
@@ -59,6 +59,6 @@ Dn = "gid=" + Group + "," + BaseDn;
 print "Updating LDAP directory..",
 sys.stdout.flush();
 l.add_s(Dn,[("gid",Group),
-            ("gidnumber",str(Id)),
+            ("gidNumber",str(Id)),
             ("objectclass","top"),
             ("objectclass","posixGroup")]);
