@@ -30,7 +30,7 @@ ArbChanges = {"c": "..",
               "ircNick": ".*",
               "icqUin": "^[0-9]*$",
               "onVacation": ".*",
-              "labledURI": ".*"};
+              "labeledURI": ".*"};
 
 DelItems = {"c": None,
             "l": None,
@@ -41,7 +41,7 @@ DelItems = {"c": None,
             "emailForward": None,
             "ircNick": None,
             "onVacation": None,
-            "labledURI": None,
+            "labeledURI": None,
 	    "latitude": None,
 	    "longitude": None,
             "icqUin": None,
