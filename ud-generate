@@ -463,9 +463,9 @@ def GenSSHKnown(l,File):
       SHost = string.find(Host,".");
       for I in x[1]["sshrsahostkey"]:
          if SHost == None:
-            Line = "%s,%s %s" %(Host,gethostbyname(Host),I);
+            Line = "%s,%s %s" %(Host,socket.gethostbyname(Host),I);
          else:
-            Line = "%s,%s,%s %s" %(Host,Host[0:SHost],gethostbyname(Host),I);
+            Line = "%s,%s,%s %s" %(Host,Host[0:SHost],socket.gethostbyname(Host),I);
          Line = Sanitize(Line) + "\n";
          F.write(Line);
          Fdb.write("+%d,%d:%s->%s\n"%(len(Host),len(I),Host,I));
