@@ -1,3 +1,23 @@
+userdir-ldap (0.3.7) stable; urgency=low
+
+  * ud-fingerserv: Corrected the key/fingerprint feature
+  * ud-fingerserv: Added the ICQ UIN
+  * Case sensive LDAP field names for nearly all programs
+  * ud-generate:
+      . Honour locked accounts when writing the shadow file
+      . Hardcode exception for haydn and costa as alioth hosts
+  * ud-mailgate: No access for locked accounts
+  * sigcheck: imported changes from murphy
+  * Added sigcheck to the programs to be installed
+  * Moved the web pages into webwml/db.debian.org
+  * Moved the CGI programs into its own package
+  * ud-replicate:
+      . Added support for user chroot environments
+      . Remove shadow files if they exist
+      . Remove ud-replicate in /usr/local/bin
+
+ -- Martin Schulze <joey@infodrom.org>  Thu, 18 Nov 2004 19:07:01 +0100
+
 userdir-ldap (0.3.6) unstable; urgency=low
 
   * Specify full path to postmap
