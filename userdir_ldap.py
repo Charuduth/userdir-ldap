@@ -146,7 +146,7 @@ def GenPass():
 def HashPass(Password):
    # Hash it telling glibc to use the MD5 algorithm - if you dont have
    # glibc then just change Salt = "$1$" to Salt = "";
-   SaltVals = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ/.";
+   SaltVals = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789/.";
    Salt  = "$1$";
    Rand = open("/dev/urandom");
    for x in range(0,10):
