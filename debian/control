@@ -1,0 +1,18 @@
+Source: userdir-ldap
+Section: admin
+Priority: optional
+Maintainer: Jason Gunthorpe <jgg@debian.org>
+Standards-Version: 2.5.0.0
+
+Package: userdir-ldap
+Architecture: all
+Depends: python-base (>= 1.5), python-ldap
+Recommends: libnet-ldap-perl, libcrypt-blowfish-perl, gnupg, python-net, python-gdbm
+Description: Login User Directory in LDAP support scripts
+  These scripts simplifiy the creation and management of a LDAP based user
+  directory. Included are scripts to import existing passwd, group and shadow
+  files as well as a 'chfn' like script to allow users and admins to edit
+  their entries.
+  .
+  Finally a script to associate GPG/PGP key finger prints with each user is
+  provided, assuming a secure trusted keyring for the domain also exists.

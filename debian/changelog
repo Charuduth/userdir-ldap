@@ -1,0 +1,10 @@
+userdir-ldap (0.1) unstable; urgency=low
+
+  * Initial Packaging
+
+ -- Jason Gunthrope <jgg@debian.org>  Fri, 30 Apr 1999 00:39:31 -0600
+ 
+Local variables:
+mode: debian-changelog
+add-log-mailing-address: "doko@cs.tu-berlin.de"
+End:
