@@ -2,23 +2,40 @@
 # The rsync source host needs to be customized..
 set -e
 
+exec > /dev/null 2>&1
+
 HOST=`hostname -f`
 cd /tmp/
-cd /var/lib/misc > /dev/null 2>&1 || cd /var/state/glibc/ > /dev/null 2>&1 || cd /var/db/ > /dev/null 2>&1
-lockfile -r 1 -l 3600 lock > /dev/null 2>&1
-trap "rm -f lock > /dev/null 2>&1" exit
-rsync -e ssh -rp sshdist@samosa:/var/cache/userdir-ldap/hosts/$HOST . > /dev/null 2>&1
-makedb $HOST/passwd.tdb -o passwd.db.t > /dev/null 2>&1
-(umask 027 && makedb $HOST/shadow.tdb -o shadow.db.t) > /dev/null 2>&1
+cd /var/lib/misc || cd /var/state/glibc/ || cd /var/db/
+lockfile -r 1 -l 3600 lock
+trap "rm -f lock" exit
+rsync -e ssh -rp "sshdist@samosa:/var/cache/userdir-ldap/hosts/$HOST" .
+makedb "$HOST/passwd.tdb" -o passwd.db.t
+(umask 027 && makedb "$HOST/shadow.tdb" -o shadow.db.t)
 chown root.shadow shadow.db.t; chmod 0640 shadow.db.t
-makedb $HOST/group.tdb -o group.db.t > /dev/null 2>&1
+makedb "$HOST/group.tdb" -o group.db.t
 mv -f passwd.db.t passwd.db
 mv -f shadow.db.t shadow.db
 mv -f group.db.t group.db
-ln -sf $HOST/ssh-rsa-shadow . > /dev/null 2>&1
-ln -sf $HOST/ssh_known_hosts . > /dev/null 2>&1
-if [ -e $HOST/bsmtp ]; then
+if [ -x /usr/bin/dchroot ]; then
+	CHROOTS=`dchroot --listpaths`
+	for c in $CHROOTS; do
+		if [ -e "$c/var/lib/misc/$HOST" ]; then
+			chroot "$c" makedb "/var/lib/misc/$HOST/passwd.tdb" -o /var/lib/misc/passwd.db.t
+			(umask 027 && chroot "$c" makedb "/var/lib/misc/$HOST/shadow.tdb" -o /var/lib/misc/shadow.db.t)
+			chown root.shadow "$c/var/lib/misc/shadow.db.t"
+			chmod 0640 "$c/var/lib/misc/shadow.db.t"
+			chroot "$c" makedb "/var/lib/misc/$HOST/group.tdb" -o /var/lib/misc/group.db.t
+			mv -f "$c/var/lib/misc/passwd.db.t" "$c/var/lib/misc/passwd.db"
+			mv -f "$c/var/lib/misc/shadow.db.t" "$c/var/lib/misc/shadow.db"
+			mv -f "$c/var/lib/misc/group.db.t" "$c/var/lib/misc/group.db"
+		fi
+	done
+fi
+ln -sf "$HOST/ssh-rsa-shadow" .
+ln -sf "$HOST/ssh_known_hosts" .
+if [ -e "$HOST/bsmtp" ]; then
 	if perl -e 'exit !((stat "/etc/exim/bsmtp")[9] < time()-3600)'; then
-		cp $HOST/bsmtp /etc/exim/bsmtp
+		cp "$HOST/bsmtp" /etc/exim/bsmtp
 	fi
 fi
