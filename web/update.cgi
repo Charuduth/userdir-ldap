@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 
-# $Id: update.cgi,v 1.4 1999/12/13 04:53:28 tausq Exp $
+# $Id: update.cgi,v 1.5 1999/12/13 04:56:48 tausq Exp $
 # (c) 1999 Randolph Chung. Licensed under the GPL. <tausq@debian.org>
 
 use lib '.';
@@ -94,7 +94,8 @@ if (!($query->param('doupdate'))) {
   # Actually update stuff...
   my ($newpassword, $newstaddress);
   
-  if ($query->param('labeledurl') !~ /^https?:\/\//i) {
+  if (($query->param('labeledurl')) && 
+      ($query->param('labeledurl') !~ /^https?:\/\//i)) {
     &Util::HTMLError("Your homepage URL is invalid");
   }
   
