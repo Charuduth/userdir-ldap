@@ -1,8 +1,8 @@
 To: "__REALNAME__" <__EMAIL__>
 From: __WHOAMI__
 Subject: New Debian maintainer __REALNAME__
-Cc: new-maintainer@debian.org
-Reply-To: new-maintainer@debian.org
+Cc: da-manager@debian.org
+Reply-To: da-manager@debian.org
 Date: __DATE__
 User-Agent: nm-create script run by __WHOAMI__
 
