@@ -26,8 +26,8 @@ are allowed to login to the machine.
 
 The format of the configuration file is a one line per host with these fields:
 verb(host homedirpath group1 group2 ...)
-Only users who are a member of the named groups are emitted to the output
-files.
+Only users who are a member of the named groups or has a specific host acl 
+are emitted to the output files.
 
 Authorization to read protected entries from the directory is achieved by
 reading a username and password from the pass- file in the userdir-ldap
