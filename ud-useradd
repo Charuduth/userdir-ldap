@@ -171,7 +171,7 @@ if Res != "":
 # GID
 Res = raw_input("Group ID Number [" + gidNumber + "]? ");
 if Res != "":
-   gidNumber = Res;
+   gidNumber = Group2GID(Res);
 
 # UID
 if uidNumber == 0:
