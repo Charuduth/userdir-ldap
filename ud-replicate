@@ -41,7 +41,7 @@ case $HOST in
     udhost=
     ;;
 *)
-    udhost="sshdist@samosa:"
+    udhost="sshdist@db:"
     ;;
 esac
 
