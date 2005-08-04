@@ -27,7 +27,7 @@
 #    pgp2 encrypting mode.
 
 import string, mimetools, multifile, sys, StringIO, os, tempfile, re;
-import rfc822, time, fcntl, FCNTL, anydbm
+import rfc822, time, fcntl, anydbm
 
 # General GPG options
 GPGPath = "gpg"
@@ -485,7 +485,7 @@ def TemplateSubst(Map,Template):
 class ReplayCache:
    def __init__(self,Database):
       self.Lock = open(Database + ".lock","w",0600);
-      fcntl.flock(self.Lock.fileno(),FCNTL.LOCK_EX);
+      fcntl.flock(self.Lock.fileno(),fcntl.LOCK_EX);
       self.DB = anydbm.open(Database,"c",0600);
       self.CleanCutOff = CleanCutOff;
       self.AgeCutOff = AgeCutOff;
