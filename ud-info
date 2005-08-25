@@ -244,7 +244,12 @@ def MultiChangeAttr(Attrs,Attr):
 User = pwd.getpwuid(os.getuid())[0];
 BindUser = User;
 # Process options
-(options, arguments) = getopt.getopt(sys.argv[1:], "nu:c:a:r")
+try:
+   (options, arguments) = getopt.getopt(sys.argv[1:], "nu:c:a:r")
+except getopt.GetoptError, data:
+   print data
+   sys.exit(1)
+
 for (switch, val) in options:
    if (switch == '-u'):
       User = val;
