@@ -129,7 +129,7 @@ def Overview(Attrs):
 
 # Change a single attribute
 def ChangeAttr(Attrs,Attr):
-   if (Attr == "sponsor" or Attr == "hostname" or Attr == "sshRSAHostKey"):
+   if (Attr == "sponsor" or Attr == "sshRSAHostKey"):
       return MultiChangeAttr(Attrs,Attr);
 
    print "Old value: '%s'" % (GetAttr(Attrs,Attr,""));
