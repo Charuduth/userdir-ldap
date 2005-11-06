@@ -3,7 +3,7 @@
 # Generates passwd, shadow and group files from the ldap directory.
 
 #   Copyright (c) 2000-2001  Jason Gunthorpe <jgg@debian.org>
-#   Copyright (c) 2001-2003  Ryan Murray <rmurray@debian.org>
+#   Copyright (c) 2001-2005  Ryan Murray <rmurray@debian.org>
 #   Copyright (c) 2003-2004  James Troup <troup@debian.org>
 #   Copyright (c) 2004-2005  Joey Schulze <joey@infodrom.org>
 #
@@ -483,7 +483,7 @@ def GenBSMTP(l,File,HomePrefix):
    raise;
   Done(File,F,None);
 
-# Generate the shadow list
+# Generate the ssh known hosts file
 def GenSSHKnown(l,File):
   F = None;
   try:
@@ -517,6 +517,32 @@ def GenSSHKnown(l,File):
    raise;
   Done(File,F,None);
 
+# Generate the debianhosts file (list of all IP addresses)
+def GenHosts(l,File):
+  F = None;
+  try:
+   OldMask = os.umask(0022);
+   F = open(File + ".tmp","w",0644);
+   os.umask(OldMask);
+
+   # Fetch all the hosts
+   HostNames = l.search_s(HostBaseDn,ldap.SCOPE_ONELEVEL,"hostname=*",\
+                ["hostname"]);
+   
+   if HostNames == None:
+      raise "No Hosts";
+
+   for x in HostNames:
+      if x[1].has_key("hostname") == 0:
+         continue;
+      Host = GetAttr(x,"hostname");
+      Addr = socket.gethostbyname(Host);
+      F.write(Addr + "\n");
+  # Oops, something unspeakable happened.
+  except:
+   Die(File,F,None);
+   raise;
+  Done(File,F,None);
 
 # Connect to the ldap server
 l = ldap.open(LDAPServer);
@@ -558,6 +584,7 @@ GenAllForward(l,GlobalDir+"mail-forward.cdb");
 GenMarkers(l,GlobalDir+"markers");
 GenPrivate(l,GlobalDir+"debian-private");
 GenSSHKnown(l,GlobalDir+"ssh_known_hosts");
+GenHosts(l,GlobalDir+"debianhosts");
 
 # Compatibility.
 GenForward(l,GlobalDir+"forward-alias");
@@ -606,6 +633,7 @@ while(1):
    DoLink(GlobalDir,OutDir,"markers");
    DoLink(GlobalDir,OutDir,"mail-forward.cdb");
    DoLink(GlobalDir,OutDir,"ssh_known_hosts");
+   DoLink(GlobalDir,OutDir,"debianhosts");
 
    # Compatibility.
    DoLink(GlobalDir,OutDir,"forward-alias");
