@@ -408,6 +408,10 @@ def GenDNS(l,File,HomePrefix):
    for x in PasswdAttrs:
       if x[1].has_key("dnsZoneEntry") == 0:
          continue;
+
+      # If the account has no PGP key, do not write it
+      if x[1].has_key("keyFingerPrint") == 0:
+         continue;
       try:
          F.write("; %s\n"%(EmailAddress(x)));
          for z in x[1]["dnsZoneEntry"]:
@@ -458,6 +462,10 @@ def GenBSMTP(l,File,HomePrefix):
    # Write out the zone file entry for each user
    for x in PasswdAttrs:
       if x[1].has_key("dnsZoneEntry") == 0:
+         continue;
+
+      # If the account has no PGP key, do not write it
+      if x[1].has_key("keyFingerPrint") == 0:
          continue;
       try:
          for z in x[1]["dnsZoneEntry"]:
