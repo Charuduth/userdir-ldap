@@ -544,8 +544,11 @@ def GenHosts(l,File):
       if x[1].has_key("hostname") == 0:
          continue;
       Host = GetAttr(x,"hostname");
-      Addr = socket.gethostbyname(Host);
-      F.write(Addr + "\n");
+      try:
+        Addr = socket.gethostbyname(Host);
+        F.write(Addr + "\n");
+      except:
+        pass
   # Oops, something unspeakable happened.
   except:
    Die(File,F,None);
