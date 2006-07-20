@@ -116,16 +116,15 @@ def ShowAttrs(Attrs):
 
 def Overview(Attrs):
    """Display a one-line overview for a given host"""
-   if 'status' in Attrs[1].keys():
-      status = Attrs[1]['status'][0]
-   else:
-      status = ''
+   for i in ['host','architecture','distribution','access','status']:
+      if i not in Attrs[1].keys():
+         Attrs[1][i] = ['']
    print "%-12s  %-10s  %-38s  %-25s %s" % (\
       Attrs[1]['host'][0], \
       Attrs[1]['architecture'][0], \
       Attrs[1]['distribution'][0], \
       Attrs[1]['access'][0], \
-      status)
+      Attrs[1]['status'][0])
 
 # Change a single attribute
 def ChangeAttr(Attrs,Attr):
