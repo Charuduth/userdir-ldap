@@ -251,7 +251,7 @@ def DoDNS(Str,Attrs,DnRecord):
 
 # Handle an RBL list (mailRBL, mailRHSBL, mailWhitelist)
 def DoRBL(Str,Attrs):
-   Match = re.compile('^mail(rbl|rhsbl|whitelist) ([\w.]+)$').match(string.lower(Str))
+   Match = re.compile('^mail(rbl|rhsbl|whitelist) ([-a-z0-9.]+)$').match(string.lower(Str))
    if Match == None:
       return None
    
