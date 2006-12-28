@@ -58,8 +58,11 @@ fi
 makedb "$HOST/group.tdb" -o group.db.t
 mv -f passwd.db.t passwd.db
 mv -f group.db.t group.db
-ln -sf "$HOST/ssh-rsa-shadow" .
-ln -sf "$HOST/ssh_known_hosts" .
+for a in $HOST/ssh-rsa-shadow $HOST/ssh_known_hosts $HOST/mail-callout \
+         $HOST/mail-disable $HOST/mail-greylist $HOST/mail-rbl \
+         $HOST/mail-rhsbl $HOST/mail-whitelist; do
+	ln -sf $a .
+done
 ln -sf `pwd -P`/ssh-rsa-shadow /etc/ssh
 ln -sf `pwd -P`/ssh_known_hosts /etc/ssh
 

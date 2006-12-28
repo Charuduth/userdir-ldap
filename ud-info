@@ -45,6 +45,14 @@ AttrInfo = {"cn": ["First Name", 101],
 	    "icqUin": ["ICQ UIN",14],
 	    "jabberJID": ["Jabber ID",15],
 	    "privateSub": ["Debian-Private",16],
+	    "gender": ["Gender",17],
+	    "birthDate": ["Date of Birth",18],
+	    "mailDisableMessage": ["Mail Disabled",19],
+	    "mailGreylisting": ["Mail Greylisting",20],
+	    "mailCallout": ["Mail Callouts",21],
+            "mailRBL": ["Mail RBLs",22],
+            "mailRHSBL": ["Mail RHSBLs",23],
+            "mailWhitelist": ["Mail Whitelist",24],
 	    "comment": ["Comment",116],
 	    "userPassword": ["Crypted Password",117],
             "dnsZoneEntry": ["d.net Entry",118]};
@@ -67,6 +75,14 @@ AttrPrompt = {"cn": ["Common name or first name"],
               "supplementaryGid": ["Groups the user is in"],
 	      "allowedHost": ["Grant access to certain hosts"],
               "privateSub": ["Debian-Private mailing list subscription"],
+	      "gender": ["ISO5218 Gender code (1=male,2=female,9=unspecified)"],
+	      "birthDate": ["Date of Birth (YYYYMMDD)"],
+	      "mailDisableMessage": ["Error message to return via SMTP"],
+	      "mailGreylisting": ["SMTP Greylisting (TRUE/FALSE)"],
+	      "mailCallout": ["SMTP Callouts (TRUE/FALSE)"],
+              "mailRBL": ["SMTP time RBL lists"],
+              "mailRHSBL": ["SMTP time RHSBL lists"],
+              "mailWhitelist": ["SMTP time whitelist from other checks"],
               "member": ["LDAP Group Member for slapd ACLs"],
 	      "latitude": ["XEarth latitude in ISO 6709 format - see /usr/share/zoneinfo/zone.tab or etak.com"],
 	      "longitude": ["XEarth latitude in ISO 6709 format - see /usr/share/zoneinfo/zone.tab or etak.com"],
@@ -174,7 +190,8 @@ def ShowAttrs(Attrs):
 # Change a single attribute
 def ChangeAttr(Attrs,Attr):
    if (Attr == "supplementaryGid" or Attr == "allowedHost" or \
-       Attr == "member" or Attr == "dnsZoneEntry"):
+       Attr == "member" or Attr == "dnsZoneEntry" or Attr == "mailWhitelist" or \
+       Attr == "mailRBL" or Attr == "mailRHSBL"):
       return MultiChangeAttr(Attrs,Attr);
 
    print "Old value: '%s'" % (GetAttr(Attrs,Attr,""));

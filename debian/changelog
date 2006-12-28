@@ -1,3 +1,16 @@
+userdir-ldap (0.3.12) unstable; urgency=low
+
+  * Add dns-sshfp file with DNS SSHFP records for each host.
+  * Add mail-disable file from LDAP mailDisableMessage
+  * Add mail-greylist and mail-callout files from LDAP mailGreylisting and
+    mailCallout
+  * Add mail-rbl, mail-rhsbl, and mail-whitelist files from LDAP, and add
+    support to set them via mailgate
+  * Add support for additional fields to mailgate arbitrary change and
+    delete functions.
+
+ -- Ryan Murray <rmurray@debian.org>  Thu, 28 Dec 2006 05:14:45 -0700
+
 userdir-ldap (0.3.11) unstable; urgency=low
 
   * Add debianhosts file with ip addresses of all hosts.

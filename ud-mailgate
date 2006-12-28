@@ -17,6 +17,10 @@ EX_PERMFAIL = 65;      # EX_DATAERR
 Error = 'Message Error';
 SeenKey = 0;
 SeenDNS = 0;
+mailRBL = {}
+mailRHSBL = {}
+mailWhitelist = {}
+SeenList = {}
 DNS = {}
 
 ArbChanges = {"c": "..",
@@ -27,10 +31,15 @@ ArbChanges = {"c": "..",
 	      "postalCode": ".*",
               "loginShell": ".*",
               "emailForward": "^([^<>@]+@.+)?$",
+              "jabberJID": "^([^<>@]+@.+)?$",
               "ircNick": ".*",
               "icqUin": "^[0-9]*$",
               "onVacation": ".*",
-              "labeledURI": ".*"};
+              "labeledURI": ".*",
+              "mailDisableMessage": ".*",
+	      "mailGreylisting": "^(TRUE|FALSE)$",
+	      "mailCallout": "^(TRUE|FALSE)$",
+};
 
 DelItems = {"c": None,
             "l": None,
@@ -45,9 +54,19 @@ DelItems = {"c": None,
 	    "latitude": None,
 	    "longitude": None,
             "icqUin": None,
+            "jabberJID": None,
+            "jpegPhoto": None,
             "dnsZoneEntry": None,
 	    "sshRSAAuthKey": None,
-	    "sshDSAAuthKey": None};
+	    "sshDSAAuthKey": None,
+            "birthDate" : None,
+            "mailGreylisting": None,
+            "mailCallout": None,
+            "mailRBL": None,
+            "mailRHSBL": None,
+            "mailWhitelist": None,
+            "mailDisableMessage": None,
+            };
 
 # Decode a GPS location from some common forms
 def LocDecode(Str,Dir):
@@ -230,6 +249,29 @@ def DoDNS(Str,Attrs,DnRecord):
    SeenDNS = 1;
    return "DNS Entry replaced with "+Str;
 
+# Handle an RBL list (mailRBL, mailRHSBL, mailWhitelist)
+def DoRBL(Str,Attrs):
+   Match = re.compile('^mail(rbl|rhsbl|whitelist) ([\w.]+)$').match(string.lower(Str))
+   if Match == None:
+      return None
+   
+   if Match.group(1) == "rbl":
+      Key = "mailRBL"
+   if Match.group(1) == "rhsbl":
+      Key = "mailRHSBL"
+   if Match.group(1) == "whitelist":
+      Key = "mailWhitelist"
+   Host = Match.group(2)
+
+   global SeenList
+   if SeenList.has_key(Key):
+     Attrs.append((ldap.MOD_ADD,Key,Host))
+     return "%s added %s" % (Key,Host)
+      
+   Attrs.append((ldap.MOD_REPLACE,Key,Host))
+   SeenList[Key] = 1;
+   return "%s replaced with %s" % (Key,Host)
+
 # Handle an [almost] arbitary change
 def HandleChange(Reply,DnRecord,Key):
    global PlainText;
@@ -252,7 +294,7 @@ def HandleChange(Reply,DnRecord,Key):
          else:
            Res = DoPosition(Line,Attrs) or DoDNS(Line,Attrs,DnRecord) or \
                  DoArbChange(Line,Attrs) or DoSSH(Line,Attrs) or \
-		 DoDel(Line,Attrs);
+		 DoDel(Line,Attrs) or DoRBL(Line,Attrs);
       except:
          Res = None;
          Result = Result + "==> %s: %s\n" %(sys.exc_type,sys.exc_value);

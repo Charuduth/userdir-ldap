@@ -21,7 +21,7 @@
 #   along with this program; if not, write to the Free Software
 #   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
-import string, re, time, ldap, getopt, sys, os, pwd, posix, socket, base64, sha;
+import string, re, time, ldap, getopt, sys, os, pwd, posix, socket, base64, sha
 from userdir_ldap import *;
 
 global Allowed;
@@ -251,7 +251,6 @@ def GenGroup(l,File):
 # Generate the email forwarding list
 def GenForward(l,File):
   F = None;
-  Fdb = None;
   try:
    OldMask = os.umask(0022);
    F = open(File + ".tmp","w",0644);
@@ -280,9 +279,9 @@ def GenForward(l,File):
       
   # Oops, something unspeakable happened.
   except:
-   Die(File,F,Fdb);
+   Die(File,F,None);
    raise;
-  Done(File,F,Fdb);
+  Done(File,F,None);
 
 def GenAllForward(l,File):
   Fdb = None;
@@ -323,10 +322,8 @@ def GenAllForward(l,File):
 # Generate the anon XEarth marker file 
 def GenMarkers(l,File):
   F = None;
-  Fdb = None;
   try:
    F = open(File + ".tmp","w");
-   Fdb = None;
 
    # Fetch all the users
    global PasswdAttrs;
@@ -346,17 +343,15 @@ def GenMarkers(l,File):
       
   # Oops, something unspeakable happened.
   except:
-   Die(File,F,Fdb);
+   Die(File,F,None);
    raise;
-  Done(File,F,Fdb);
+  Done(File,F,None);
 
 # Generate the debian-private subscription list
 def GenPrivate(l,File):
   F = None;
-  Fdb = None;
   try:
    F = open(File + ".tmp","w");
-   Fdb = None;
 
    # Fetch all the users
    global PasswdAttrs;
@@ -389,9 +384,135 @@ def GenPrivate(l,File):
       
   # Oops, something unspeakable happened.
   except:
-   Die(File,F,Fdb);
+   Die(File,F,None);
    raise;
-  Done(File,F,Fdb);
+  Done(File,F,None);
+
+# Generate the list of local addresses that refuse all mail
+def GenMailDisable(l,File):
+  F = None;
+  try:
+   F = open(File + ".tmp","w");
+
+   # Fetch all the users
+   global PasswdAttrs;
+   if PasswdAttrs == None:
+      raise "No Users";
+
+   for x in PasswdAttrs:
+      Reason = None
+      
+      # If the account is locked, disable incoming mail
+      if (string.find(GetAttr(x,"userPassword"),"*LK*")  != -1) or \
+         x[1].has_key("keyFingerPrint") == 0:
+         Reason = "user account locked"
+      else:
+         if x[1].has_key("mailDisableMessage"):
+            Reason = GetAttr(x,"mailDisableMessage")
+         else:
+            continue
+
+      # Must be in the Debian group (yuk, hard coded for now)
+      if GetAttr(x,"gidNumber") != "800":
+	 continue;
+
+      try:
+         Line = "%s: %s"%(GetAttr(x,"uid"),Reason);
+         Line = Sanitize(Line) + "\n";
+         F.write(Line);
+      except:
+         pass;
+      
+  # Oops, something unspeakable happened.
+  except:
+   Die(File,F,None);
+   raise;
+  Done(File,F,None);
+
+# Generate a list of uids that should have boolean affects applied
+def GenMailBool(l,File,Key):
+  F = None;
+  try:
+   F = open(File + ".tmp","w");
+
+   # Fetch all the users
+   global PasswdAttrs;
+   if PasswdAttrs == None:
+      raise "No Users";
+
+   for x in PasswdAttrs:
+      Reason = None
+      
+      if x[1].has_key(Key) == 0:
+         continue
+
+      # Must be in the Debian group (yuk, hard coded for now)
+      if GetAttr(x,"gidNumber") != "800":
+	 continue
+
+      if GetAttr(x,Key) != "TRUE":
+         continue
+
+      try:
+         Line = "%s"%(GetAttr(x,"uid"));
+         Line = Sanitize(Line) + "\n";
+         F.write(Line);
+      except:
+         pass;
+      
+  # Oops, something unspeakable happened.
+  except:
+   Die(File,F,None);
+   raise;
+  Done(File,F,None);
+
+# Generate a list of hosts for RBL or whitelist purposes.
+def GenMailList(l,File,Key):
+  F = None;
+  try:
+   F = open(File + ".tmp","w");
+
+   # Fetch all the users
+   global PasswdAttrs;
+   if PasswdAttrs == None:
+      raise "No Users";
+
+   for x in PasswdAttrs:
+      Reason = None
+      
+      if x[1].has_key(Key) == 0:
+         continue
+
+      # Must be in the Debian group (yuk, hard coded for now)
+      if GetAttr(x,"gidNumber") != "800":
+	 continue
+
+      try:
+         found = 0
+         Line = None
+         for z in x[1][Key]:
+             if Key == "mailWhitelist":
+		 if re.match('^[-\w.]+(/[\d]+)?$',z) == None:
+		     continue
+	     else:
+		 if re.match('^[-\w.]+$',z) == None:
+		     continue
+             if found == 0:
+                 found = 1
+                 Line = GetAttr(x,"uid")
+             Line += ": " + z
+
+         if Line != None:
+             Line = Sanitize(Line) + "\n";
+             F.write(Line);
+      except:
+         pass;
+      
+  # Oops, something unspeakable happened.
+  except:
+   Die(File,F,None);
+   raise;
+  Done(File,F,None);
 
 # Generate the DNS Zone file
 def GenDNS(l,File,HomePrefix):
@@ -612,7 +733,9 @@ PasswdAttrs = l.search_s(BaseDn,ldap.SCOPE_ONELEVEL,"uid=*",\
                  "shadowMin","shadowMax","shadowWarning","shadowinactive",
 	         "shadowexpire","emailForward","latitude","longitude",\
                  "allowedHost","sshRSAAuthKey","dnsZoneEntry","cn","sn",\
-	         "keyFingerPrint","privateSub"]);
+	         "keyFingerPrint","privateSub","mailDisableMessage",\
+                 "mailGreylisting","mailCallout","mailRBL","mailRHSBL",\
+                 "mailWhitelist"]);
 # Fetch all the hosts
 HostAttrs    = l.search_s(HostBaseDn,ldap.SCOPE_ONELEVEL,"sshRSAHostKey=*",\
                 ["hostname","sshRSAHostKey"]);
@@ -631,6 +754,12 @@ GenMarkers(l,GlobalDir+"markers");
 GenPrivate(l,GlobalDir+"debian-private");
 GenSSHKnown(l,GlobalDir+"ssh_known_hosts");
 GenHosts(l,GlobalDir+"debianhosts");
+GenMailDisable(l,GlobalDir+"mail-disable");
+GenMailBool(l,GlobalDir+"mail-greylist","mailGreylisting");
+GenMailBool(l,GlobalDir+"mail-callout","mailCallout");
+GenMailList(l,GlobalDir+"mail-rbl","mailRBL");
+GenMailList(l,GlobalDir+"mail-rhsbl","mailRHSBL");
+GenMailList(l,GlobalDir+"mail-whitelist","mailWhitelist");
 
 # Compatibility.
 GenForward(l,GlobalDir+"forward-alias");
@@ -678,8 +807,14 @@ while(1):
    DoLink(GlobalDir,OutDir,"ssh-rsa-shadow");
    DoLink(GlobalDir,OutDir,"markers");
    DoLink(GlobalDir,OutDir,"mail-forward.cdb");
-   DoLink(GlobalDir,OutDir,"ssh_known_hosts");
    DoLink(GlobalDir,OutDir,"debianhosts");
+   DoLink(GlobalDir,OutDir,"ssh_known_hosts");
+   DoLink(GlobalDir,OutDir,"mail-disable");
+   DoLink(GlobalDir,OutDir,"mail-greylist");
+   DoLink(GlobalDir,OutDir,"mail-callout");
+   DoLink(GlobalDir,OutDir,"mail-rbl");
+   DoLink(GlobalDir,OutDir,"mail-rhsbl");
+   DoLink(GlobalDir,OutDir,"mail-whitelist");
 
    # Compatibility.
    DoLink(GlobalDir,OutDir,"forward-alias");
