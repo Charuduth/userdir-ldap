@@ -500,7 +500,11 @@ def GenMailList(l,File,Key):
              if found == 0:
                  found = 1
                  Line = GetAttr(x,"uid")
+             else:
+                 Line += " "
              Line += ": " + z
+             if Key == "mailRHSBL":
+                 Line += "/$sender_address_domain"
 
          if Line != None:
              Line = Sanitize(Line) + "\n";
