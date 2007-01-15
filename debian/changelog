@@ -1,3 +1,10 @@
+userdir-ldap (0.3.13) unstable; urgency=low
+
+  * ud-generate: only look for *LK*, not the fingerprint when auto-disabling
+    mail
+
+ -- Ryan Murray <rmurray@debian.org>  Mon, 15 Jan 2007 16:14:29 -0700
+
 userdir-ldap (0.3.12) unstable; urgency=low
 
   * Add dns-sshfp file with DNS SSHFP records for each host.
