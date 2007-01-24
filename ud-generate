@@ -4,7 +4,7 @@
 
 #   Copyright (c) 2000-2001  Jason Gunthorpe <jgg@debian.org>
 #   Copyright (c) 2003-2004  James Troup <troup@debian.org>
-#   Copyright (c) 2004-2005  Joey Schulze <joey@infodrom.org>
+#   Copyright (c) 2004-2005,7  Joey Schulze <joey@infodrom.org>
 #   Copyright (c) 2001-2007  Ryan Murray <rmurray@debian.org>
 #
 #   This program is free software; you can redistribute it and/or modify
@@ -180,7 +180,8 @@ def GenSSHShadow(l,File):
       # If the account is locked, do not write it.
       # This is a partial stop-gap. The ssh also needs to change this
       # to ignore ~/.ssh/authorized* files.
-      if (string.find(GetAttr(x,"userPassword"),"*LK*")  != -1):
+      if (string.find(GetAttr(x,"userPassword"),"*LK*")  != -1) \
+             or (string.find(GetAttr(x,"userPassword"),"*PK*")  != -1):
          continue;
 
       if x[1].has_key("uidNumber") == 0 or \
@@ -364,7 +365,8 @@ def GenPrivate(l,File):
          continue;
 
       # If the account is locked, do not write it
-      if (string.find(GetAttr(x,"userPassword"),"*LK*")  != -1):
+      if (string.find(GetAttr(x,"userPassword"),"*LK*")  != -1) \
+             or (string.find(GetAttr(x,"userPassword"),"*PK*")  != -1):
          continue;
 
       # If the account has no PGP key, do not write it
