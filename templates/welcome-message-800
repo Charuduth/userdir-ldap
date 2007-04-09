@@ -11,63 +11,69 @@ User-Agent: nm-create script run by __WHOAMI__
 
 Dear __REALNAME__!
 
-Your account '__LOGIN__' has just been created in the central ldap
-database of the Debian project. Please note that it needs a bit of time
-until this information is synced with all developer-accessible machines,
-you should be able to login or upload packages after about 30-60 minutes.
+Your account '__LOGIN__' has just been created in the central LDAP
+database of the Debian project.  Please note that it needs a bit of time
+until this information is synced with all developer-accessible machines.
+You should be able to login or upload packages after about 30-60 minutes.
 The password for this account can be found appended to this message,
 encrypted with your GPG key.
 Email sent to <__LOGIN__@debian.org> will be forwarded to <__EMAIL__>,
-to change this visit <URL:http://db.debian.org/forward.html>. 
+to change this visit <URL:http://db.debian.org/forward.html>.
 
 You now have access to various project machines, for a list of them take
 a look at <URL:http://db.debian.org/machines.cgi>.
 Please remember that you accepted the Debian Machine Usage Policy in
-your NM-process (available at <URL:http://www.debian.org/devel/dmup>).
+your NM process (available at <URL:http://www.debian.org/devel/dmup>).
 
 If you need additional software installed on one of the machines (either
-in the host system or a chroot environment) please contact 
+in the host system or a chroot environment) please contact
 debian-admin@lists.debian.org, but keep in mind that not all software is
 available on all architectures.  The chroot environments can be
-entered with the 'dchroot' command, take a look at the list of machines
+entered with the 'dchroot' command; take a look at the list of machines
 to know which one has chroots available for you.
 
-You need to use ssh to log into the machines, telnet and rlogin are
-disabled for security reasons. The LDAP directory is able to share RSA
+You need to use ssh to log into the machines; telnet and rlogin are
+disabled for security reasons.  The LDAP directory is able to share RSA
 ssh keys among machines, please see <URL:http://db.debian.org/doc-mail.html>
 Otherwise when you first login a ~/.ssh directory will be created with
 the appropriate permissions.  Please be aware of the security
 implications of using RSA authentication and ssh agents.
 
 To give you a quick overview here is a list of the most important
-machines from the project you can access. First there is
-ftp-master.debian.org, sometimes known as newraff. It is our main
-archive server and the place where you upload your packages. It is
-restricted, so you can only upload with anonymous FTP, a tool like dput
-or dupload can aid this process.
-The Projects web pages, CVS archive, the main shell server and various
-other stuff is located on gluck.debian.org. This machine is also reachable as
-{cvs,people,www}.debian.org. If you want your own Debian related site to
-appear behind <URL:http://people.debian.org/~__LOGIN__> then put it at
-this machine in the directory ~/public_html/.
+machines from the project you can access.  First there is
+ftp-master.debian.org, it is our main archive server and the place
+where you upload your packages.  It is restricted, so you can only
+upload with anonymous FTP - a tool like dput or dupload can aid this
+process.  The Projects web pages, CVS archive, the main shell server
+and various other stuff is located on gluck.debian.org.  This machine
+is also reachable as {cvs,people,www}.debian.org.  If you want your
+own Debian related site to appear behind
+<URL:http://people.debian.org/~__LOGIN__> then put it at this machine
+in the directory ~/public_html/.
 
+The machine hosting most of our VCS repositories
+({svn,bzr,git,arch,hg}.debian.org) is alioth.debian.org. It's handled
+by a separate team (admin@alioth.debian.org) as it allows login by
+non-Debian developers. You probably already have a *-guest account
+there.  Please refer to http://wiki.debian.org/AliothFAQ to learn
+anything you need to know, including how to activate your account and
+how to request the removal of your old -guest account.
 
-There is one developer-only mailing list, debian-private. You have been
+There is one developer-only mailing list, debian-private.  You have been
 subscribed to this list as <__PRIVATE__>, please respect the privacy of
-this list and don't forward mail from it elsewhere.
-This subscription, and a lot of other data like your private
-information, can be changed at the webinterface available behind
-<URL:https://db.debian.org/>, just login with the password information
-appended to this email.
+this list and don't forward mail from it elsewhere.  This subscription, and
+a lot of other data like your private information, can be changed at the
+web interface available behind <URL:https://db.debian.org/>; just login
+with the password information appended to this email.
+
 The information stored here is used to maintain your accounts on various
 Debian machines, and also to allow other developers and general users to
 find out more about you.  Many of the fields are only visible to other
 registered Debian developers.  This is also the only way to change your
 password.  The passwd program does not yet work.
 
-
-Before we go on with other important information lets remember the most
-important documents from the NM process. That you now got you account
+Before we go on with other important information let's remember the most
+important documents from the NM process.  That you now got your account
 doesn't mean to stop reading and checking them whenever you do packaging
 or other Debian related work.
 
@@ -78,14 +84,14 @@ or other Debian related work.
     <URL:http://www.debian.org/doc/debian-policy/>
 
   o The Debian Developer's reference
-  	<URL:http://www.debian.org/doc/developers-reference/>
+    <URL:http://www.debian.org/doc/developers-reference/>
 
 You can find much more information useful to developers at
 <URL:http://www.debian.org/devel/>.
 
 Also, please subscribe to the mailing list debian-devel-announce, if you
-haven't done so already.
-
+haven't done so already.  All Debian developers are required to read
+this list, as important announcements are made there.
 
 We strongly suggest that you use your __LOGIN__@debian.org address for
 the maintainer field in your packages, because that one will be valid
@@ -101,14 +107,12 @@ and other developer-related issues.  Those who prefer one-on-one help
 can also post to the list, and an experienced developer may volunteer
 to help you.  You can get online help on IRC, too, if you join the
 channel #debian-devel or #debian-mentors on irc.debian.org.  Take a look
-at the support section on www.debian.org in order to find out more
-information.
+at the support section on <URL:http://www.debian.org/> in order to find
+out more information.
 
 If you have some spare time and want to contribute it to Debian you
-may wish to take a look at the "Work-Needing and Prospective Packages
-for Debian GNU/Linux", also known as WNPP, that can be found at
-<URL:http://www.debian.org/devel/wnpp/>.
-
+may wish to take a look at the "Work-Needing and Prospective Packages",
+(WNPP) that can be found at <URL:http://www.debian.org/devel/wnpp/>.
 
 Welcome to the project!
 
