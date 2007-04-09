@@ -222,7 +222,12 @@ def DoDNS(Str,Attrs,DnRecord):
 
    # Check for collisions
    global l;
-   Rec = l.search_s(BaseDn,ldap.SCOPE_ONELEVEL,"dnsZoneEntry="+G[0]+" *",["uid"]);
+   # [JT 20070409 - search for both tab and space suffixed hostnames
+   #  since we accept either.  It'd probably be better to parse the
+   #  incoming string in order to construct what we feed LDAP rather
+   #  than just passing it through as is.]
+   filter = "(|(dnsZoneEntry=%s	*)(dnsZoneEntry=%s *))" % (G[0], G[0])
+   Rec = l.search_s(BaseDn,ldap.SCOPE_ONELEVEL,filter,["uid"]);
    for x in Rec:
       if GetAttr(x,"uid") != GetAttr(DnRecord,"uid"):
          return "DNS entry is already owned by " + GetAttr(x,"uid")
