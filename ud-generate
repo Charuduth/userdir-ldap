@@ -180,8 +180,7 @@ def GenSSHShadow(l,File):
       # If the account is locked, do not write it.
       # This is a partial stop-gap. The ssh also needs to change this
       # to ignore ~/.ssh/authorized* files.
-      if (string.find(GetAttr(x,"userPassword"),"*LK*")  != -1) \
-             or (string.find(GetAttr(x,"userPassword"),"*PK*")  != -1):
+      if (string.find(GetAttr(x,"userPassword"),"*LK*")  != -1):
          continue;
 
       if x[1].has_key("uidNumber") == 0 or \
