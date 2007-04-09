@@ -799,6 +799,10 @@ while(1):
      Allowed = None
    CurrentHost = Split[0];
 
+   DoLink(GlobalDir,OutDir,"ssh-rsa-shadow");
+   DoLink(GlobalDir,OutDir,"debianhosts");
+   DoLink(GlobalDir,OutDir,"ssh_known_hosts");
+
    sys.stdout.flush();
    GenPasswd(l,OutDir+"passwd",Split[1]);
    sys.stdout.flush();
@@ -808,11 +812,8 @@ while(1):
    GenShadow(l,OutDir+"shadow");
 	
    # Link in global things   
-   DoLink(GlobalDir,OutDir,"ssh-rsa-shadow");
    DoLink(GlobalDir,OutDir,"markers");
    DoLink(GlobalDir,OutDir,"mail-forward.cdb");
-   DoLink(GlobalDir,OutDir,"debianhosts");
-   DoLink(GlobalDir,OutDir,"ssh_known_hosts");
    DoLink(GlobalDir,OutDir,"mail-disable");
    DoLink(GlobalDir,OutDir,"mail-greylist");
    DoLink(GlobalDir,OutDir,"mail-callout");
