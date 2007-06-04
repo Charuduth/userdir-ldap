@@ -368,12 +368,12 @@ def GPGCheckSig(Message):
             Why = "Unable to verify signature, signing key missing.";
 
 	 # Expired signature
-	 if Split[1] == "SIGEXPIRED":
+	 if Split[1] == "SIGEXPIRED" or Split[1] == "EXPSIG":
 	    GoodSig = 0;
             Why = "Signature has expired";
 	    
 	 # Revoked key
-	 if Split[1] == "KEYREVOKED":
+	 if Split[1] == "KEYREVOKED" or Split[1] == "REVKEYSIG":
 	    GoodSig = 0;
             Why = "Signing key has been revoked";
 
@@ -389,7 +389,11 @@ def GPGCheckSig(Message):
 
          # ValidSig has the key finger print
 	 if Split[1] == "VALIDSIG":
-	    KeyFinger = Split[2];
+	    # Use the fingerprint of the primary key when available
+	    if len(Split) >= 12:
+               KeyFinger = Split[11];
+            else:
+	       KeyFinger = Split[2];
 
       # Reopen the stream as a readable stream
       Text = Res[2].read();
