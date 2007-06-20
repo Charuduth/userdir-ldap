@@ -22,6 +22,18 @@ userdir-ldap (0.3.11) unstable; urgency=low
 
   * Add debianhosts file with ip addresses of all hosts.
   * Don't output bsmtp or DNS entries for accounts without fingerprints.
+  * ud-replicate:
+    - Adjusted symlink path for ssh_known_hosts inside chroot
+    - Use "db" alias for where to rsync from, rather than a hostname (rmurray)
+    - bsmtp handling updated for exim4 (rmurray)
+  * ud-host:
+    - Initialise Host so that -f will print a full list
+    - Display error message and exit properly for wrong arguments
+    - Take better care of unset attributes
+  * userdir_gpg.py:
+    - Removed reference to FCNTL
+  * ud-info
+    - Display error message and exit properly for wrong arguments
 
  -- Ryan Murray <rmurray@debian.org>  Sun, 13 Nov 2005 16:42:02 -0700
 
