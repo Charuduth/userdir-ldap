@@ -242,7 +242,7 @@ else:
    l = ldap.open(LDAPServer);
    l.simple_bind_s("","")
 
-HBaseDn = "ou=hosts,dc=debian,dc=org";
+HBaseDn = HostBaseDn
 
 if ListMode == 1:
    Attrs = l.search_s(HBaseDn,ldap.SCOPE_ONELEVEL,"host=*")
