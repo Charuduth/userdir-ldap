@@ -69,7 +69,10 @@ if Res != "":
 # GID
 Res = raw_input("Group ID Number? ")
 if Res != "":
-   gidNumber = Group2GID(Res)
+   gidNumber = Group2GID(l, Res)
+   if gidNumber == -1:
+      print "Can't figure out which gid %s is" % Res
+      sys.exit(1)
 
 # UID
 uidNumber = GetFreeID(l)
