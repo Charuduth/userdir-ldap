@@ -1,9 +1,22 @@
 userdir-ldap (0.3.14) unstable; urgency=low
 
-  * Establish *PK* as mechanism for locked accounts with mail forwarding intact.
-    No subscription to debian-private though, and no way to log in
+  * ud-generate:
+    . Establish *PK* as mechanism for locked accounts with mail forwarding intact.
+      No subscription to debian-private though, and no way to log in
+    . Support [NOPASSWD] for generating configs that only don't
+      contain the password for untrusted hosts that should receive
+      the other regular export (patch by Andreas Barth <aba@not.so.argh.org>)
+  * ud-host:
+    . Import the base DN from the configuration file (patch by Andreas
+      Barth <aba@not.so.argh.org>)
+  * ud-roleadd:
+    . Improved admin output
+  * Removed unused and obsolete whrandom module (ud-host, ud-info, ud.py)
+  * Query the LDAP server if no locally defined group with that name was
+    found (userdir_ldap.py, ud-useradd, ud-roleadd)
+  * Preparations for being useful with the version of Python in etch
 
- --
+ -- Joey Schulze <joey@infodrom.org>  Sat, 11 Aug 2007 22:23:25 +0200
 
 userdir-ldap (0.3.13) unstable; urgency=low
 
