@@ -412,8 +412,11 @@ def GetUID(l,Name,UnknownMap = {}):
    return (None,None);
 
 def Group2GID(name):
-   """Returns the numerical id of a common group"""
+   """
+   Returns the numerical id of a common group
+   on error returns -1
+   """
    for g in DebianGroups.keys():
       if name == g:
          return DebianGroups[g]
-   return name
+   return -1
