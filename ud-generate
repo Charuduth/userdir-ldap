@@ -809,7 +809,8 @@ while(1):
    GenGroup(l,OutDir+"group");
    if ExtraList.has_key("[UNTRUSTED]"):
 	continue;
-   GenShadow(l,OutDir+"shadow");
+   if not ExtraList.has_key("[NOPASSWD]"):
+     GenShadow(l,OutDir+"shadow");
 	
    # Link in global things   
    DoLink(GlobalDir,OutDir,"markers");
