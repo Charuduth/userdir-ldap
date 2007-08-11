@@ -83,6 +83,7 @@ print "   GECOS Field: \"%s,,,,\"" % cn
 print "   Login Shell: /bin/false"
 Res = raw_input("Continue [No/yes]? ")
 if Res != "yes":
+   print "Not adding %s" % cn
    sys.exit(1)
 
 # Submit the modification request
