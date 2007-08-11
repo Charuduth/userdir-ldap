@@ -423,6 +423,6 @@ def Group2GID(l, name):
    filter = "(gid=%s)" % name
    res = l.search_s(BaseDn,ldap.SCOPE_ONELEVEL,filter,["gidNumber"]);
    if res:
-      return GetAttr(res[0], "gidNumber")
+      return int(GetAttr(res[0], "gidNumber"))
 
    return -1
