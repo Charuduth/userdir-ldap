@@ -411,7 +411,7 @@ def GetUID(l,Name,UnknownMap = {}):
 
    return (None,None);
 
-def Group2GID(name):
+def Group2GID(l, name):
    """
    Returns the numerical id of a common group
    on error returns -1
@@ -419,4 +419,10 @@ def Group2GID(name):
    for g in DebianGroups.keys():
       if name == g:
          return DebianGroups[g]
+
+   filter = "(gid=%s)" % name
+   res = l.search_s(BaseDn,ldap.SCOPE_ONELEVEL,filter,["gidNumber"]);
+   if res:
+      return GetAttr(res[0], "gidNumber")
+
    return -1
