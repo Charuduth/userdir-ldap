@@ -17,7 +17,7 @@
 #   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
 # Some routines and configuration that are used by the ldap progams
-import termios, re, string, imp, ldap, sys, whrandom, crypt, rfc822;
+import termios, re, string, imp, ldap, sys, crypt, rfc822;
 import userdir_gpg
 
 try:

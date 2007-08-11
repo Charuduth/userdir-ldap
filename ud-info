@@ -17,7 +17,7 @@
 #    -r    Enable 'root' functions, do this if your uid has access to
 #          restricted variables.
 
-import string, time, os, pwd, sys, getopt, ldap, crypt, whrandom, readline, copy;
+import string, time, os, pwd, sys, getopt, ldap, crypt, readline, copy;
 from userdir_ldap import *;
 
 RootMode = 0;
