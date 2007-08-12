@@ -180,7 +180,8 @@ def GenSSHShadow(l,File):
       # If the account is locked, do not write it.
       # This is a partial stop-gap. The ssh also needs to change this
       # to ignore ~/.ssh/authorized* files.
-      if (string.find(GetAttr(x,"userPassword"),"*LK*")  != -1):
+      if (string.find(GetAttr(x,"userPassword"),"*LK*")  != -1) \
+             or GetAttr(x,"userPassword").startswith("!"):
          continue;
 
       if x[1].has_key("uidNumber") == 0 or \
@@ -365,7 +366,7 @@ def GenPrivate(l,File):
 
       # If the account is locked, do not write it
       if (string.find(GetAttr(x,"userPassword"),"*LK*")  != -1) \
-             or (string.find(GetAttr(x,"userPassword"),"*PK*")  != -1):
+             or GetAttr(x,"userPassword").startswith("!"):
          continue;
 
       # If the account has no PGP key, do not write it
@@ -405,7 +406,10 @@ def GenMailDisable(l,File):
       
       # If the account is locked, disable incoming mail
       if (string.find(GetAttr(x,"userPassword"),"*LK*")  != -1):
-         Reason = "user account locked"
+         if GetAttr(x,"uid") == "luther":
+	    continue
+	 else:
+            Reason = "user account locked"
       else:
          if x[1].has_key("mailDisableMessage"):
             Reason = GetAttr(x,"mailDisableMessage")

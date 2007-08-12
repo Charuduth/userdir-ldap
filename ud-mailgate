@@ -36,6 +36,7 @@ ArbChanges = {"c": "..",
               "icqUin": "^[0-9]*$",
               "onVacation": ".*",
               "labeledURI": ".*",
+              "birthDate": "^([0-9]{4})([01][0-9])([0-3][0-9])$",
               "mailDisableMessage": ".*",
 	      "mailGreylisting": "^(TRUE|FALSE)$",
 	      "mailCallout": "^(TRUE|FALSE)$",
@@ -146,6 +147,29 @@ def DoArbChange(Str,Attrs):
    if re.match(ArbChanges[attrName],G[1]) == None:
       raise Error, "Item does not match the required format"+ArbChanges[attrName];
 
+#   if attrName == 'birthDate':
+#      (re.match("^([0-9]{4})([01][0-9])([0-3][0-9])$",G[1]) {
+#    $bd_yr = $1; $bd_mo = $2; $bd_day = $3;
+#    if ($bd_mo > 0 and $bd_mo <= 12 and $bd_day > 0) {
+#      if ($bd_mo == 2) {
+#	 if ($bd_day == 29 and ($bd_yr == 0 or ($bd_yr % 4 == 0 && ($bd_yr % 100 != 0 || $bd_yr % 400 == 0)))) {
+#	   $bd_ok = 1;
+#	 } elsif ($bd_day <= 28) {
+#	   $bd_ok = 1;
+#	 }
+#      } elsif ($bd_mo == 4 or $bd_mo == 6 or $bd_mo == 9 or $bd_mo == 11) {
+#	if ($bd_day <= 30) {
+#	  $bd_ok = 1;
+#	}
+#      } else {
+#	if ($bd_day <= 31) {
+#	  $bd_ok = 1;
+#	}
+#      }
+#    }
+#  } elsif (not defined($query->param('birthdate')) or $query->param('birthdate') =~ /^\s*$/) {
+#    $bd_ok = 1;
+#  }
    Attrs.append((ldap.MOD_REPLACE,attrName,G[1]));
    return "Changed entry %s to %s"%(attrName,G[1]);
 
@@ -320,7 +344,8 @@ def HandleChange(Reply,DnRecord,Key):
    # Modify the record
    l.simple_bind_s("uid="+AccessPass[0]+","+BaseDn,AccessPass[1]);
    oldAttrs = l.search_s(BaseDn,ldap.SCOPE_ONELEVEL,"uid="+GetAttr(DnRecord,"uid"));
-   if (string.find(GetAttr(oldAttrs[0],"userPassword"),"*LK*")  != -1):
+   if (string.find(GetAttr(oldAttrs[0],"userPassword"),"*LK*")  != -1) \
+             or GetAttr(x,"userPassword").startswith("!"):
       raise Error, "This account is locked";
    Dn = "uid=" + GetAttr(DnRecord,"uid") + "," + BaseDn;
    l.modify_s(Dn,Attrs);
@@ -390,7 +415,8 @@ def HandleChPass(Reply,DnRecord,Key):
 
    # Check for a locked account
    Attrs = l.search_s(BaseDn,ldap.SCOPE_ONELEVEL,"uid="+GetAttr(DnRecord,"uid"));
-   if (string.find(GetAttr(Attrs[0],"userPassword"),"*LK*")  != -1):
+   if (string.find(GetAttr(Attrs[0],"userPassword"),"*LK*")  != -1) \
+             or GetAttr(x,"userPassword").startswith("!"):
       raise Error, "This account is locked";
 
    # Modify the password
