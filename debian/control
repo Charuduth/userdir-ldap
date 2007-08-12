@@ -2,7 +2,7 @@ Source: userdir-ldap
 Section: admin
 Priority: optional
 Maintainer: Debian Administration team <debian-admin@lists.debian.org>
-Build-Depends-Indep: debhelper, python2.4, python
+Build-Depends-Indep: debhelper, python-support
 Standards-Version: 3.5.8.0
 Uploaders: Ryan Murray <rmurray@debian.org>
 

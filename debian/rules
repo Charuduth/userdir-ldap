@@ -3,11 +3,9 @@
 # Made with the aid of debmake, by Christoph Lameter,
 # based on the sample debian/rules file for GNU hello by Ian Jackson.
 
-PYTHON:=/usr/bin/python
 package:=userdir-ldap
-pyversion:=`$(PYTHON) -c 'import sys; print sys.version[:3]'`
-i:=./debian/tmp
-pysite:=usr/lib/python$(pyversion)/site-packages
+i:=./debian/$(package)
+pysite:=usr/share/python-support
 
 build:
 	dh_testdir
@@ -50,11 +48,11 @@ binary-indep: build
 
 	dh_installdocs
 	dh_installchangelogs
-	dh_installmanpages
+	dh_installman
 	dh_fixperms
 	dh_compress
 	dh_installdeb
-	$(PYTHON) debian/python-dep >> debian/substvars
+	dh_pysupport
 	dh_gencontrol
 #	dh_makeshlibs
 	dh_md5sums

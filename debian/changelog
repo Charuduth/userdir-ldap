@@ -1,3 +1,14 @@
+userdir-ldap (0.3.15) unstable; urgency=low
+
+  * userdir_gpg.py: fix RT #70 (sub-key support for mail gateway)
+  * change *PK* mechanism to Linux standard ! mechanism, and check for
+    it in the mail gateway for changes, too.
+  * change packaging to make use of python-support, simplyfing scripts
+    greatly.
+  * Remove obsolete ud-killcrypt that wouldn't work with modern ldap anyways.
+
+ -- Ryan Murray <rmurray@debian.org>  Sun, 12 Aug 2007 13:38:11 -0600
+
 userdir-ldap (0.3.14) unstable; urgency=low
 
   * ud-generate:

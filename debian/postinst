@@ -1,27 +1,8 @@
 #! /bin/bash -e
 #
-# Debian postinst script for Python hierarchical modules
-# Written by Gregor Hoffleit <flight@debian.org>
-#
-
-PYTHON_VER="2.4"
-DIRLIST="/usr/lib/python$PYTHON_VER/site-packages"
-
-case "$1" in
-    configure|abort-upgrade|abort-remove|abort-deconfigure)
-        for i in $DIRLIST ; do
-            python -O /usr/lib/python$PYTHON_VER/compileall.py -q $i
-            python /usr/lib/python$PYTHON_VER/compileall.py -q $i
-        done
-    ;;
-
-    *)
-        echo "postinst called with unknown argument \`$1'" >&2
-        exit 1
-    ;;
-esac
-
+#DEBHELPER#
 if [ "$1" = "configure" ]
 then
     test ! -f /usr/local/bin/ud-replicate || rm -f /usr/local/bin/ud-replicate
 fi
+exit 0
