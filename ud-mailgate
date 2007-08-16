@@ -416,7 +416,7 @@ def HandleChPass(Reply,DnRecord,Key):
    # Check for a locked account
    Attrs = l.search_s(BaseDn,ldap.SCOPE_ONELEVEL,"uid="+GetAttr(DnRecord,"uid"));
    if (string.find(GetAttr(Attrs[0],"userPassword"),"*LK*")  != -1) \
-             or GetAttr(x,"userPassword").startswith("!"):
+             or GetAttr(Attrs[0],"userPassword").startswith("!"):
       raise Error, "This account is locked";
 
    # Modify the password
