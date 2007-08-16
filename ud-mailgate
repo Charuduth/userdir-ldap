@@ -344,8 +344,8 @@ def HandleChange(Reply,DnRecord,Key):
    # Modify the record
    l.simple_bind_s("uid="+AccessPass[0]+","+BaseDn,AccessPass[1]);
    oldAttrs = l.search_s(BaseDn,ldap.SCOPE_ONELEVEL,"uid="+GetAttr(DnRecord,"uid"));
-   if (string.find(GetAttr(oldAttrs[0],"userPassword"),"*LK*")  != -1) \
-             or GetAttr(x,"userPassword").startswith("!"):
+   if ((string.find(GetAttr(oldAttrs[0],"userPassword"),"*LK*")  != -1) 
+       or GetAttr(oldAttrs[0],"userPassword").startswith("!")):
       raise Error, "This account is locked";
    Dn = "uid=" + GetAttr(DnRecord,"uid") + "," + BaseDn;
    l.modify_s(Dn,Attrs);
