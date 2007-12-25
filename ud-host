@@ -246,10 +246,8 @@ else:
    l = ldap.open(LDAPServer);
    l.simple_bind_s("","")
 
-HBaseDn = HostBaseDn
-
 if ListMode == 1:
-   Attrs = l.search_s(HBaseDn,ldap.SCOPE_ONELEVEL,"host=*")
+   Attrs = l.search_s(HostBaseDn,ldap.SCOPE_ONELEVEL,"host=*")
    hosts = []
    for hAttrs in Attrs:
       hosts.append(hAttrs[1]['host'][0])
@@ -264,9 +262,9 @@ if ListMode == 1:
    sys.exit(0)
 elif FingerPrints == 1:
    if Host is not None:
-      Attrs = l.search_s(HBaseDn,ldap.SCOPE_ONELEVEL,"host=" + Host)
+      Attrs = l.search_s(HostBaseDn,ldap.SCOPE_ONELEVEL,"host=" + Host)
    else:
-      Attrs = l.search_s(HBaseDn,ldap.SCOPE_ONELEVEL,"host=*")
+      Attrs = l.search_s(HostBaseDn,ldap.SCOPE_ONELEVEL,"host=*")
    hosts = []
    for hAttrs in Attrs:
       hosts.append(hAttrs[1]['host'][0])
@@ -289,10 +287,10 @@ elif FingerPrints == 1:
    os.unlink(tmpfile)
    sys.exit(0)
 
-HostDn = "host=" + Host + "," + HBaseDn;
+HostDn = "host=" + Host + "," + HostBaseDn;
 
 # Query the server for all of the attributes
-Attrs = l.search_s(HBaseDn,ldap.SCOPE_ONELEVEL,"host=" + Host);
+Attrs = l.search_s(HostBaseDn,ldap.SCOPE_ONELEVEL,"host=" + Host);
 if len(Attrs) == 0:
    print "Host",Host,"was not found.";
    sys.exit(0);
@@ -321,13 +319,13 @@ while(1):
       NewHost = raw_input("Host? ");
       if NewHost == "":
          continue;
-      NAttrs = l.search_s(HBaseDn,ldap.SCOPE_ONELEVEL,"host=" + NewHost);
+      NAttrs = l.search_s(HostBaseDn,ldap.SCOPE_ONELEVEL,"host=" + NewHost);
       if len(NAttrs) == 0:
          print "Host",NewHost,"was not found.";
          continue;
       Attrs = NAttrs;
       Host = NewHost;
-      HostDn = "host=" + Host + "," + HBaseDn;
+      HostDn = "host=" + Host + "," + HostBaseDn;
       OrderedIndex = copy.deepcopy(OrigOrderedIndex);
       continue;
 
@@ -336,26 +334,26 @@ while(1):
       NewHost = raw_input("Host? ");
       if NewHost == "":
          continue;
-      NAttrs = l.search_s(HBaseDn,ldap.SCOPE_ONELEVEL,"host=" + NewHost);
+      NAttrs = l.search_s(HostBaseDn,ldap.SCOPE_ONELEVEL,"host=" + NewHost);
       if len(NAttrs) != 0:
          print "Host",NewHost,"already exists.";
          continue;
       NewHostName = raw_input("Hostname? ");
       if NewHost == "":
          continue;
-      Dn = "host=" + NewHost + "," + HBaseDn;
+      Dn = "host=" + NewHost + "," + HostBaseDn;
       l.add_s(Dn,[("host", NewHost),
                   ("hostname", NewHostName),
                   ("objectClass", ("top", "debianServer"))]);
 
       # Switch
-      NAttrs = l.search_s(HBaseDn,ldap.SCOPE_ONELEVEL,"host=" + NewHost);
+      NAttrs = l.search_s(HostBaseDn,ldap.SCOPE_ONELEVEL,"host=" + NewHost);
       if len(NAttrs) == 0:
          print "Host",NewHost,"was not found.";
          continue;
       Attrs = NAttrs;
       Host = NewHost;
-      HostDn = "host=" + Host + "," + HBaseDn;
+      HostDn = "host=" + Host + "," + HostBaseDn;
       OrderedIndex = copy.deepcopy(OrigOrderedIndex);
       continue;
 
