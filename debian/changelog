@@ -1,3 +1,10 @@
+userdir-ldap (0.3.15+xxx) XXunstable; urgency=low
+
+  * Ship userdir-ldap.schema with the package, add a note that it is
+    now version-controlled in bzr on top of the file.
+
+ -- Peter Palfrader <weasel@debian.org>  Tue, 25 Dec 2007 11:21:45 +0100
+
 userdir-ldap (0.3.15) unstable; urgency=low
 
   * userdir_gpg.py: fix RT #70 (sub-key support for mail gateway)

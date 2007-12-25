@@ -22,7 +22,8 @@ instdirs = \
 	$(pysite)/userdir_ldap \
 	usr/share/doc/$(package)/samples \
 	etc/userdir-ldap/templates \
-	etc/cron.d
+	etc/cron.d \
+	etc/ldap/schema	
 
 binary-indep: build
 	dh_testdir
@@ -45,6 +46,7 @@ binary-indep: build
 	echo "# See /usr/share/doc/userdir-ldap" > $(i)/etc/userdir-ldap/generate.conf
 	chmod 644 $(i)/etc/userdir-ldap/generate.conf
 	install -m 644 templates/*-* $(i)/etc/userdir-ldap/templates/
+	install -m 644 userdir-ldap.schema $(i)/etc/ldap/schema/
 
 	dh_installdocs
 	dh_installchangelogs
