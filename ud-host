@@ -50,8 +50,10 @@ AttrInfo = {"description": ["Machine Descr.", 1],
             "machine": ["Machine Hardware", 10],
             "memory": ["Memory", 11],
             "disk": ["Disk", 12],
+            "physicalHost": ["Physical Host", 13],
             "sshRSAHostKey": ["SSH Host Keys", 14],
-            "bandwidth": ["Bandwidth", 15]};
+            "bandwidth": ["Bandwidth", 15],
+            "purpose": ["Purposes", 16],};
 
 AttrPrompt = {"description": ["Purpose of the machine"],
               "hostname": ["The hostnames for the box (ipv4/ipv6)"],
@@ -65,8 +67,10 @@ AttrPrompt = {"description": ["Purpose of the machine"],
               "machine": ["Hardware description"],
               "memory": ["Installed RAM"],
               "disk": ["Disk Space, RAID levels, etc"],
+              "physicalHost": ["The box hosting this virtual server"],
 	      "sshRSAHostKey": ["A copy of /etc/ssh/ssh_*host_key.pub"],
-              "bandwidth": ["Available outbound"]};
+              "bandwidth": ["Available outbound"],
+              "purpose": ["The purposes of this host"],};
 
 # Create a map of IDs to desc,value,attr
 OrderedIndex = {};
@@ -128,7 +132,7 @@ def Overview(Attrs):
 
 # Change a single attribute
 def ChangeAttr(Attrs,Attr):
-   if (Attr == "sponsor" or Attr == "sshRSAHostKey"):
+   if (Attr in ["sponsor", "sshRSAHostKey", "purpose"]):
       return MultiChangeAttr(Attrs,Attr);
 
    print "Old value: '%s'" % (GetAttr(Attrs,Attr,""));

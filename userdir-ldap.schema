@@ -1,7 +1,8 @@
 # Revision history:
 #
-# XXX [PP]
-#   - Now version controlled in db.d.o bzr repository - 2007-12-25
+# XXX
+#   - [PP] Now version controlled in db.d.o bzr repository - 2007-12-25
+#   - [HE] Add 'purpose', 'physicalHost' to debianServer - 2007-12-25
 #
 # 0.7 [RM]
 #   - Add 'gender' and 'birthDate' to debianDeveloper
@@ -93,6 +94,8 @@
 #   .30 - gender
 #   .31 - birthdate
 #   .32 - mailDisableMessage
+#   .33 - purpose
+#   .34 - physicalHost
 #
 # .3 - experimental LDAP objectClasses
 #   .1 - debianDeveloper
@@ -332,6 +335,21 @@ attributetype ( 1.3.6.1.4.1.9586.100.4.2.32
 	SUBSTR caseIgnoreIA5SubstringsMatch
 	SYNTAX 1.3.6.1.4.1.1466.115.121.1.26 SINGLE-VALUE )
 
+attributetype ( 1.3.6.1.4.1.9586.100.4.2.33
+	NAME 'purpose'
+	DESC 'purposes of this server'
+	EQUALITY caseIgnoreMatch
+	SUBSTR caseIgnoreSubstringsMatch
+	SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 )
+
+attributetype ( 1.3.6.1.4.1.9586.100.4.2.34
+	NAME 'physicalHost'
+	DESC 'FQDN of the physical host of this virtual server'
+	EQUALITY caseIgnoreIA5Match
+	SUBSTR caseIgnoreIA5SubstringsMatch
+	SINGLE-VALUE
+	SYNTAX 1.3.6.1.4.1.1466.115.121.1.26{256} )
+
 # Public object classes
 
 objectclass ( 1.3.6.1.4.1.9586.100.4.1.1
@@ -457,7 +475,7 @@ objectclass ( 1.3.6.1.4.1.9586.100.4.3.2
 	MUST ( host $ hostname )
 	MAY ( c $ access $ admin $ architecture $ bandwidth $ description $ disk $
 	      distribution $ l $ machine $ memory $ sponsor $
-	      sponsor-admin $ sshRSAHostKey $ status
+	      sponsor-admin $ sshRSAHostKey $ status $ purpose $ physicalHost
 	) )
 
 objectclass ( 1.3.6.1.4.1.9586.100.4.3.3
