@@ -2,8 +2,11 @@ userdir-ldap (0.3.15+xxx) XXunstable; urgency=low
 
   * Ship userdir-ldap.schema with the package, add a note that it is
     now version-controlled in bzr on top of the file.
+  * Get rid of debian/conffiles, wich only listed files in /etc anyway.
+    Those files were already being tagged as conffiles by debhelper,
+    resulting in them being listed twice in the resulting binary package.
 
- -- Peter Palfrader <weasel@debian.org>  Tue, 25 Dec 2007 11:21:45 +0100
+ -- Peter Palfrader <weasel@debian.org>  Tue, 25 Dec 2007 11:26:56 +0100
 
 userdir-ldap (0.3.15) unstable; urgency=low
 

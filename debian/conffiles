@@ -1,8 +1,0 @@
-/etc/cron.d/ud-replicate
-/etc/userdir-ldap/generate.conf
-/etc/userdir-ldap/userdir-ldap.conf
-/etc/userdir-ldap/templates/list-subscribe
-/etc/userdir-ldap/templates/passwd-changed
-/etc/userdir-ldap/templates/ping-reply
-/etc/userdir-ldap/templates/welcome-message-800
-/etc/userdir-ldap/templates/welcome-message-60000
