@@ -33,22 +33,30 @@ from userdir_gpg import *;
 #      search through all UIDs.
 def GetFreeID(l):
    Attrs = l.search_s(BaseDn,ldap.SCOPE_ONELEVEL,
-                      "uidNumber=*",["uidNumber"]);
+                      "uidNumber=*",["uidNumber", "gidNumber"]);
    HighestUID = 0;
+   gids = [];
    for I in Attrs:
       ID = int(GetAttr(I,"uidNumber","0"));
+      gids.append(int(GetAttr(I, "gidNumber","0")))
       if ID > HighestUID:
          HighestUID = ID;
-   return HighestUID + 1;
+
+   resGID = HighestUID + 1;
+   while resGID in gids:
+      resGID += 1
+
+   return (HighestUID + 1, resGID);
 
 # Main starts here
 AdminUser = pwd.getpwuid(os.getuid())[0];
 
 # Process options
 ForceMail = 0;
+NoAutomaticIDs = 0;
 OldGPGKeyRings = GPGKeyRings;
 userdir_gpg.GPGKeyRings = [];
-(options, arguments) = getopt.getopt(sys.argv[1:], "u:ma")
+(options, arguments) = getopt.getopt(sys.argv[1:], "u:man")
 for (switch, val) in options:
    if (switch == '-u'):
       AdminUser = val;
@@ -56,6 +64,8 @@ for (switch, val) in options:
       ForceMail = 1;
    elif (switch == '-a'):
       userdir_gpg.GPGKeyRings = OldGPGKeyRings;
+   elif (switch == '-n'):
+      NoAutomaticIDs = 1;
 
 l = passwdAccessLDAP(LDAPServer, BaseDn, AdminUser)
 
@@ -91,7 +101,7 @@ email = Addr[1] + '@' + Addr[2];
 account = Addr[1];
 
 privsub = email;
-gidNumber = str(DefaultGID);
+gidNumber = 0;
 uidNumber = 0;
 
 # Decide if we should use IDEA encryption
@@ -157,14 +167,28 @@ Res = raw_input("Subscribe to debian-private (space is none) [" + privsub + "]? 
 if Res != "":
    privsub = Res;
 
-# GID
-Res = raw_input("Group ID Number [" + gidNumber + "]? ");
-if Res != "":
-   gidNumber = Group2GID(l, Res);
+(uidNumber, generatedGID) = GetFreeID(l, RoleAccount)
+if not gidNumber:
+   gidNumber = DefaultGID
+UserGroup = 0
 
-# UID
-if uidNumber == 0:
-   uidNumber = GetFreeID(l);
+if NoAutomaticIDs:
+   # UID
+   if not Update:
+      Res = raw_input("User ID Number [%s]? " % (uidNumber));
+      if Res != "":
+         uidNumber = Res;
+   
+   # GID
+   Res = raw_input("Group ID Number (default group is %s, new usergroup %s) [%s]" % (DefaultGID, generatedGID, gidNumber));
+   if Res != "":
+      if Res.isdigit():
+         gidNumber = Res;
+      else:
+         gidNumber = Group2GID(l, Res);
+   
+   if gidNumber == generatedGID:
+      UserGroup = 1
 
 # Generate a random password
 if Update == 0 or ForceMail == 1:
@@ -243,6 +267,12 @@ if Update == 0:
       Details.append(("mn",mn));
    if privsub != " ":
       Details.append(("privateSub",privsub))
+
+   #Add user group if needed, then the actual user:
+   if UserGroup == 1:
+      Dn = "gid=" + account + "," + BaseDn;
+      l.add_s(Dn,[("gid",account), ("gidNumber",str(gidNumber)), ("objectClass",("top", "debianGroup"))]);
+
    l.add_s(Dn,Details);
 else:
    # Modification
