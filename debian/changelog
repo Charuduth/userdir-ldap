@@ -14,8 +14,10 @@ userdir-ldap (0.3.15+xxx) XXunstable; urgency=low
   * ud-useradd: support usergroups [HE].
   * ud-host/userdir-ldap.schema: Add 'purpose', 'physicalHost' to
     debianServer schema and teach ud-host about [HE].
+  * ud-host: cleanup: Replace local copy HBaseDn of the centrally
+    configured HostBaseDn [HE].
 
- -- Peter Palfrader <weasel@debian.org>  Tue, 25 Dec 2007 20:24:48 +0100
+ -- Peter Palfrader <weasel@debian.org>  Tue, 25 Dec 2007 20:30:17 +0100
 
 userdir-ldap (0.3.15) unstable; urgency=low
 
