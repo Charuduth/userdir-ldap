@@ -7,8 +7,9 @@ userdir-ldap (0.3.15+xxx) XXunstable; urgency=low
     resulting in them being listed twice in the resulting binary package.
   * Change the build dependency on debhelper to be versioned >= 5.
   * Change Build-Depends-Indep to Build-Depends.
+  * Change the build dependency on python-support to be versioned >= 0.3.
 
- -- Peter Palfrader <weasel@debian.org>  Tue, 25 Dec 2007 11:30:31 +0100
+ -- Peter Palfrader <weasel@debian.org>  Tue, 25 Dec 2007 11:35:19 +0100
 
 userdir-ldap (0.3.15) unstable; urgency=low
 
