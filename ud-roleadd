@@ -96,7 +96,7 @@ sys.stdout.flush()
 
 Details = [("uid",account),
            ("objectClass",
-            ("top","inetOrgPerson","debianAccount","shadowAccount","debianRoleAccount")),
+            ("top","debianAccount","shadowAccount","debianRoleAccount")),
            ("uidNumber",str(uidNumber)),
            ("gidNumber",str(gidNumber)),
            ("gecos",cn+",,,,"),
