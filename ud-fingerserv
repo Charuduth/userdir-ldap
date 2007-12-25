@@ -17,7 +17,7 @@ use Net::LDAP qw(:all);
 # Global settings...
 my %config = &Util::ReadConfigFile;
 my %opts;
-getopts("iqhv", \%opts);
+getopts("fiqhvl:", \%opts);
 my $use_inetd = $config{use_inetd} || $opts{i}; 
 $| = 1;
 
@@ -41,20 +41,39 @@ $SIG{INT} = \&DieHandler;
 $SIG{CHLD} = \&Reaper;
 
 &help if (defined($opts{h}));
-#my $logfh = STDOUT; #TODO
+
+my $logfh;
+unless ($opt{i} || $opt{f}) {
+  die "Need logfile unless running foreground\n" unless (defined($opt{l}));
+  open ($logfh, $opt{l}) or die "Can't open logfile: $!\n";
+} else {
+  $logfh = \*STDOUT;
+}
 
 &log("Binding to LDAP server at $config{ldaphost}") if (defined($opts{v}));
 my $ldap = Net::LDAP->new($config{ldaphost}) || die $1; 
 $ldap->bind;
 
 if (!$use_inetd) {
+
+  unless ($opts{f}) {
+    use POSIX 'setsid';
+    chdir '/' or die "Can't chdir to /: $!";
+    open STDIN, '/dev/null' or die "Can't read /dev/null: $!";
+    open STDOUT, '>/dev/null' or die "Can't write to /dev/null: $!";
+    defined(my $pid = fork) or die "Can't fork: $!";
+    exit if $pid;
+    setsid or die "Can't start a new session: $!";
+    open STDERR, '>&STDOUT' or die "Can't dup stdout: $!";
+  }
+
   &log("Binding to port 79") if (defined($opts{v}));
   my $server = IO::Socket::INET->new(Proto => 'tcp', 
                                      LocalPort => 'finger(79)',
    		  		     Listen => SOMAXCONN,
 				     Reuse => 1);
 
-  die "Cannot listen on finger port" unless $server;
+  mydie "Cannot listen on finger port" unless $server;
   &log("[Server listening for connections]");
 
   my ($pid, $client, $hostinfo);
@@ -62,7 +81,7 @@ if (!$use_inetd) {
   while ($client = $server->accept()) {
     &log("Forking to handle client request") if (defined($opts{v}));
     next if $pid = fork; # parent
-    die "fork: $!" unless defined $pid;
+    mydie "fork: $!" unless defined $pid;
   
     # child
     $client->autoflush(1);
@@ -118,7 +137,7 @@ sub ProcessQuery {
   &log("Looking up $uid at $config{basedn}, uid=$uid");
 
   $mesg = $ldap->search(base  => $config{basedn}, filter => "uid=$uid");
-  $mesg->code && die $mesg->error;
+  $mesg->code && mydie $mesg->error;
   $entries = $mesg->as_struct;
 
   if ($mesg->count == 0) {
@@ -168,11 +187,13 @@ sub ProcessQuery {
 }  
 
 sub help {
-  print "fingerserv [-i | -q | -v | -h]\n";
+  print "fingerserv [-f | -l | -i | -q | -v | -h]\n";
+  print "-f = foreground; do not detach from tty\n";
   print "-i = inetd mode; otherwise runs standalone\n";
   print "-q = quiet mode; no output\n";
   print "-v = verbose mode\n";
   print "-h = this help message\n";
+  print "-l = log file.  Necessary if not using -f or -i\n";
   exit 0;
 }
 
@@ -181,7 +202,13 @@ sub log {
   return if (defined($opts{q}));
   
   my $time = localtime;
-  print STDERR "$time $msg\n";
+  print $logfh "$time $msg\n";
+}
+
+sub mydie {
+  my $msg = shift;
+  log($msg);
+  exit 1;
 }
 
 sub readdata {
@@ -192,9 +219,9 @@ sub readdata {
   my $ret;
 
   my $flags= fcntl($fh, F_GETFL, 0)
-     or die "Can't get flags for socket: $!\n";
+     or mydie "Can't get flags for socket: $!\n";
   fcntl($fh, F_SETFL, $flags | O_NONBLOCK)
-     or die "Can't make socket nonblocking: $!\n";
+     or mydie "Can't make socket nonblocking: $!\n";
 						
   while (($bytesread < 1024) && ($out !~ /\n/)) {
     $ret = sysread($fh, $in, 1024);
