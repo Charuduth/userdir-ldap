@@ -167,7 +167,7 @@ Res = raw_input("Subscribe to debian-private (space is none) [" + privsub + "]? 
 if Res != "":
    privsub = Res;
 
-(uidNumber, generatedGID) = GetFreeID(l, RoleAccount)
+(uidNumber, generatedGID) = GetFreeID(l)
 if not gidNumber:
    gidNumber = DefaultGID
 UserGroup = 0
