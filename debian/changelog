@@ -17,11 +17,11 @@ userdir-ldap (0.3.15+xxx) XXunstable; urgency=low
   * ud-host: cleanup: Replace local copy HBaseDn of the centrally
     configured HostBaseDn [HE].
   * Add myself to uploaders.
-  * Set shadow expiry to 1 for locked accounts [mhy].
+  * ud-generate: Set shadow expiry to 1 for locked accounts [mhy].
   * update doc/slapd-config.txt: labeledURL was removed from the schema but
     not the slapd.conf example.  Do that now [mhy].
 
- -- Peter Palfrader <weasel@debian.org>  Wed, 26 Dec 2007 16:44:13 +0100
+ -- Peter Palfrader <weasel@debian.org>  Wed, 26 Dec 2007 16:46:27 +0100
 
 userdir-ldap (0.3.15) unstable; urgency=low
 
