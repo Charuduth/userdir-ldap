@@ -88,7 +88,7 @@ def Done(File,F,Fdb):
     os.rename(File + ".tdb.tmp",File+".tdb");
   
 # Generate the password list
-def GenPasswd(l,File,HomePrefix):
+def GenPasswd(l,File,HomePrefix,PwdMarker):
   F = None;
   try:
    F = open(File + ".tdb.tmp","w");
@@ -107,7 +107,8 @@ def GenPasswd(l,File,HomePrefix):
       if len(GetAttr(x,"gecos")) > 100 or len(GetAttr(x,"loginShell")) > 50:
          continue;
 
-      Line = "%s:x:%s:%s:%s:%s%s:%s" % (GetAttr(x,"uid"),\
+      Line = "%s:%s:%s:%s:%s:%s%s:%s" % (GetAttr(x,"uid"),\
+              PwdMarker,\
               GetAttr(x,"uidNumber"),GetAttr(x,"gidNumber"),\
               GetAttr(x,"gecos"),HomePrefix,GetAttr(x,"uid"),\
               GetAttr(x,"loginShell"));
@@ -852,7 +853,10 @@ while(1):
    DoLink(GlobalDir,OutDir,"disabled-accounts")
 
    sys.stdout.flush();
-   GenPasswd(l,OutDir+"passwd",Split[1]);
+   if ExtraList.has_key("[NOPASSWD]"):
+      GenPasswd(l,OutDir+"passwd",Split[1], "*");
+   else:
+      GenPasswd(l,OutDir+"passwd",Split[1], "x");
    sys.stdout.flush();
    GenGroup(l,OutDir+"group");
    if ExtraList.has_key("[UNTRUSTED]"):
