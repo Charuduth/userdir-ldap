@@ -17,7 +17,7 @@
 #    -r    Enable 'root' functions, do this if your uid has access to
 #          restricted variables.
 
-import string, time, os, pwd, sys, getopt, ldap, crypt, readline, copy;
+import time, os, pwd, sys, getopt, ldap, crypt, readline, copy;
 from userdir_ldap import *;
 
 RootMode = 0;
@@ -229,7 +229,7 @@ def MultiChangeAttr(Attrs,Attr):
    Attrs[1][Attr].sort();
    print "Old values: ",Attrs[1][Attr];
 
-   Mode = string.upper(raw_input("[D]elete or [A]dd? "));
+   Mode = raw_input("[D]elete or [A]dd? ").upper()
    if (Mode != 'D' and Mode != 'A'):
       return;
 

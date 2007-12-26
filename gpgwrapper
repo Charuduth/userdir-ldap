@@ -41,7 +41,7 @@
 #      -e /etc/userdir-ldap/templtes/error-reply -- test.sh
       
 import sys, traceback, time, os;
-import string, pwd, getopt;
+import pwd, getopt;
 from userdir_gpg import *;
 
 EX_TEMPFAIL = 75;
@@ -107,7 +107,7 @@ for (switch, val) in options:
    elif (switch == '-e'):
       ErrorTemplate  = val;
    elif (switch == '-k'):
-      SetKeyrings(string.split(val,":"));
+      SetKeyrings(val.split(":"));
    elif (switch == '-a'):
       ReplyTo = val;
    elif (switch == '-d'):
@@ -138,7 +138,7 @@ try:
    Msg = GetClearSig(Email);
 
    ErrMsg = "Message is not PGP signed:"
-   if string.find(Msg[0],"-----BEGIN PGP SIGNED MESSAGE-----") == -1:
+   if Msg[0].find("-----BEGIN PGP SIGNED MESSAGE-----") == -1:
       raise Error, "No PGP signature";
    
    # Check the signature
@@ -156,9 +156,9 @@ try:
    ErrMsg = "Problem stripping MIME headers from the decoded message"
    if Msg[1] == 1:
       try:
-         Index = string.index(Res[3],"\n\n") + 2;
+         Index = Res[3].index("\n\n") + 2;
       except ValueError:
-         Index = string.index(Res[3],"\n\r\n") + 3;
+         Index = Res[3].index("\n\r\n") + 3;
       PlainText = Res[3][Index:];
    else:
       PlainText = Res[3];   
@@ -193,7 +193,7 @@ try:
    os.environ["REPLYTO"] = Sender;
    
    # Invoke the child
-   Child = os.popen(string.join(arguments," "),"w");
+   Child = os.popen(" ".join(arguments),"w");
    Child.write(PlainText);
    if Child.close() != None:
       raise Error, "Child gave a non-zero return code";

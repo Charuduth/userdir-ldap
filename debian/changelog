@@ -18,8 +18,9 @@ userdir-ldap (0.3.15+xxx) XXunstable; urgency=low
     ud-{user,group,role}add and abstract them out into userdir_ldap.py
   * ud-useradd: Avoid a TypeError exception when constructing the template
     filename
+  * Remove use of deprecated functions from the string module 
 
- -- Mark Hymers <mhy@debian.org>  Wed, 26 Dec 2007 18:00:08 +0000
+ -- Mark Hymers <mhy@debian.org>  Wed, 26 Dec 2007 20:49:18 +0000
 
 userdir-ldap (0.3.15) unstable; urgency=low
 

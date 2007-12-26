@@ -25,7 +25,7 @@
 #      -e /etc/userdir-ldap/templtes/error-reply -- test.sh
 
 import sys, traceback, time, os;
-import string, pwd, getopt;
+import pwd, getopt;
 from userdir_gpg import *;
 
 EX_TEMPFAIL = 75;
@@ -100,7 +100,7 @@ for (switch, val) in options:
    if (switch == '-r'):
       ReplayCacheFile = val;
    elif (switch == '-k'):
-      SetKeyrings(string.split(val,":"));
+      SetKeyrings(val.split(":"));
    elif (switch == '-d'):
       LDAPDn = val;
    elif (switch == '-l'):
@@ -139,7 +139,7 @@ try:
       raise Error, "PGP/MIME disallowed";
   
    ErrMsg = "Message is not PGP signed:"
-   if string.find(Msg[0],"-----BEGIN PGP SIGNED MESSAGE-----") == -1:
+   if Msg[0].find("-----BEGIN PGP SIGNED MESSAGE-----") == -1:
       raise Error, "No PGP signature";
    
    # Check the signature
@@ -171,8 +171,8 @@ try:
       while 1:
 	  Line = F.readline();
 	  if Line == "": break;
-	  if string.find(Res[3],string.strip(Line)) == -1:
-	      raise Error,"Phrase '%s' was not found"%(string.strip(Line));
+	  if Res[3].find(Line.strip()) == -1:
+	      raise Error,"Phrase '%s' was not found" % (Line.strip())
       
 except:
    ErrMsg = "[%s] \"%s\" \"%s %s\"\n"%(Now,MsgID,ErrMsg,sys.exc_value);

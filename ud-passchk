@@ -2,7 +2,7 @@
 # -*- mode: python -*-
 # Checks the passwd file to make sure all entries are in the directory
 
-import string, ldap, getopt, sys, os;
+import ldap, getopt, sys, os;
 from userdir_ldap import *;
 
 def PassCheck(l,File,HomePrefix):
@@ -23,7 +23,7 @@ def PassCheck(l,File,HomePrefix):
       if Line == "":
          break;
       
-      Split = string.split(Line,":");
+      Split = Line.split(":")
       if UIDMap.has_key(Split[0]) == 0:
          print Line,
 	 continue;
