@@ -88,7 +88,7 @@ def Done(File,F,Fdb):
     os.rename(File + ".tdb.tmp",File+".tdb");
   
 # Generate the password list
-def GenPasswd(l,File,HomePrefix,PwdMarker):
+def GenPasswd(l,File,HomePrefix,PwdMarker,UidShift):
   F = None;
   try:
    F = open(File + ".tdb.tmp","w");
@@ -116,7 +116,7 @@ def GenPasswd(l,File,HomePrefix,PwdMarker):
       Line = Sanitize(Line) + "\n";
       F.write("0%u %s" % (I,Line));
       F.write(".%s %s" % (GetAttr(x,"uid"),Line));
-      F.write("=%s %s" % (GetAttr(x,"uidNumber"),Line));
+      F.write("=%s %s" % ((int(GetAttr(x,"uidNumber"))+UidShift),Line));
       I = I + 1;
 
   # Oops, something unspeakable happened.
@@ -209,7 +209,7 @@ def GenSSHShadow(l,File):
   Done(File,F,None);
 
 # Generate the group list
-def GenGroup(l,File):
+def GenGroup(l,File,UidShift):
   F = None;
   try:
    F = open(File + ".tdb.tmp","w");
@@ -242,7 +242,10 @@ def GenGroup(l,File):
    for x in GroupMap.keys():
       if GroupIDMap.has_key(x) == 0:
          continue;
-      Line = "%s:x:%u:" % (x,GroupIDMap[x]);
+      NewGid = int(GroupIDMap[x]);
+      if NewGid >= 500:
+         NewGid = NewGid + UidShift
+      Line = "%s:x:%u:" % (x,NewGid)
       Comma = '';
       for I in GroupMap[x]:
         Line = Line + ("%s%s" % (Comma,I));
@@ -250,7 +253,7 @@ def GenGroup(l,File):
       Line = Sanitize(Line) + "\n";
       F.write("0%u %s" % (J,Line));
       F.write(".%s %s" % (x,Line));
-      F.write("=%u %s" % (GroupIDMap[x],Line));
+      F.write("=%u %s" % (NewGid,Line));
       J = J + 1;
       
   # Oops, something unspeakable happened.
@@ -853,12 +856,14 @@ while(1):
    DoLink(GlobalDir,OutDir,"disabled-accounts")
 
    sys.stdout.flush();
+   UidShift = 0
+   if ExtraList.has_key("[UIDSHIFT]"): UidShift=1000
    if ExtraList.has_key("[NOPASSWD]"):
-      GenPasswd(l,OutDir+"passwd",Split[1], "*");
+      GenPasswd(l,OutDir+"passwd",Split[1], "*", UidShift);
    else:
-      GenPasswd(l,OutDir+"passwd",Split[1], "x");
+      GenPasswd(l,OutDir+"passwd",Split[1], "x", UidShift);
    sys.stdout.flush();
-   GenGroup(l,OutDir+"group");
+   GenGroup(l,OutDir+"group", UidShift);
    if ExtraList.has_key("[UNTRUSTED]"):
 	continue;
    if not ExtraList.has_key("[NOPASSWD]"):
