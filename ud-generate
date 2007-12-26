@@ -147,11 +147,20 @@ def GenShadow(l,File):
          Pass = '*';
       else:
          Pass = Pass[7:];
+
+      # If the account is locked, mark it as such in shadow
+      # See Debian Bug #308229 for why we set it to 1 instead of 0
+      if (string.find(GetAttr(x,"userPassword"),"*LK*")  != -1) \
+          or GetAttr(x,"userPassword").startswith("!"):
+         ShadowExpire = '1'
+      else:
+         ShadowExpire = GetAttr(x,"shadowexpire")
+
       Line = "%s:%s:%s:%s:%s:%s:%s:%s:" % (GetAttr(x,"uid"),\
               Pass,GetAttr(x,"shadowLastChange"),\
               GetAttr(x,"shadowMin"),GetAttr(x,"shadowMax"),\
               GetAttr(x,"shadowWarning"),GetAttr(x,"shadowinactive"),\
-              GetAttr(x,"shadowexpire"));
+              ShadowExpire);
       Line = Sanitize(Line) + "\n";
       F.write("0%u %s" % (I,Line));
       F.write(".%s %s" % (GetAttr(x,"uid"),Line));
