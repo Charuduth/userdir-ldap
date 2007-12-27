@@ -26,7 +26,7 @@
 #    packets so I can tell if a signature is made by pgp2 to enable the
 #    pgp2 encrypting mode.
 
-import string, mimetools, multifile, sys, StringIO, os, tempfile, re;
+import mimetools, multifile, sys, StringIO, os, tempfile, re;
 import rfc822, time, fcntl, anydbm
 
 # General GPG options
@@ -93,7 +93,7 @@ def GetClearSig(Msg,Paranoid = 0):
 	 while 1:
 	     x = mf.readline();
 	     if not x: break;
-	     if len(string.strip(x)) != 0:
+	     if len(x.strip()) != 0:
 	        raise Error,"Unsigned text in message (at start)";
          mf.seek(Pos);
       
@@ -116,7 +116,7 @@ def GetClearSig(Msg,Paranoid = 0):
       InnerMsg = mimetools.Message(mf);
       if InnerMsg.gettype() != "application/pgp-signature":
          raise Error, "Invalid pgp/mime encoding [wrong signature type]";
-      Signature = string.joinfields(mf.readlines(),'');
+      Signature = ''.join(mf.readlines())
 
       # Check the last bit of the message..
       if Paranoid != 0:
@@ -125,7 +125,7 @@ def GetClearSig(Msg,Paranoid = 0):
 	 while 1:
 	     x = mf.readline();
 	     if not x: break; 
-	     if len(string.strip(x)) != 0:
+	     if len(x.strip()) != 0:
 	        raise Error,"Unsigned text in message (at end)";
          mf.seek(Pos);
       
@@ -134,20 +134,20 @@ def GetClearSig(Msg,Paranoid = 0):
       Output = "-----BEGIN PGP SIGNED MESSAGE-----\r\n";
       # Semi-evil hack to get the proper hash type inserted in the message
       if Msg.getparam('micalg') != None:
-          Output = Output + "Hash: MD5,SHA1,%s\r\n"%(string.upper(Msg.getparam('micalg')[4:]));
+          Output = Output + "Hash: MD5,SHA1,%s\r\n"%(Msg.getparam('micalg')[4:].upper())
       Output = Output + "\r\n";
-      Output = Output +  string.replace(Signed.getvalue(),"\n-","\n- -") + Signature;
+      Output = Output + Signed.getvalue().replace("\n-","\n- -") + Signature
       return (Output,1);
    else:
       if Paranoid == 0:
          # Just return the message body
-         return (string.joinfields(Msg.fp.readlines(),''),0);
+         return (''.join(Msg.fp.readlines()),0);
      
       Body = "";
       State = 1;
       for x in Msg.fp.readlines():
 	  Body = Body + x;
-	  Tmp = string.strip(x);
+	  Tmp = x.strip()
 	  if len(Tmp) == 0:
 	     continue;
 	 
@@ -342,7 +342,7 @@ def GPGCheckSig(Message):
 	    if Why == None:
 	       GoodSig = 1;
 	    KeyID = Split[2];
-	    Owner = string.join(Split[3:],' ');
+	    Owner = ' '.join(Split[3:])
 	    
 	 # Bad signature response
 	 if Split[1] == "BADSIG":
@@ -435,20 +435,20 @@ def GPGKeySearch(SearchCriteria):
       os.mkdir(dir, 0700)
                       
    try:
-      Strm = os.popen(string.join(Args," "),"r");
+      Strm = os.popen(" ".join(Args),"r")
       
       while(1):
          # Grab and split up line
          Line = Strm.readline();
          if Line == "":
             break;
-	 Split = string.split(Line,":");
-	 
-	 # Store some of the key fields
+         Split = Line.split(":")
+
+         # Store some of the key fields
          if Split[0] == 'pub':
             KeyID = Split[4];
             Owner = Split[9];
-	    Length = int(Split[2]);
+            Length = int(Split[2]);
 
          # Output the key
          if Split[0] == 'fpr':
@@ -471,7 +471,7 @@ def GPGPrintKeyInfo(Ident):
 # Perform a substition of template 
 def TemplateSubst(Map,Template):
    for x in Map.keys():
-      Template = string.replace(Template,x,Map[x]);
+      Template = Template.replace(x, Map[x])
    return Template;
 
 # The replay class uses a python DB (BSD db if avail) to implement

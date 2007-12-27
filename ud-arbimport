@@ -22,7 +22,7 @@
 # the form of:
 #  uid: <data>
 
-import string, re, time, ldap, getopt, sys;
+import re, time, ldap, getopt, sys;
 from userdir_ldap import *;
 
 # Process options
@@ -36,7 +36,7 @@ for (switch, val) in options:
        NoAct = 1;
 if len(arguments) == 0:
    print "Give the key to assignt to then the file to import";
-   os.exit(0);
+   sys.exit(0)
 
 # Main program starts here
 l = passwdAccessLDAP(LDAPServer, BaseDn, AdminUser)
@@ -52,7 +52,7 @@ while(1):
       if User == None:
          User = Split[0];
       if Split[0] == User:
-         Set.append(string.strip(Split[1]));
+         Set.append(Split[1].strip());
          continue;
    else:
       if len(Set) == 0:
@@ -74,4 +74,4 @@ while(1):
    if Line == "":
       break;   
    User = Split[0];
-   Set = [string.strip(Split[1])];
+   Set = [Split[1].strip()];

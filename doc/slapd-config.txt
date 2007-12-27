@@ -27,7 +27,7 @@ access to attrs=emailforward
         by addr=127.0.0.1 read
         by domain=.*\.debian\.org read
         by * none
-access to attrs=c,l,loginShell,ircNick,labeledURL
+access to attrs=c,l,loginShell,ircNick
         by dn="uid=admin,ou=users,dc=debian,dc=org" write
         by group="uid=admin,ou=users,dc=debian,dc=org" write
         by self write
@@ -43,6 +43,13 @@ access to *
         by group="uid=admin,ou=users,dc=debian,dc=org" write
 
 # End----------
+
+Note that in more modern versions of slapd, the "by addr" and "by domain"
+syntax has changed and the following should be used instead:
+        by peername.ip=127.0.0.1 read
+        by domain.subtree=debian.org read
+
+
 
 Here is the initial seed file to import and setup the proper entries:
 

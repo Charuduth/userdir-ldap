@@ -17,7 +17,7 @@
 #   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
 # Some routines and configuration that are used by the ldap progams
-import termios, re, string, imp, ldap, sys, crypt, rfc822;
+import termios, re, imp, ldap, sys, crypt, rfc822;
 import userdir_gpg
 
 try:
@@ -42,7 +42,7 @@ Ech_ErrorLog = ConfModule.ech_errorlog;
 Ech_MainLog = ConfModule.ech_mainlog;
 
 # Break up the keyring list
-userdir_gpg.SetKeyrings(string.split(ConfModule.keyrings,":"));
+userdir_gpg.SetKeyrings(ConfModule.keyrings.split(":"))
 
 # This is a list of common last-name prefixes
 LastNamesPre = {"van": None, "von": None, "le": None, "de": None, "di": None};
@@ -53,6 +53,11 @@ DebianGroups = {
    "guest": 60000,
    "nogroup": 65534
    }
+
+# ObjectClasses for different object types
+UserObjectClasses = ("top", "inetOrgPerson", "debianAccount", "shadowAccount", "debianDeveloper")
+RoleObjectClasses = ("top", "debianAccount", "shadowAccount", "debianRoleAccount")
+GroupObjectClasses = ("top", "debianGroup")
 
 # SSH Key splitting. The result is:
 # (options,size,modulous,exponent,comment)
@@ -141,7 +146,7 @@ def passwdAccessLDAP(LDAPServer, BaseDn, AdminUser):
 # Split up a name into multiple components. This tries to best guess how
 # to split up a name
 def NameSplit(Name):
-   Words = re.split(" ",string.strip(Name));
+   Words = re.split(" ", Name.strip())
 
    # Insert an empty middle name
    if (len(Words) == 2):
@@ -171,7 +176,7 @@ def NameSplit(Name):
       Words.append('');
    
    # Merge any of the last name prefixes into one big last name
-   while LastNamesPre.has_key(string.lower(Words[-2])):
+   while LastNamesPre.has_key(Words[-2].lower()):
       Words[-1] = Words[-2] + " " + Words[-1];
       del Words[-2];
 
@@ -182,10 +187,10 @@ def NameSplit(Name):
    # If the name is multi-word then we glob them all into the last name and
    # do not worry about a middle name
    if (len(Words) > 3):
-      Words[2] = string.join(Words[1:]);
+      Words[2] = " ".join(Words[1:])
       Words[1] = "";
 
-   return (string.strip(Words[0]),string.strip(Words[1]),string.strip(Words[2]));
+   return (Words[0].strip(), Words[1].strip(), Words[2].strip());
 
 # Compute a random password using /dev/urandom
 def GenPass():   
@@ -242,7 +247,7 @@ def FlushOutstanding(l,Outstanding,Fast=0):
 # Convert a lat/long attribute into Decimal degrees
 def DecDegree(Posn,Anon=0):
   Parts = re.match('[-+]?(\d*)\\.?(\d*)',Posn).groups();
-  Val = string.atof(Posn);
+  Val = float(Posn);
 
   if (abs(Val) >= 1806060.0):
      raise ValueError,"Too Big";
@@ -313,12 +318,12 @@ def FormatPGPKey(Str):
          I = I + 4;
    else:
       Res = Str;
-   return string.strip(Res);
+   return Res.strip()
 
 # Take an email address and split it into 3 parts, (Name,UID,Domain)
 def SplitEmail(Addr):
    # Is not an email address at all
-   if string.find(Addr,'@') == -1:
+   if Addr.find('@') == -1:
       return (Addr,"","");
   
    Res1 = rfc822.AddrlistClass(Addr).getaddress();
@@ -330,7 +335,7 @@ def SplitEmail(Addr):
 
    # If there is no @ then the address was not parsed well. Try the alternate
    # Parsing scheme. This is particularly important when scanning PGP keys.
-   Res2 = string.split(Res1[1],"@");
+   Res2 = Res1[1].split("@");
    if len(Res2) != 2:
       Match = AddressSplit.match(Addr);
       if Match == None:
@@ -391,8 +396,8 @@ def GetUID(l,Name,UnknownMap = {}):
          # deals with special purpose keys like 'James Troup (Alternate Debian key)'
 	 # Some people put their names backwards on their key too.. check that as well
          if len(Attrs) == 1 and \
-            (string.find(string.lower(sn),string.lower(Attrs[0][1]["sn"][0])) != -1 or \
-            string.find(string.lower(cn),string.lower(Attrs[0][1]["sn"][0])) != -1):
+            ( sn.lower().find(Attrs[0][1]["sn"][0].lower()) != -1 or \
+              cn.lower().find(Attrs[0][1]["sn"][0].lower()) != -1 ):
             Stat = EmailAppend+" hit for "+str(Name);
             return (Name[1],[Stat]);
 

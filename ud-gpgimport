@@ -32,7 +32,7 @@
 # in the directory but not in the key ring will be removed from the 
 # directory. 
 
-import string, re, time, ldap, getopt, sys, pwd, os;
+import re, time, ldap, getopt, sys, pwd, os;
 from userdir_ldap import *;
 from userdir_gpg import *;
 
@@ -50,7 +50,7 @@ def LoadOverride(File):
       if Line == "":
          break;
       Split = re.split("[:\n]",Line);
-      UnknownMap[Split[0]] = string.strip(Split[1]);
+      UnknownMap[Split[0]] = Split[1].strip()
 
 # Process options
 AdminUser = pwd.getpwuid(os.getuid())[0];
@@ -108,12 +108,12 @@ print;
 Args = [GPGPath] + GPGBasicOptions;
 for x in arguments:
    Args.append("--keyring");
-   if string.find(x,"/") == -1:
+   if x.find("/") == -1:
       Args.append("./"+x);
    else:
       Args.append(x);
 Args = Args + GPGSearchOptions + [" 2> /dev/null"]
-Keys = os.popen(string.join(Args," "),"r");
+Keys = os.popen(" ".join(Args),"r");
 
 # Loop over the GPG key file
 Outstanding = 0;
@@ -124,7 +124,7 @@ while(1):
    if Line == "":
       break;
    
-   Split = string.split(Line,":");
+   Split = Line.split(":")
    if len(Split) < 8 or Split[0] != "pub":
       continue;
 
@@ -132,7 +132,7 @@ while(1):
        Line2 = Keys.readline();
        if Line2 == "":
           break;
-       Split2 = string.split(Line2,":");
+       Split2 = Line2.split(":");
        if len(Split2) < 11 or Split2[0] != "fpr":
           continue;
        break;

@@ -12,12 +12,12 @@
 #
 # It also understand .qmail type files
 
-import string, re, time, getopt, os, sys, pwd, stat;
+import re, time, getopt, os, sys, pwd, stat;
 
 SSHAuthSplit = re.compile('^(.* )?(\d+) (\d+) (\d+) ?(.+)$');
 
 while (1):
-   File = string.strip(sys.stdin.readline());
+   File = sys.stdin.readline().strip()
    if File == "":
       break;
 
@@ -32,7 +32,7 @@ while (1):
    Forward = open(File,"r");
    Lines = [];
    while (1):
-      Line = string.strip(Forward.readline());
+      Line = Forward.readline().strip()
       if Line == "":
          break;
       if Line[0] == '#' or Line[0] == '\n':

@@ -19,7 +19,7 @@
 #   along with this program; if not, write to the Free Software
 #   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
-import string, re, time, ldap, getopt, sys, os, pwd;
+import re, time, ldap, getopt, sys, os, pwd;
 from userdir_ldap import *;
 from userdir_gpg import *;
 
@@ -248,8 +248,7 @@ sys.stdout.flush();
 if Update == 0:
    # New account
    Details = [("uid",account),
-              ("objectClass",
-               ("top","inetOrgPerson","debianAccount","shadowAccount","debianDeveloper")),
+              ("objectClass", UserObjectClasses),
               ("uidNumber",str(uidNumber)),
               ("gidNumber",str(gidNumber)),
               ("gecos",FullName+",,,,"),
@@ -271,7 +270,7 @@ if Update == 0:
    #Add user group if needed, then the actual user:
    if UserGroup == 1:
       Dn = "gid=" + account + "," + BaseDn;
-      l.add_s(Dn,[("gid",account), ("gidNumber",str(gidNumber)), ("objectClass",("top", "debianGroup"))]);
+      l.add_s(Dn,[("gid",account), ("gidNumber",str(gidNumber)), ("objectClass", GroupObjectClasses)])
 
    l.add_s(Dn,Details);
 else:
@@ -307,7 +306,7 @@ if Update == 1 and ForceMail == 0:
 
 # Send the Welcome message
 print "Sending Welcome Email"
-Reply = TemplateSubst(Subst,open(TemplatesDir+"/welcome-message-"+gidNumber,"r").read());
+Reply = TemplateSubst(Subst,open(TemplatesDir + "/welcome-message-%d" % gidNumber, "r").read())
 Child = os.popen("/usr/sbin/sendmail -t","w");
 #Child = os.popen("cat","w");
 Child.write(Reply);
