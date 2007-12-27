@@ -31,17 +31,19 @@ fi
 PATH=/sbin:/usr/sbin:/bin:/usr/bin
 export PATH
 HOST=`hostname -f`
+SYNCHOST=`ud-config synchost`;
+LOCALSYNCON=`ud-config localsyncon`;
 cd /tmp/
 cd /var/lib/misc || cd /var/state/glibc/ || cd /var/db/
 lockfile -r 1 -l 3600 lock
 trap "rm -f lock" exit
 
 case $HOST in
-*samosa*)
+*$LOCALSYNCON*)
     udhost=
     ;;
 *)
-    udhost="sshdist@db:"
+    udhost="sshdist@$SYNCHOST:"
     ;;
 esac
 

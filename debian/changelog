@@ -18,10 +18,17 @@ userdir-ldap (0.3.15+xxx) XXunstable; urgency=low
     ud-{user,group,role}add and abstract them out into userdir_ldap.py
   * ud-useradd: Avoid a TypeError exception when constructing the template
     filename
-  * Remove use of deprecated functions from the string module 
+  * Remove use of deprecated functions from the string module
   * ud-arbimport: os.exit -> sys.exit
 
- -- Mark Hymers <mhy@debian.org>  Wed, 26 Dec 2007 20:54:28 +0000
+  [ Marc 'HE' Brockschmidt ]
+  * Make the host ud-replicate syncs from configurable in userdir-ldap.conf,
+    instead of hardcoding it into the script. Also introduce a variable
+    containing a shell glob on which no remote sync is needed, so that
+    the db host doesn't need to have a key in the authorized_keys file
+    for the sshdist user
+
+ -- Marc 'HE' Brockschmidt <he@debian.org>  Thu, 27 Dec 2007 17:14:51 +0100
 
 userdir-ldap (0.3.15) unstable; urgency=low
 
