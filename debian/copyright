@@ -24,15 +24,3 @@ available at <http://cvs.debian.org/userdir-ldap/?cvsroot=debian-admin>.
 
 It is now managed using bzr and is publically available at
 <http://db.debian.org/bzr/userdir-ldap/trunk>.
-
-
-Since 2007 there are branches of userdir-ldap on bzr.debain.org, used by
-various Debian-related projects to coordinate their own userdir-ldap
-development as close as possible with that of Debian. The main branch is
-available at <http://bzr.debian.org/da-tools/da-tools/userdir-ldap-common/>.
-
-Copyright for all changes done there:
-
-  Copyright (c) 2007- da-tools project members <da-tools-discuss@lists.alioth.debian.org>
-
-  The license is the same as written above, GPL version 2 or any later.
