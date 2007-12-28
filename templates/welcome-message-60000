@@ -1,4 +1,7 @@
 To: "__REALNAME__" <__EMAIL__>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
 Subject: Debian Guest Account for __REALNAME__
 Cc: debian-admin@lists.debian.org
 Reply-To: debian-admin@lists.debian.org
