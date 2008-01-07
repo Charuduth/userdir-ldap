@@ -9,3 +9,5 @@ $(MANPAGES) :: % : %.yo
 	echo Creating man page $@
 	yodl2man -o $@ $<
 		
+clean:
+	rm -f $(MANPAGES)
