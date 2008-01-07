@@ -5,8 +5,8 @@
 
 build:
 	dh_testdir
-	touch build
 	$(MAKE) -C doc
+	touch build
 
 clean:
 	dh_testdir
