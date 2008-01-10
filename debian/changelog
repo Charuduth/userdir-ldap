@@ -37,7 +37,14 @@ userdir-ldap (0.3.15+xxx) XXunstable; urgency=low
   * add simple ud-config script for use in shell scripts.  This allows
     querying config values.
 
- -- Peter Palfrader <weasel@debian.org>  Thu, 10 Jan 2008 15:34:46 +0100
+  [ Marc 'HE' Brockschmidt ]
+  * Make the host ud-replicate syncs from configurable in userdir-ldap.conf,
+    instead of hardcoding it into the script. Also introduce a variable
+    containing a shell glob on which no remote sync is needed, so that
+    the db host doesn't need to have a key in the authorized_keys file
+    for the sshdist user
+
+ -- Marc 'HE' Brockschmidt <he@debian.org>  Thu, 27 Dec 2007 17:14:51 +0100
 
 userdir-ldap (0.3.15) unstable; urgency=low
 
