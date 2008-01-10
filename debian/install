@@ -22,5 +22,5 @@ ud-roleadd usr/bin
 sigcheck usr/bin
 userdir-ldap.conf etc/userdir-ldap/
 generate.conf etc/userdir-ldap/
-templates/ etc/userdir-ldap/templates/
+templates/ etc/userdir-ldap/
 userdir-ldap.schema etc/ldap/schema/

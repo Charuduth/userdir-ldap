@@ -39,7 +39,7 @@ lockfile -r 1 -l 3600 lock
 trap "rm -f lock" exit
 
 case $HOST in
-*$LOCALSYNCON*)
+$LOCALSYNCON)
     udhost=
     ;;
 *)
