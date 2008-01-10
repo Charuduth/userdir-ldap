@@ -37,7 +37,7 @@ BSMTPCheck = re.compile(".*mx 0 (gluck)\.debian\.org\..*",re.DOTALL);
 DNSZone = ".debian.net"
 
 def Sanitize(Str):
-  return string.translate(Str,string.maketrans("\n\r\t","$$$"));
+  return Str.translate(string.maketrans("\n\r\t","$$$"))
 
 def DoLink(From,To,File):
    try: posix.remove(To+File);
@@ -150,7 +150,7 @@ def GenShadow(l,File):
 
       # If the account is locked, mark it as such in shadow
       # See Debian Bug #308229 for why we set it to 1 instead of 0
-      if (string.find(GetAttr(x,"userPassword"),"*LK*")  != -1) \
+      if (GetAttr(x,"userPassword").find("*LK*") != -1) \
           or GetAttr(x,"userPassword").startswith("!"):
          ShadowExpire = '1'
       else:
@@ -189,7 +189,7 @@ def GenSSHShadow(l,File):
       # If the account is locked, do not write it.
       # This is a partial stop-gap. The ssh also needs to change this
       # to ignore ~/.ssh/authorized* files.
-      if (string.find(GetAttr(x,"userPassword"),"*LK*")  != -1) \
+      if (GetAttr(x,"userPassword").find("*LK*") != -1) \
              or GetAttr(x,"userPassword").startswith("!"):
          continue;
 
@@ -374,7 +374,7 @@ def GenPrivate(l,File):
          continue;
 
       # If the account is locked, do not write it
-      if (string.find(GetAttr(x,"userPassword"),"*LK*")  != -1) \
+      if (GetAttr(x,"userPassword").find("*LK*") != -1) \
              or GetAttr(x,"userPassword").startswith("!"):
          continue;
 
@@ -419,7 +419,7 @@ def GenDisabledAccounts(l,File):
       Line = ""
       # *LK* is the reference value for a locked account
       # password starting with ! is also a locked account
-      if string.find(Pass,"*LK*") != -1 or Pass.startswith("!"):
+      if Pass.find("*LK*") != -1 or Pass.startswith("!"):
 	 # Format is <login>:<reason>
 	 Line = "%s:%s" % (GetAttr(x,"uid"), "Account is locked")
 
@@ -447,7 +447,7 @@ def GenMailDisable(l,File):
       Reason = None
       
       # If the account is locked, disable incoming mail
-      if (string.find(GetAttr(x,"userPassword"),"*LK*")  != -1):
+      if (GetAttr(x,"userPassword").find("*LK*") != -1):
          if GetAttr(x,"uid") == "luther":
 	    continue
 	 else:
@@ -586,12 +586,12 @@ def GenDNS(l,File,HomePrefix):
       try:
          F.write("; %s\n"%(EmailAddress(x)));
          for z in x[1]["dnsZoneEntry"]:
-            Split = string.split(string.lower(z));
-	    if string.lower(Split[1]) == 'in':
+            Split = z.lower().split()
+	    if Split[1].lower() == 'in':
                for y in range(0,len(Split)):
                   if Split[y] == "$":
                      Split[y] = "\n\t";
-               Line = string.join(Split," ") + "\n";
+               Line = " ".join(Split) + "\n";
                F.write(Line);
 	       
 	       Host = Split[0] + DNSZone;
@@ -599,7 +599,7 @@ def GenDNS(l,File,HomePrefix):
 		   F.write("; Has BSMTP\n");
 			       
 	       # Write some identification information
-               if string.lower(Split[2]) == "a":
+               if Split[2].lower() == "a":
    	          Line = "%s IN TXT \"%s\"\n"%(Split[0],EmailAddress(x));
                   for y in x[1]["keyFingerPrint"]:
   	             Line = Line + "%s IN TXT \"PGP %s\"\n"%(Split[0],FormatPGPKey(y));
@@ -637,7 +637,7 @@ def GenSSHFP(l,File,HomePrefix):
       Host = GetAttr(x,"hostname");
       Algorithm = None
       for I in x[1]["sshRSAHostKey"]:
-         Split = string.split(I)
+         Split = I.split()
          if Split[0] == 'ssh-rsa':
             Algorithm = 1
          if Split[0] == 'ssh-dss':
@@ -675,12 +675,12 @@ def GenBSMTP(l,File,HomePrefix):
          continue;
       try:
          for z in x[1]["dnsZoneEntry"]:
-            Split = string.split(string.lower(z));
-	    if string.lower(Split[1]) == 'in':
+            Split = z.lower().split()
+	    if Split[1].lower() == 'in':
                for y in range(0,len(Split)):
                   if Split[y] == "$":
                      Split[y] = "\n\t";
-               Line = string.join(Split," ") + "\n";
+               Line = " ".join(Split) + "\n";
 	       
 	       Host = Split[0] + DNSZone;
 	       if BSMTPCheck.match(Line) != None:
@@ -714,7 +714,7 @@ def GenSSHKnown(l,File):
          x[1].has_key("sshRSAHostKey") == 0:
          continue;
       Host = GetAttr(x,"hostname");
-      SHost = string.find(Host,".");
+      SHost = Host.find(".")
       for I in x[1]["sshRSAHostKey"]:
          if SHost == None:
             Line = "%s,%s %s" %(Host,socket.gethostbyname(Host),I);
@@ -761,7 +761,7 @@ def GenHosts(l,File):
 # Connect to the ldap server
 l = ldap.open(LDAPServer);
 F = open(PassDir+"/pass-"+pwd.getpwuid(os.getuid())[0],"r");
-Pass = string.split(string.strip(F.readline())," ");
+Pass = F.readline().strip().split(" ")
 F.close();
 l.simple_bind_s("uid="+Pass[0]+","+BaseDn,Pass[1]);
 
@@ -819,13 +819,13 @@ while(1):
    Line = F.readline();
    if Line == "":
       break;
-   Line = string.strip(Line);
+   Line = Line.strip()
    if Line == "":
       continue;
    if Line[0] == '#':
       continue;
 
-   Split = string.split(Line," ");
+   Split = Line.split(" ")
    OutDir = GenerateDir + '/' + Split[0] + '/';
    try: os.mkdir(OutDir);
    except: pass;

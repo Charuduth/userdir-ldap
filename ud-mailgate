@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- mode: python -*-
 import userdir_gpg, userdir_ldap, sys, traceback, time, ldap, os;
-import string, pwd
+import pwd
 from userdir_gpg import *;
 from userdir_ldap import *;
 
@@ -195,7 +195,7 @@ def DoDel(Str,Attrs):
 # Handle a position change message, the line format is:
 #  Lat: -12412.23 Long: +12341.2342
 def DoPosition(Str,Attrs):
-   Match = re.match("^lat: ([+\-]?[\d:.ns]+(?: ?[ns])?) long: ([+\-]?[\d:.ew]+(?: ?[ew])?)$",string.lower(Str));
+   Match = re.match("^lat: ([+\-]?[\d:.ns]+(?: ?[ns])?) long: ([+\-]?[\d:.ew]+(?: ?[ew])?)$", Str.lower())
    if Match == None:
       return None;
 
@@ -280,7 +280,7 @@ def DoDNS(Str,Attrs,DnRecord):
 
 # Handle an RBL list (mailRBL, mailRHSBL, mailWhitelist)
 def DoRBL(Str,Attrs):
-   Match = re.compile('^mail(rbl|rhsbl|whitelist) ([-a-z0-9.]+)$').match(string.lower(Str))
+   Match = re.compile('^mail(rbl|rhsbl|whitelist) ([-a-z0-9.]+)$').match(Str.lower())
    if Match == None:
       return None
    
@@ -310,7 +310,7 @@ def HandleChange(Reply,DnRecord,Key):
    Attrs = [];
    Show = 0;
    for Line in Lines: 
-      Line = string.strip(Line);
+      Line = Line.strip()
       if Line == "":
          continue;
 
@@ -338,13 +338,13 @@ def HandleChange(Reply,DnRecord,Key):
    # Connect to the ldap server
    l = ldap.open(LDAPServer);
    F = open(PassDir+"/pass-"+pwd.getpwuid(os.getuid())[0],"r");
-   AccessPass = string.split(string.strip(F.readline())," ");
+   AccessPass = F.readline().strip().split(" ")
    F.close();
 
    # Modify the record
    l.simple_bind_s("uid="+AccessPass[0]+","+BaseDn,AccessPass[1]);
    oldAttrs = l.search_s(BaseDn,ldap.SCOPE_ONELEVEL,"uid="+GetAttr(DnRecord,"uid"));
-   if ((string.find(GetAttr(oldAttrs[0],"userPassword"),"*LK*")  != -1) 
+   if ((GetAttr(oldAttrs[0],"userPassword").find("*LK*") != -1) 
        or GetAttr(oldAttrs[0],"userPassword").startswith("!")):
       raise Error, "This account is locked";
    Dn = "uid=" + GetAttr(DnRecord,"uid") + "," + BaseDn;
@@ -409,13 +409,13 @@ def HandleChPass(Reply,DnRecord,Key):
    # Connect to the ldap server
    l = ldap.open(LDAPServer);
    F = open(PassDir+"/pass-"+pwd.getpwuid(os.getuid())[0],"r");
-   AccessPass = string.split(string.strip(F.readline())," ");
+   AccessPass = F.readline().strip().split(" ")
    F.close();
    l.simple_bind_s("uid="+AccessPass[0]+","+BaseDn,AccessPass[1]);
 
    # Check for a locked account
    Attrs = l.search_s(BaseDn,ldap.SCOPE_ONELEVEL,"uid="+GetAttr(DnRecord,"uid"));
-   if (string.find(GetAttr(Attrs[0],"userPassword"),"*LK*")  != -1) \
+   if (GetAttr(Attrs[0],"userPassword").find("*LK*") != -1) \
              or GetAttr(Attrs[0],"userPassword").startswith("!"):
       raise Error, "This account is locked";
 
@@ -448,8 +448,8 @@ try:
    Msg = GetClearSig(Email);
 
    ErrMsg = "Message is not PGP signed:"
-   if string.find(Msg[0],"-----BEGIN PGP SIGNED MESSAGE-----") == -1 and \
-      string.find(Msg[0],"-----BEGIN PGP MESSAGE-----") == -1:
+   if Msg[0].find("-----BEGIN PGP SIGNED MESSAGE-----") == -1 and \
+      Msg[0].find("-----BEGIN PGP MESSAGE-----") == -1:
       raise Error, "No PGP signature";
    
    # Check the signature
@@ -467,9 +467,9 @@ try:
    ErrMsg = "Problem stripping MIME headers from the decoded message"
    if Msg[1] == 1:
       try:
-         Index = string.index(Res[3],"\n\n") + 2;
+         Index = Res[3].index("\n\n") + 2;
       except ValueError:
-         Index = string.index(Res[3],"\n\r\n") + 3;
+         Index = Res[3].index("\n\r\n") + 3;
       PlainText = Res[3][Index:];
    else:
       PlainText = Res[3];   
@@ -514,7 +514,7 @@ try:
    if sys.argv[1] == "ping":
       Reply = HandlePing(Reply,Attrs[0],Res[2]);
    elif sys.argv[1] == "chpass":
-      if string.find(string.strip(PlainText),"Please change my Debian password") != 0:
+      if PlainText.strip().find("Please change my Debian password") != 0:
          raise Error,"Please send a signed message where the first line of text is the string 'Please change my Debian password'";
       Reply = HandleChPass(Reply,Attrs[0],Res[2]);
    elif sys.argv[1] == "change":

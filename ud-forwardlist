@@ -12,12 +12,12 @@
 #
 # It also understand .qmail type files
 
-import string, re, time, getopt, os, sys, pwd, stat;
+import re, time, getopt, os, sys, pwd, stat;
 
 AddressSplit = re.compile("<(.*)>");
 
 while (1):
-   File = string.strip(sys.stdin.readline());
+   File = sys.stdin.readline().strip()
    if File == "":
       break;
 
@@ -32,7 +32,7 @@ while (1):
    Forward = open(File,"r");
    Line = None;
    while (1):
-      Line2 = string.strip(Forward.readline());
+      Line2 = Forward.readline().strip()
       if Line2 == "":
          break;
       if Line2[0] == '#' or Line2[0] == '\n':
@@ -49,7 +49,7 @@ while (1):
 
    # Abort for funky things like pipes or directions to mailboxes
    if Line[0] == '/' or Line[0] == '|' or Line[0] == '.' or Line[-1] == '/' or \
-      string.find(Line,'@') == -1:
+      Line.find('@') == -1:
       print "Invalid2", File;
       continue;
 

@@ -4,7 +4,7 @@
 # Call with nokey to generate a missing key report
 # Call with noforward to generate a missing .forward report
 
-import string, re, time, ldap, getopt, sys;
+import re, time, ldap, getopt, sys;
 from userdir_ldap import *;
 
 def ShowDups(Attrs,Len):

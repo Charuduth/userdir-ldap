@@ -14,7 +14,7 @@
 #  DGMS -> DD  DDD + (MM + (SS.SSSSSS)/60)/60
 # For Latitude + is North, for Longitude + is East
 
-import string, re, time, ldap, getopt, sys, pwd, os, posix;
+import re, time, ldap, getopt, sys, pwd, os, posix;
 from userdir_ldap import *;
 
 Anon = 0;
