@@ -54,6 +54,11 @@ DebianGroups = {
    "nogroup": 65534
    }
 
+# ObjectClasses for different object types
+UserObjectClasses = ("top", "inetOrgPerson", "debianAccount", "shadowAccount", "debianDeveloper")
+RoleObjectClasses = ("top", "debianAccount", "shadowAccount", "debianRoleAccount")
+GroupObjectClasses = ("top", "debianGroup")
+
 # SSH Key splitting. The result is:
 # (options,size,modulous,exponent,comment)
 SSHAuthSplit = re.compile('^(.* )?(\d+) (\d+) (\d+) ?(.+)$');

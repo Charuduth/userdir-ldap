@@ -95,8 +95,7 @@ print "Updating LDAP directory..",
 sys.stdout.flush()
 
 Details = [("uid",account),
-           ("objectClass",
-            ("top","debianAccount","shadowAccount","debianRoleAccount")),
+           ("objectClass", RoleObjectClasses),
            ("uidNumber",str(uidNumber)),
            ("gidNumber",str(gidNumber)),
            ("gecos",cn+",,,,"),

@@ -90,37 +90,43 @@ def DoPasswd(l,Passwd):
       (Split[4],cn,mn,sn) = ParseGecos(Split[4]);
       CheckNumber(Split[2]);
       CheckNumber(Split[3]);
-      Rec = [(ldap.MOD_REPLACE,"uid",Split[0]),
-             (ldap.MOD_REPLACE,"uidNumber",Split[2]),
-             (ldap.MOD_REPLACE,"gidNumber",Split[3]),
-             (ldap.MOD_REPLACE,"gecos",Split[4]),
-             (ldap.MOD_REPLACE,"homeDirectory",Split[5]),
-             (ldap.MOD_REPLACE,"loginShell",Split[6]),
-	     (ldap.MOD_REPLACE,"cn",cn),
-	     (ldap.MOD_REPLACE,"mn",mn),
-	     (ldap.MOD_REPLACE,"sn",sn)];
+      Rec = [("uid",Split[0]),
+             ("uidNumber",Split[2]),
+             ("gidNumber",Split[3]),
+             ("gecos",Split[4]),
+             ("homeDirectory",Split[5]),
+             ("loginShell",Split[6]),
+             ("cn",cn),
+             ("sn",sn)];
+
+      # Avoid schema check complaints when mn is empty
+      if (mn):
+          Rec.append(("mn",mn))
 
       Dn = "uid=" + Split[0] + "," + BaseDn;
-      print "Importing",Dn,
+      print "Importing", Dn
       sys.stdout.flush();
 
-      # Unfortunately add_s does not take the same args as modify :|
+      DoModify = True
+
       if (DoAdd == 1):
          try:
-            l.add_s(Dn,[("uid",Split[0]),
-                        ("objectClass","top"),
-                        ("objectClass","account"),
-                        ("objectClass","posixAccount"),
-                        ("objectClass","shadowAccount"),
-                        ("objectClass","debiandeveloper")]);
+            AddRec = Rec[:]
+            AddRec.append(("objectClass", UserObjectClasses))
+            l.add_s(Dn,AddRec)
+            DoModify = False
+
          except ldap.ALREADY_EXISTS:
             print "exists",;
 
-      # Send the modify request
-      l.modify(Dn,Rec);
-      Outstanding = Outstanding + 1;
-      Outstanding = FlushOutstanding(l,Outstanding,1);
-      print "done";
+      if (DoModify):
+          # Send the modify request
+          ModRec = [(ldap.MOD_REPLACE, k[0], k[1]) for k in Rec]
+          l.modify(Dn,ModRec);
+          Outstanding = Outstanding + 1;
+          Outstanding = FlushOutstanding(l,Outstanding,1);
+          print "done";
+
    FlushOutstanding(l,Outstanding);
 
 # Read the shadow file into the database
@@ -147,9 +153,15 @@ def DoShadow(l,Shadow):
       Rec = [(ldap.MOD_REPLACE,"shadowLastChange",Split[2]),
              (ldap.MOD_REPLACE,"shadowMin",Split[3]),
              (ldap.MOD_REPLACE,"shadowMax",Split[4]),
-             (ldap.MOD_REPLACE,"shadowWarning",Split[5]),
-             (ldap.MOD_REPLACE,"shadowInactive",Split[6]),
-             (ldap.MOD_REPLACE,"shadowExpire",Split[7])];
+             (ldap.MOD_REPLACE,"shadowWarning",Split[5])]
+
+      # Avoid schema violations
+      if (Split[6]):
+         Rec.append((ldap.MOD_REPLACE,"shadowInactive",Split[6]))
+
+      if (Split[7]):
+         Rec.append((ldap.MOD_REPLACE,"shadowExpire",Split[7]))
+
       if (WritePasses == 1):
          Rec.append((ldap.MOD_REPLACE,"userPassword","{crypt}"+Split[1]));
 
@@ -210,8 +222,7 @@ def DoGroup(l,Group):
       if (DoAdd == 1):
          try:
             l.add_s(Dn,[("gid",Split[0]),
-                        ("objectClass","top"),
-                        ("objectClass","posixGroup")]);
+                        ("objectClass", GroupObjectClasses)])
          except ldap.ALREADY_EXISTS:
             print "exists",;
 

@@ -1,5 +1,6 @@
 userdir-ldap (0.3.15+xxx) XXunstable; urgency=low
 
+  [ Peter Palfrader ]
   * Ship userdir-ldap.schema with the package, add a note that it is
     now version-controlled in bzr on top of the file.
   * Get rid of debian/conffiles, wich only listed files in /etc anyway.
@@ -21,7 +22,12 @@ userdir-ldap (0.3.15+xxx) XXunstable; urgency=low
   * update doc/slapd-config.txt: labeledURL was removed from the schema but
     not the slapd.conf example.  Do that now [mhy].
 
- -- Peter Palfrader <weasel@debian.org>  Wed, 26 Dec 2007 16:46:27 +0100
+  [ Mark Hymers ]
+  * ud-userimport, ud-groupadd, ud-roleadd, ud-useradd, userdir_ldap.py:
+    Update ud-userimport to use the same objectClasses as
+    ud-{user,group,role}add and abstract them out into userdir_ldap.py
+
+ -- Mark Hymers <mhy@debian.org>  Wed, 26 Dec 2007 17:56:28 +0000
 
 userdir-ldap (0.3.15) unstable; urgency=low
 
