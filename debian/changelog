@@ -44,7 +44,10 @@ userdir-ldap (0.3.15+xxx) XXunstable; urgency=low
     the db host doesn't need to have a key in the authorized_keys file
     for the sshdist user
 
- -- Marc 'HE' Brockschmidt <he@debian.org>  Thu, 27 Dec 2007 17:14:51 +0100
+  [ Joerg Jaspert ]
+  * Enhance copyright file a bit, also adding a pointer to our repository
+
+ -- Joerg Jaspert <joerg@debian.org>  Fri, 28 Dec 2007 16:29:35 +0100
 
 userdir-ldap (0.3.15) unstable; urgency=low
 
