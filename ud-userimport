@@ -83,8 +83,10 @@ def DoPasswd(l,Passwd):
 
       Split = re.split("[:\n]",Line);
       (Split[4],cn,mn,sn) = ParseGecos(Split[4]);
-      Split[2] = int(Split[2])
-      Split[3] = int(Split[3])
+      # This just tests whether these are integers and throws an
+      # exception if not
+      int(Split[2])
+      int(Split[3])
       Rec = [("uid",Split[0]),
              ("uidNumber",Split[2]),
              ("gidNumber",Split[3]),
