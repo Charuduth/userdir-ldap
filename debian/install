@@ -1,6 +1,7 @@
 userdir_ldap.pth usr/share/python-support/
 userdir_ldap.py usr/share/python-support/userdir_ldap/
 userdir_gpg.py usr/share/python-support/userdir_ldap/
+ud-config usr/bin
 ud-forwardlist usr/bin
 ud-gpgimport usr/bin
 ud-info usr/bin
