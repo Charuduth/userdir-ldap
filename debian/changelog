@@ -11,20 +11,7 @@ userdir-ldap (0.3.15+xxx) XXunstable; urgency=low
   * Change the build dependency on python-support to be versioned >= 0.3.
   * ud-roleadd: Do not try to make role accounts of objectClass
     inetOrgPerson, that doesn't work.
-  * ud-fingerserv: implement daemonize() for non-inetd mode [sgran].
-  * ud-useradd: support usergroups [HE].
-  * ud-host/userdir-ldap.schema: Add 'purpose', 'physicalHost' to
-    debianServer schema and teach ud-host about [HE].
-  * ud-host: cleanup: Replace local copy HBaseDn of the centrally
-    configured HostBaseDn [HE].
   * Add myself to uploaders.
-  * ud-generate: Set shadow expiry to 1 for locked accounts [mhy].
-  * update doc/slapd-config.txt: labeledURL was removed from the schema but
-    not the slapd.conf example.  Do that now [mhy].
-  * ud-generate: Mark that no passwords are exported also in the
-    generated passwd file, not only in the shadow file (by using a "*"
-    as password (meaning "no password"), instead of "x" (meaning "do I
-    look like a passwd from the nineties? Look into /etc/shadow!")) [HE].
 
   [ Mark Hymers ]
   * ud-userimport, ud-groupadd, ud-roleadd, ud-useradd, userdir_ldap.py:
@@ -34,6 +21,9 @@ userdir-ldap (0.3.15+xxx) XXunstable; urgency=low
     filename
   * Remove use of deprecated functions from the string module
   * ud-arbimport: os.exit -> sys.exit
+  * ud-generate: Set shadow expiry to 1 for locked accounts.
+  * update doc/slapd-config.txt: labeledURL was removed from the schema but
+    not the slapd.conf example.  Do that now.
   * add simple ud-config script for use in shell scripts.  This allows
     querying config values.
 
@@ -43,9 +33,21 @@ userdir-ldap (0.3.15+xxx) XXunstable; urgency=low
     containing a shell glob on which no remote sync is needed, so that
     the db host doesn't need to have a key in the authorized_keys file
     for the sshdist user
+  * ud-useradd: support usergroups.
+  * ud-host/userdir-ldap.schema: Add 'purpose', 'physicalHost' to
+    debianServer schema and teach ud-host about it
+  * ud-host: cleanup: Replace local copy HBaseDn of the centrally
+    configured HostBaseDn.
+  * ud-generate: Mark that no passwords are exported also in the
+    generated passwd file, not only in the shadow file (by using a "*"
+    as password (meaning "no password"), instead of "x" (meaning "do I
+    look like a passwd from the nineties? Look into /etc/shadow!")).
 
   [ Joerg Jaspert ]
   * Enhance copyright file a bit, also adding a pointer to our repository
+
+  [ Stephen Gran ]
+  * ud-fingerserv: implement daemonize() for non-inetd mode.
 
  -- Joerg Jaspert <joerg@debian.org>  Fri, 28 Dec 2007 16:29:35 +0100
 
