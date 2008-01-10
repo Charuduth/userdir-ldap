@@ -106,8 +106,8 @@ def DoPasswd(l,Passwd):
 
       if (DoAdd == 1):
          try:
-            AddRec = Rec
-            Rec.append(("objectClass", UserObjectClasses))
+            AddRec = Rec[:]
+            AddRec.append(("objectClass", UserObjectClasses))
             l.add_s(Dn,AddRec)
             DoModify = False
 
