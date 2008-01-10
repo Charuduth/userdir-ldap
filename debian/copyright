@@ -19,7 +19,7 @@ userdir-ldap has been released under the GNU General Public License.
 On Debian GNU/Linux systems, the complete text of the GNU General
 Public License can be found in `/usr/share/common-licenses/GPL'.
 
-The source of the Debian package was managed through CVS.  It was publically
+The source of the Debian package was managed through CVS.  It was publicly
 available at <http://cvs.debian.org/userdir-ldap/?cvsroot=debian-admin>.
 
 It is now managed using bzr and is publically available at
