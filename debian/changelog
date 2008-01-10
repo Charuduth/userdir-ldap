@@ -21,6 +21,10 @@ userdir-ldap (0.3.15+xxx) XXunstable; urgency=low
   * ud-generate: Set shadow expiry to 1 for locked accounts [mhy].
   * update doc/slapd-config.txt: labeledURL was removed from the schema but
     not the slapd.conf example.  Do that now [mhy].
+  * ud-generate: Mark that no passwords are exported also in the
+    generated passwd file, not only in the shadow file (by using a "*"
+    as password (meaning "no password"), instead of "x" (meaning "do I
+    look like a passwd from the nineties? Look into /etc/shadow!")) [HE].
 
   [ Mark Hymers ]
   * ud-userimport, ud-groupadd, ud-roleadd, ud-useradd, userdir_ldap.py:
@@ -28,10 +32,10 @@ userdir-ldap (0.3.15+xxx) XXunstable; urgency=low
     ud-{user,group,role}add and abstract them out into userdir_ldap.py
   * ud-useradd: Avoid a TypeError exception when constructing the template
     filename
-  * Remove use of deprecated functions from the string module 
+  * Remove use of deprecated functions from the string module
   * ud-arbimport: os.exit -> sys.exit
 
- -- Mark Hymers <mhy@debian.org>  Wed, 26 Dec 2007 20:54:28 +0000
+ -- Peter Palfrader <weasel@debian.org>  Thu, 10 Jan 2008 15:32:16 +0100
 
 userdir-ldap (0.3.15) unstable; urgency=low
 
