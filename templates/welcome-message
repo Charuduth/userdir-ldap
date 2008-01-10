@@ -1,5 +1,8 @@
 To: "__REALNAME__" <__EMAIL__>
 From: __WHOAMI__
+MIME-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
 Subject: New Debian maintainer __REALNAME__
 Cc: new-maintainer@debian.org
 Reply-To: new-maintainer@debian.org
