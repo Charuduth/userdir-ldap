@@ -145,7 +145,7 @@ def DoShadow(l,Shadow):
          continue;
 
       for x in range(2,8):
-         Split[x] = int(Split[x])
+         int(Split[x])
 
       Rec = [(ldap.MOD_REPLACE,"shadowLastChange",Split[2]),
              (ldap.MOD_REPLACE,"shadowMin",Split[3]),
@@ -186,7 +186,7 @@ def DoGroup(l,Group):
       # Split up the group information
       Split = re.split("[:\n]",Line);
       Members = re.split("[, ]*",Split[3]);
-      Split[2] = int(Split[2])
+      int(Split[2])
 
       # Iterate over the membership list and add the membership information
       # To the directory
