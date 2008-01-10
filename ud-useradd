@@ -306,7 +306,7 @@ if Update == 1 and ForceMail == 0:
 
 # Send the Welcome message
 print "Sending Welcome Email"
-Reply = TemplateSubst(Subst,open(TemplatesDir+"/welcome-message-"+gidNumber,"r").read());
+Reply = TemplateSubst(Subst,open(TemplatesDir + "/welcome-message-%d" % gidNumber, "r").read())
 Child = os.popen("/usr/sbin/sendmail -t","w");
 #Child = os.popen("cat","w");
 Child.write(Reply);
