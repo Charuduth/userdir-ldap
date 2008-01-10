@@ -36,7 +36,7 @@ for (switch, val) in options:
        NoAct = 1;
 if len(arguments) == 0:
    print "Give the key to assignt to then the file to import";
-   os.exit(0);
+   sys.exit(0)
 
 # Main program starts here
 l = passwdAccessLDAP(LDAPServer, BaseDn, AdminUser)
