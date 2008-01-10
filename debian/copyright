@@ -1,6 +1,6 @@
 userdir-ldap has been released under the GNU General Public License.
 
-    Copyright (c) 1999-2005  Debian Admin Team Members and Developers
+    Copyright (c) 1999-2007  Debian Admin Team Members and Developers
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -19,5 +19,20 @@ userdir-ldap has been released under the GNU General Public License.
 On Debian GNU/Linux systems, the complete text of the GNU General
 Public License can be found in `/usr/share/common-licenses/GPL'.
 
-The source of the Debian package is managed through CVS.  It is publically
+The source of the Debian package was managed through CVS.  It was publically
 available at <http://cvs.debian.org/userdir-ldap/?cvsroot=debian-admin>.
+
+It is now managed using bzr and is publically available at
+<http://db.debian.org/bzr/userdir-ldap/trunk>.
+
+
+Since 2007 there are branches of userdir-ldap on bzr.debain.org, used by
+various Debian-related projects to coordinate their own userdir-ldap
+development as close as possible with that of Debian. The main branch is
+available at <http://bzr.debian.org/da-tools/da-tools/userdir-ldap-common/>.
+
+Copyright for all changes done there:
+
+  Copyright (c) 2007- da-tools project members <da-tools-discuss@lists.alioth.debian.org>
+
+  The license is the same as written above, GPL version 2 or any later.
