@@ -6,7 +6,7 @@ then
     test ! -f /usr/local/bin/ud-replicate || rm -f /usr/local/bin/ud-replicate
 
     if ! [ -e /var/lib/misc/thishost ]; then
-	ln -s "`hostname`" /var/lib/misc/thishost
+	ln -s "`hostname -f`" /var/lib/misc/thishost
     fi
 fi
 exit 0
