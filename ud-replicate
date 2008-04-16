@@ -1,4 +1,4 @@
-#! /bin/sh
+#! /bin/bash
 
 #   Copyright (c) 1999-2001  Jason Gunthorpe <jgg@debian.org>
 #   Copyright (c) 2002-2003,2006  Ryan Murray <rmurray@debian.org>
@@ -24,6 +24,7 @@ set -e
 if [ -z "$TERM" -o "$TERM" = "dumb" ]
 then
     exec > /dev/null 2>&1
+    sleep $(( $RANDOM % 120 ))
 else
     verbose=-v
 fi
