@@ -1,0 +1,10 @@
+#! /bin/bash -e
+#
+#DEBHELPER#
+if [ "$1" = "purge" ]
+then
+    if [ -L /var/lib/misc/thishost ]; then
+	rm /var/lib/misc/thishost
+    fi
+fi
+exit 0

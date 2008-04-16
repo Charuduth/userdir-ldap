@@ -12,6 +12,7 @@ userdir-ldap (0.3.15+xxx) XXunstable; urgency=low
   * ud-roleadd: Do not try to make role accounts of objectClass
     inetOrgPerson, that doesn't work.
   * Add myself to uploaders.
+  * Create /var/lib/misc/thishost as a symlink to the hostname in postinst.
 
   [ Mark Hymers ]
   * ud-userimport, ud-groupadd, ud-roleadd, ud-useradd, userdir_ldap.py:
@@ -60,7 +61,7 @@ userdir-ldap (0.3.15+xxx) XXunstable; urgency=low
   * Build manpages at build time (add Build-Depend on yodl)
   * Install built manpages
 
- -- Stephen Gran <sgran@debian.org>  Mon, 07 Jan 2008 01:50:15 +0000
+ -- Peter Palfrader <weasel@debian.org>  Wed, 16 Apr 2008 14:05:44 +0200
 
 userdir-ldap (0.3.15) unstable; urgency=low
 
