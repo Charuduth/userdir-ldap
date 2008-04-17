@@ -1,3 +1,9 @@
+userdir-ldap (0.3.18) unstable; urgency=low
+
+  * Various ud-fingerserv fixes.
+
+ -- Peter Palfrader <weasel@debian.org>  Thu, 17 Apr 2008 19:48:11 +0200
+
 userdir-ldap (0.3.17) unstable; urgency=low
 
   * Calling dh_installdeb before dh_pysupport was probably not the smartest
