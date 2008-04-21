@@ -1,0 +1,12 @@
+        - Not done
+        * Top priority
+        . Partially done
+        o Done
+        d Deferrable
+        D Deferred
+        X Abandoned
+
+- db.d.o/machines.cgi should group machines by purpose (RT#275)
+- some mails from the mail gateway should use an empty envelope sender (RT#593)
+- add aliasnames (db, buildd, ..) to ssh_known_hosts
+- get rid of openssh patch requirement
