@@ -3,6 +3,7 @@
 
 # (c) 1999 Randolph Chung. Licensed under the GPL. <tausq@debian.org>
 # (c) 2004 Martin Schulze. Licensed under the GPL. <joey@debian.org>
+# Copyright (c) 2008 Peter Palfrader <peter@palfrader.org>
 
 use lib '/var/www/userdir-ldap/';
 #use lib '/home/randolph/projects/userdir-ldap/web';
