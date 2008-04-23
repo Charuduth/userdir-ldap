@@ -11,3 +11,4 @@
 - add aliasnames (db, buildd, ..) to ssh_known_hosts
 - get rid of openssh patch requirement
 - use --delete in ud-replicate's rsync?
+- fix ud-useradd emails with non-ascii in subject
