@@ -1,4 +1,31 @@
-userdir-ldap (0.3.15+xxx) XXunstable; urgency=low
+userdir-ldap (0.3.20) unstable; urgency=low
+
+  * Teach ud-mailgate about ipv6 addresses (RT#193).
+  * Sanitize DNS entries somewhat before inserting them into LDAP.
+
+ -- Peter Palfrader <weasel@debian.org>  Mon, 21 Apr 2008 13:29:36 +0200
+
+userdir-ldap (0.3.19) unstable; urgency=low
+
+  * New [KEYRING] flag to indicate the debian keyring should be synced
+    to this host.
+
+ -- Peter Palfrader <weasel@debian.org>  Fri, 18 Apr 2008 14:33:50 +0200
+
+userdir-ldap (0.3.18) unstable; urgency=low
+
+  * Various ud-fingerserv fixes.
+
+ -- Peter Palfrader <weasel@debian.org>  Thu, 17 Apr 2008 19:48:11 +0200
+
+userdir-ldap (0.3.17) unstable; urgency=low
+
+  * Calling dh_installdeb before dh_pysupport was probably not the smartest
+    move.  Reorder.
+
+ -- Peter Palfrader <weasel@debian.org>  Wed, 16 Apr 2008 19:59:42 +0200
+
+userdir-ldap (0.3.16) unstable; urgency=low
 
   [ Peter Palfrader ]
   * Ship userdir-ldap.schema with the package, add a note that it is
@@ -12,6 +39,10 @@ userdir-ldap (0.3.15+xxx) XXunstable; urgency=low
   * ud-roleadd: Do not try to make role accounts of objectClass
     inetOrgPerson, that doesn't work.
   * Add myself to uploaders.
+  * Create /var/lib/misc/thishost as a symlink to the hostname in postinst.
+  * Sleep for a random time, up to two minutes, in ud-replicate when not
+    called interactively.  This is to prevent DoSing the db server when
+    many clients come at the same time.
 
   [ Mark Hymers ]
   * ud-userimport, ud-groupadd, ud-roleadd, ud-useradd, userdir_ldap.py:
@@ -60,7 +91,7 @@ userdir-ldap (0.3.15+xxx) XXunstable; urgency=low
   * Build manpages at build time (add Build-Depend on yodl)
   * Install built manpages
 
- -- Stephen Gran <sgran@debian.org>  Mon, 07 Jan 2008 01:50:15 +0000
+ -- Peter Palfrader <weasel@debian.org>  Wed, 16 Apr 2008 14:10:12 +0200
 
 userdir-ldap (0.3.15) unstable; urgency=low
 

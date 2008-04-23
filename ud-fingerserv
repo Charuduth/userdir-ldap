@@ -3,6 +3,7 @@
 
 # (c) 1999 Randolph Chung. Licensed under the GPL. <tausq@debian.org>
 # (c) 2004 Martin Schulze. Licensed under the GPL. <joey@debian.org>
+# Copyright (c) 2008 Peter Palfrader <peter@palfrader.org>
 
 use lib '/var/www/userdir-ldap/';
 #use lib '/home/randolph/projects/userdir-ldap/web';
@@ -43,9 +44,9 @@ $SIG{CHLD} = \&Reaper;
 &help if (defined($opts{h}));
 
 my $logfh;
-unless ($opt{i} || $opt{f}) {
-  die "Need logfile unless running foreground\n" unless (defined($opt{l}));
-  open ($logfh, $opt{l}) or die "Can't open logfile: $!\n";
+unless ($opts{i} || $opts{f}) {
+  die "Need logfile unless running foreground\n" unless (defined($opts{l}));
+  open ($logfh, $opts{l}) or die "Can't open logfile: $!\n";
 } else {
   $logfh = \*STDOUT;
 }
@@ -76,7 +77,7 @@ if (!$use_inetd) {
    		  		     Listen => SOMAXCONN,
 				     Reuse => 1);
 
-  mydie "Cannot listen on finger port" unless $server;
+  mydie("Cannot listen on finger port") unless $server;
   &log("[Server listening for connections]");
 
   my ($pid, $client, $hostinfo);
@@ -84,7 +85,7 @@ if (!$use_inetd) {
   while ($client = $server->accept()) {
     &log("Forking to handle client request") if (defined($opts{v}));
     next if $pid = fork; # parent
-    mydie "fork: $!" unless defined $pid;
+    mydie("fork: $!") unless defined $pid;
   
     # child
     $client->autoflush(1);

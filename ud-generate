@@ -6,6 +6,7 @@
 #   Copyright (c) 2003-2004  James Troup <troup@debian.org>
 #   Copyright (c) 2004-2005,7  Joey Schulze <joey@infodrom.org>
 #   Copyright (c) 2001-2007  Ryan Murray <rmurray@debian.org>
+#   Copyright (c) 2008 Peter Palfrader <peter@palfrader.org>
 #
 #   This program is free software; you can redistribute it and/or modify
 #   it under the terms of the GNU General Public License as published by
@@ -21,7 +22,7 @@
 #   along with this program; if not, write to the Free Software
 #   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
-import string, re, time, ldap, getopt, sys, os, pwd, posix, socket, base64, sha
+import string, re, time, ldap, getopt, sys, os, pwd, posix, socket, base64, sha, shutil
 from userdir_ldap import *;
 
 global Allowed;
@@ -35,6 +36,8 @@ CurrentHost = "";
 EmailCheck = re.compile("^([^ <>@]+@[^ ,<>@]+)?$");
 BSMTPCheck = re.compile(".*mx 0 (gluck)\.debian\.org\..*",re.DOTALL);
 DNSZone = ".debian.net"
+Keyrings = [ "/org/keyring.debian.org/keyrings/debian-keyring.gpg",
+             "/org/keyring.debian.org/keyrings/debian-keyring.pgp" ]
 
 def Sanitize(Str):
   return Str.translate(string.maketrans("\n\r\t","$$$"))
@@ -759,6 +762,10 @@ def GenHosts(l,File):
    raise;
   Done(File,F,None);
 
+def GenKeyrings(l,OutDir):
+  for k in Keyrings:
+    shutil.copy(k, OutDir)
+
 # Connect to the ldap server
 l = ldap.open(LDAPServer);
 F = open(PassDir+"/pass-"+pwd.getpwuid(os.getuid())[0],"r");
@@ -812,10 +819,11 @@ GenMailBool(l,GlobalDir+"mail-callout","mailCallout");
 GenMailList(l,GlobalDir+"mail-rbl","mailRBL");
 GenMailList(l,GlobalDir+"mail-rhsbl","mailRHSBL");
 GenMailList(l,GlobalDir+"mail-whitelist","mailWhitelist");
+GenKeyrings(l,GlobalDir);
 
 # Compatibility.
 GenForward(l,GlobalDir+"forward-alias");
-   
+
 while(1):
    Line = F.readline();
    if Line == "":
@@ -886,3 +894,11 @@ while(1):
 
    if ExtraList.has_key("[PRIVATE]"):
       DoLink(GlobalDir,OutDir,"debian-private")
+
+   if ExtraList.has_key("[KEYRING]"):
+      for k in Keyrings:
+        DoLink(GlobalDir,OutDir,os.path.basename(k))
+   else:
+     for k in Keyrings:
+       try: posix.remove(OutDir+os.path.basename(k));
+       except: pass;
