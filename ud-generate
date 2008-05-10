@@ -718,12 +718,20 @@ def GenSSHKnown(l,File):
          x[1].has_key("sshRSAHostKey") == 0:
          continue;
       Host = GetAttr(x,"hostname");
+      HostNames = [ Host ]
       SHost = Host.find(".")
+      if SHost != None: HostNames += [Host[0:SHost]]
+
+      IPAdressesT = None
+      try:
+         IPAdressesT = set([ (a[0],a[4][0]) for a in socket.getaddrinfo(Host, None)])
+      except:
+         if code[0] != -2: raise
+      for addr in IPAdressesT:
+         if addr[0] == socket.AF_INET: IPAdresses += [addr[1], "::ffff:"+addr[1]]
+	 else: IPAdresses += [addr[1]]
       for I in x[1]["sshRSAHostKey"]:
-         if SHost == None:
-            Line = "%s,%s %s" %(Host,socket.gethostbyname(Host),I);
-         else:
-            Line = "%s,%s,%s %s" %(Host,Host[0:SHost],socket.gethostbyname(Host),I);
+         Line = "%s,%s %s" %(",".join(HostNames + IPAdresses), I);
          Line = Sanitize(Line) + "\n";
          F.write(Line);
   # Oops, something unspeakable happened.
