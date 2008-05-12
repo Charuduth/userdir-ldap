@@ -3,11 +3,12 @@
 
 #   Prior copyright probably rmurray, troup, joey, jgg -- weasel 2008
 #   Copyright (c) 2008 Peter Palfrader <peter@palfrader.org>
+#   Copyright (c) 2008 Joerg Jaspert <joerg@debian.org>
 
-import userdir_gpg, userdir_ldap, sys, traceback, time, ldap, os;
-import pwd
-from userdir_gpg import *;
-from userdir_ldap import *;
+import userdir_gpg, userdir_ldap, sys, traceback, time, ldap, os, commands
+import pwd, tmpfile
+from userdir_gpg import *
+from userdir_ldap import *
 
 # Error codes from /usr/include/sysexits.h
 ReplyTo = ConfModule.replyto;
@@ -15,6 +16,7 @@ PingFrom = ConfModule.pingfrom;
 ChPassFrom = ConfModule.chpassfrom;
 ChangeFrom = ConfModule.changefrom;
 ReplayCacheFile = ConfModule.replaycachefile;
+SSHFingerprintFile = ConfModule.fingerprintfile
 
 EX_TEMPFAIL = 75;
 EX_PERMFAIL = 65;      # EX_DATAERR
@@ -26,6 +28,8 @@ mailRHSBL = {}
 mailWhitelist = {}
 SeenList = {}
 DNS = {}
+
+SSHFingerprint = re.compile('^(\d+) ([0-9a-f\:]{47}) (.+)$')
 
 ArbChanges = {"c": "..",
 	      "l": ".*",
@@ -218,16 +222,46 @@ def DoPosition(Str,Attrs):
    Attrs.append((ldap.MOD_REPLACE,"longitude",sLong));
    return "Position set to %s/%s (%s/%s decimal degrees)"%(sLat,sLong,Lat,Long);
 
+# Load bad ssh fingerprints
+def LoadBadSSH():
+   f = open(SSHFingerprintFile, "r")
+   bad = []
+   FingerprintLine = re.compile('^([0-9a-f\:]{47}).*$')
+   for line in f.readlines():
+      Match = FingerprintLine.match(line)
+      if Match is not None:
+         g = Match.groups()
+         bad.append(g[0])
+   return bad
+
 # Handle an SSH authentication key, the line format is:
 #  [options] 1024 35 13188913666680[..] [comment]
-def DoSSH(Str,Attrs):
+def DoSSH(Str,Attrs, badkeys):
    Match = SSH2AuthSplit.match(Str);
    if Match == None:
       Match = re.compile('^1024 (\d+) ').match(Str)
       if Match is not None:
          return "SSH1 keys not supported anymore"
       return None;
-   
+
+   (fd, path) = tempfile.mkstemp("", "sshkeytry")
+   f = open(path, "w")
+   f.write(Str)
+   f.close
+   (result, output) = commands.getstatusoutput("ssh-keygen -f %s -l" % (path))
+   os.remove(path)
+   if (result != 0):
+      sys.stderr.write("ssh-keygen -l invocation failed!\n%s\n" % (output))
+      sys.exit(result)
+
+   Match = SSHFingerprint.match(output)
+
+   g = Match.groups()
+   if (g[0] < 1024):
+      return "SSH keys must have at least 1024 bits, not added"
+   elif g[0] in badkeys:
+      return "Submitted SSH Key known to be bad and insecure, not added"
+
    global SeenKey;
    if SeenKey:
      Attrs.append((ldap.MOD_ADD,"sshRSAAuthKey",Str));
@@ -371,11 +405,12 @@ def HandleChange(Reply,DnRecord,Key):
       try:
          if Line == "show":
            Show = 1;
-	   Res = "OK";
+           Res = "OK";
          else:
-           Res = DoPosition(Line,Attrs) or DoDNS(Line,Attrs,DnRecord) or \
-                 DoArbChange(Line,Attrs) or DoSSH(Line,Attrs) or \
-		 DoDel(Line,Attrs) or DoRBL(Line,Attrs);
+            badkeys = LoadBadSSH()
+            Res = DoPosition(Line,Attrs) or DoDNS(Line,Attrs,DnRecord) or \
+                  DoArbChange(Line,Attrs) or DoSSH(Line,Attrs,badkeys) or \
+                  DoDel(Line,Attrs) or DoRBL(Line,Attrs)
       except:
          Res = None;
          Result = Result + "==> %s: %s\n" %(sys.exc_type,sys.exc_value);
