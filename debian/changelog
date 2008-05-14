@@ -1,4 +1,4 @@
-userdir-ldap (0.3.21+X) Xunstable; urgency=low
+userdir-ldap (0.3.22) unstable; urgency=low
 
   * Add VoIP fiels to the LDAP shema and teach ud-info and ud-mailgate
     about it. [zobel]
@@ -8,7 +8,7 @@ userdir-ldap (0.3.21+X) Xunstable; urgency=low
     than 1024.  Additionally it checks new keys against a blacklist of
     ssh key fingerprints. [joerg]
 
- -- Peter Palfrader <weasel@debian.org>  Wed, 14 May 2008 17:44:17 +0200
+ -- Peter Palfrader <weasel@debian.org>  Wed, 14 May 2008 17:47:45 +0200
 
 userdir-ldap (0.3.21) unstable; urgency=low
 
