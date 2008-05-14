@@ -81,11 +81,11 @@ if [ -e ${HOST}/ssh-keys.tar.gz ]; then
   export TMPDIR='/tmp/' 
   tempdir=$(mktemp -d)
   old=$(pwd -P)
-  cd $tempdir && tar -xvf ${old}/${HOST}/ssh-keys.tar.gz
-  cd old
+  cd $tempdir && tar -xf ${old}/${HOST}/ssh-keys.tar.gz
+  cd $old
   mkdir userkeys 2> /dev/null || true
   chmod 755 $tempdir
-  rsync -av --delete-after $tempdir/ userkeys/
+  rsync -a --delete-after $tempdir/ userkeys/
 fi
 
 if [ -x /usr/bin/dchroot ]; then
