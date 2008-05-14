@@ -6,7 +6,7 @@
 #   Copyright (c) 2008 Joerg Jaspert <joerg@debian.org>
 
 import userdir_gpg, userdir_ldap, sys, traceback, time, ldap, os, commands
-import pwd, tmpfile
+import pwd, tempfile
 from userdir_gpg import *
 from userdir_ldap import *
 
@@ -236,31 +236,72 @@ def LoadBadSSH():
 
 # Handle an SSH authentication key, the line format is:
 #  [options] 1024 35 13188913666680[..] [comment]
-def DoSSH(Str,Attrs, badkeys):
+def DoSSH(Str, Attrs, badkeys, uid):
    Match = SSH2AuthSplit.match(Str);
+   g = Match.groups()
+   typekey = g[1]
    if Match == None:
       Match = re.compile('^1024 (\d+) ').match(Str)
       if Match is not None:
          return "SSH1 keys not supported anymore"
       return None;
 
-   (fd, path) = tempfile.mkstemp("", "sshkeytry")
+   (fd, path) = tempfile.mkstemp(".pub", "sshkeytry", "/tmp")
    f = open(path, "w")
-   f.write(Str)
-   f.close
-   (result, output) = commands.getstatusoutput("ssh-keygen -f %s -l" % (path))
+   f.write("%s\n" % (Str))
+   f.close()
+   cmd = "/usr/bin/ssh-keygen -l -f %s < /dev/null" % (path)
+   (result, output) = commands.getstatusoutput(cmd)
    os.remove(path)
    if (result != 0):
-      sys.stderr.write("ssh-keygen -l invocation failed!\n%s\n" % (output))
-      sys.exit(result)
+      raise Error, "ssh-keygen -l invocation failed!\n%s\n" % (output)
+
+
+   # Head
+   Date = time.strftime("%a, %d %b %Y %H:%M:%S +0000",time.gmtime(time.time()))
+   ErrReplyHead = "From: %s\nCc: %s\nReply-To: %s\nDate: %s\n" % (os.environ['SENDER'],os.environ['SENDER'],ReplyTo,Date)
+   Subst = {}
+   Subst["__ADMIN__"] = ReplyTo
+   Subst["__USER__"] = uid
 
    Match = SSHFingerprint.match(output)
-
    g = Match.groups()
-   if (g[0] < 1024):
-      return "SSH keys must have at least 1024 bits, not added"
-   elif g[0] in badkeys:
-      return "Submitted SSH Key known to be bad and insecure, not added"
+
+   if int(g[0]) < 1024:
+      try:
+         # Body
+         Subst["__ERROR__"] = "SSH keysize %s is below limit 1024" % (g[0])
+         ErrReply = TemplateSubst(Subst,open(TemplatesDir+"admin-info","r").read())
+
+         Child = os.popen("/usr/sbin/sendmail -t","w")
+         Child.write(ErrReplyHead)
+         Child.write(ErrReply)
+         if Child.close() != None:
+            raise Error, "Sendmail gave a non-zero return code"
+      except:
+         sys.exit(EX_TEMPFAIL)
+
+      # And now break and stop processing input, which sends a reply to the user.
+      raise Error, "SSH keys must have at least 1024 bits, processing halted, NOTHING MODIFIED AT ALL"
+   elif g[1] in badkeys:
+      try:
+         # Body
+         Subst["__ERROR__"] = "SSH key with fingerprint %s known as bad key" % (g[1])
+         ErrReply = TemplateSubst(Subst,open(TemplatesDir+"admin-info","r").read())
+
+         Child = os.popen("/usr/sbin/sendmail -t","w")
+         Child.write(ErrReplyHead)
+         Child.write(ErrReply)
+         if Child.close() != None:
+            raise Error, "Sendmail gave a non-zero return code"
+      except:
+         sys.exit(EX_TEMPFAIL)
+
+      # And now break and stop processing input, which sends a reply to the user.
+      raise Error, "Submitted SSH Key known to be bad and insecure, processing halted, NOTHING MODIFIED AT ALL"
+
+   if (typekey == "dss"):
+      return "DSA keys not accepted anymore"
 
    global SeenKey;
    if SeenKey:
@@ -404,12 +445,12 @@ def HandleChange(Reply,DnRecord,Key):
       Result = Result + "> "+Line+"\n";
       try:
          if Line == "show":
-           Show = 1;
-           Res = "OK";
+            Show = 1;
+            Res = "OK";
          else:
             badkeys = LoadBadSSH()
             Res = DoPosition(Line,Attrs) or DoDNS(Line,Attrs,DnRecord) or \
-                  DoArbChange(Line,Attrs) or DoSSH(Line,Attrs,badkeys) or \
+                  DoArbChange(Line,Attrs) or DoSSH(Line,Attrs,badkeys,GetAttr(DnRecord,"uid")) or \
                   DoDel(Line,Attrs) or DoRBL(Line,Attrs)
       except:
          Res = None;

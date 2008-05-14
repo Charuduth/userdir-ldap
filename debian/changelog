@@ -1,3 +1,12 @@
+userdir-ldap (0.3.21) unstable; urgency=low
+
+  * ud-replicate: use the host key to sync stuff from the db server,
+    that is, call ssh with ii /etc/ssh/ssh_host_rsa_key.
+  * ud-replicate: Call ssh with -o PreferredAuthentications=publickey
+    so that it does not even try password authentication.
+
+ -- Peter Palfrader <weasel@debian.org>  Tue, 13 May 2008 22:06:23 +0200
+
 userdir-ldap (0.3.20) unstable; urgency=low
 
   * Teach ud-mailgate about ipv6 addresses (RT#193).
