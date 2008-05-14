@@ -30,6 +30,14 @@ else
     verbose=-v
 fi
 
+tempdir=''
+
+cleanup ()
+{
+  rm -f lock
+  rm -rf $tempdir
+}
+
 PATH=/sbin:/usr/sbin:/bin:/usr/bin
 export PATH
 HOST=`hostname -f`
@@ -38,7 +46,7 @@ LOCALSYNCON=`ud-config localsyncon`;
 cd /tmp/
 cd /var/lib/misc || cd /var/state/glibc/ || cd /var/db/
 lockfile -r 1 -l 3600 lock
-trap "rm -f lock" exit
+trap cleanup exit
 
 case $HOST in
 $LOCALSYNCON)
@@ -68,14 +76,14 @@ done
 ln -sf `pwd -P`/ssh-rsa-shadow /etc/ssh
 ln -sf `pwd -P`/ssh_known_hosts /etc/ssh
 
-find $HOST -name "ssh-rsa-shadow-*" -type f | while read f
-do
-       user=$(echo $f | sed s@.*-@@)
-       id ${user} 2>/dev/null >/dev/null
-       if [ $? -eq 0 ]; then 
-               chown $user $f
-       fi
-done
+if [ -e ssh-keys.tar.gz ]; then
+  export TMPDIR='/tmp/' 
+  tempdir=$(mktemp -d)
+  old=$(pwd -P)
+  cd $tempdir && tar -xvf $old/ssh-keys.tar.gz
+  mkdir userkeys 2> /dev/null || true
+  rsync -av --delete-after $tempdir/ userkeys/
+fi
 
 if [ -x /usr/bin/dchroot ]; then
 	CHROOTS=`dchroot --listpaths`
