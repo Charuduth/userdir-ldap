@@ -1,4 +1,4 @@
-userdir-ldap (0.3.24) unstable; urgency=low
+userdir-ldap (0.3.23+common1) unstable; urgency=low
 
   [ Stephen Gran ]
   * ud-replicate: handle individual ssh keys

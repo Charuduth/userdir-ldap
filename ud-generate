@@ -7,6 +7,7 @@
 #   Copyright (c) 2004-2005,7  Joey Schulze <joey@infodrom.org>
 #   Copyright (c) 2001-2007  Ryan Murray <rmurray@debian.org>
 #   Copyright (c) 2008 Peter Palfrader <peter@palfrader.org>
+#   Copyright (c) 2008 Mark Hymers <mhy@debian.org>
 #
 #   This program is free software; you can redistribute it and/or modify
 #   it under the terms of the GNU General Public License as published by
@@ -22,7 +23,7 @@
 #   along with this program; if not, write to the Free Software
 #   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
-import string, re, time, ldap, getopt, sys, os, pwd, posix, socket, base64, sha, shutil, errno, tarfile
+import string, re, time, ldap, getopt, sys, os, pwd, posix, socket, base64, sha, shutil, errno, tarfile, grp
 from userdir_ldap import *;
 
 global Allowed;
@@ -114,7 +115,7 @@ def GenPasswd(l,File,HomePrefix,PwdMarker):
   try:
    F = open(File + ".tdb.tmp","w");
 
-   userlist = []
+   userlist = {}
    # Fetch all the users
    global PasswdAttrs;
    if PasswdAttrs == None:
@@ -129,7 +130,7 @@ def GenPasswd(l,File,HomePrefix,PwdMarker):
       if len(GetAttr(x,"gecos")) > 100 or len(GetAttr(x,"loginShell")) > 50:
          continue;
 
-      userlist.append(GetAttr(x, "uid"))
+      userlist[GetAttr(x, "uid")] = GetAttr(x, "gidNumber")
       Line = "%s:%s:%s:%s:%s:%s%s:%s" % (GetAttr(x,"uid"),\
               PwdMarker,\
               GetAttr(x,"uidNumber"),GetAttr(x,"gidNumber"),\
@@ -274,6 +275,7 @@ def GenSSHShadow(l,masterFileName):
 
 # Generate the group list
 def GenGroup(l,File):
+  grouprevmap = {}
   F = None;
   try:
    F = open(File + ".tdb.tmp","w");
@@ -304,6 +306,7 @@ def GenGroup(l,File):
    # Output the group file.
    J = 0;
    for x in GroupMap.keys():
+      grouprevmap[GroupIDMap[x]] = x
       if GroupIDMap.has_key(x) == 0:
          continue;
       Line = "%s:x:%u:" % (x,GroupIDMap[x]);
@@ -322,6 +325,8 @@ def GenGroup(l,File):
    Die(File,None,F);
    raise;
   Done(File,None,F);
+
+  return grouprevmap
 
 # Generate the email forwarding list
 def GenForward(l,File):
@@ -941,7 +946,7 @@ while(1):
    else:
       userlist = GenPasswd(l,OutDir+"passwd",Split[1], "x");
    sys.stdout.flush();
-   GenGroup(l,OutDir+"group");
+   grouprevmap = GenGroup(l,OutDir+"group");
    if ExtraList.has_key("[UNTRUSTED]"):
 	continue;
    if not ExtraList.has_key("[NOPASSWD]"):
@@ -951,20 +956,43 @@ while(1):
    # the relevant ssh keys
    if MultipleSSHFiles:
       tf = tarfile.open(name=os.path.join(GlobalDir, 'ssh-keys-%s.tar.gz' % CurrentHost), mode='w:gz')
-      for f in userlist:
+      for f in userlist.keys():
         if f not in SSHFiles:
             continue
+        # If we're not exporting their primary group, don't export 
+        # the key and warn
+        grname = None
+        if userlist[f] in grouprevmap.keys():
+            grname = grouprevmap[userlist[f]]
+        else:
+            try:
+                if int(userlist[f]) <= 100:
+                    # In these cases, look it up in the normal way so we
+                    # deal with cases where, for instance, users are in group
+                    # users as their primary group.
+                    grname = grp.getgrgid(int(userlist[f]))[0]
+            except Exception, e:
+                pass
+
+        if grname is None:
+            print "User %s is supposed to have their key exported to host %s but their primary group (gid: %s) isn't in LDAP" % (f, CurrentHost, userlist[f])
+            continue
+
         to = tf.gettarinfo(os.path.join(GlobalDir, 'userkeys', f), f)
         # These will only be used where the username doesn't
         # exist on the target system for some reason; hence,
         # in those cases, the safest thing is for the file to
-        # be owned by root.
+        # be owned by root but group nobody.  This deals with
+        # the bloody obscure case where the group fails to exist
+        # whilst the user does (in which case we want to avoid
+        # ending up with a file which is owned user:root to avoid
+        # a fairly obvious attack vector)
         to.uid = 0
-        to.gid = 0
+        to.gid = 65534
         # Using the username / groupname fields avoids any need
         # to give a shit^W^W^Wcare about the UIDoffset stuff.
         to.uname = f
-        to.gname = "nobody"
+        to.gname = grname
         to.mode  = 0600
         tf.addfile(to, file(os.path.join(GlobalDir, 'userkeys', f)))
 
