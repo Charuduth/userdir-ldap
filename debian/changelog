@@ -4,8 +4,11 @@ userdir-ldap (0.3.21+X) Xunstable; urgency=low
     about it. [zobel]
   * Add IPv6-Adresses (and IPv4 in v6 notation - ::ffff:192.0.2.1) to
     ssh_known_hosts. [aba]
+  * ud-mailgate no longer accepts ssh dss keys, keys with a size smaller
+    than 1024.  Additionally it checks new keys against a blacklist of
+    ssh key fingerprints. [joerg]
 
- -- Peter Palfrader <weasel@debian.org>  Wed, 14 May 2008 17:33:47 +0200
+ -- Peter Palfrader <weasel@debian.org>  Wed, 14 May 2008 17:44:17 +0200
 
 userdir-ldap (0.3.21) unstable; urgency=low
 
