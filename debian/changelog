@@ -1,3 +1,9 @@
+userdir-ldap (0.3.24) unstable; urgency=low
+
+  * ud-generate: handle individual ssh keys
+
+ -- Stephen Gran <sgran@debian.org>  Wed, 14 May 2008 21:51:51 +0100
+
 userdir-ldap (0.3.23) unstable; urgency=low
 
   * Fix generation of known_hosts file.
