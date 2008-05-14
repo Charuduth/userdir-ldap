@@ -2,8 +2,10 @@ userdir-ldap (0.3.21+X) Xunstable; urgency=low
 
   * Add VoIP fiels to the LDAP shema and teach ud-info and ud-mailgate
     about it. [zobel]
+  * Add IPv6-Adresses (and IPv4 in v6 notation - ::ffff:192.0.2.1) to
+    ssh_known_hosts. [aba]
 
- -- Peter Palfrader <weasel@debian.org>  Wed, 14 May 2008 17:31:22 +0200
+ -- Peter Palfrader <weasel@debian.org>  Wed, 14 May 2008 17:33:47 +0200
 
 userdir-ldap (0.3.21) unstable; urgency=low
 
