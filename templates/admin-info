@@ -1,0 +1,17 @@
+To: __ADMIN__
+MIME-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
+Subject: User trying to add a bad or too small key to LDAP
+
+Hello admins!
+
+I (__USER__) just tried to add a known bad or too small SSH key
+to LDAP:
+
+__ERROR__
+
+Please lart me, thanks.
+
+-- 
+Thanks, __USER__
