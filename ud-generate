@@ -177,14 +177,20 @@ def GenShadow(l,File):
   Done(File,None,F);
 
 # Generate the shadow list
-def GenSSHShadow(l,File):
-  F = None;
-  try:
-   OldMask = os.umask(0077);
-   F = open(File + ".tmp","w",0600);
-   os.umask(OldMask);
-
+def GenSSHShadow(l,masterFileName):
    # Fetch all the users
+   files = []
+   # Depending on config, we write out either a single file,
+   # multiple files, or both
+   if SingleSSHFile:
+       try:
+           OldMask = os.umask(0077);
+           masterFile = open(masterFileName + ".tmp","w",0600);
+           os.umask(OldMask);
+       except IOError:
+           Die(masterFileName,masterFile,None)
+           raise
+
    global PasswdAttrs;
    if PasswdAttrs == None:
       raise "No Users";
@@ -200,16 +206,41 @@ def GenSSHShadow(l,File):
       if x[1].has_key("uidNumber") == 0 or \
          x[1].has_key("sshRSAAuthKey") == 0:
          continue;
-      for I in x[1]["sshRSAAuthKey"]:
-         User = GetAttr(x,"uid");
-         Line = "%s: %s" %(User,I);
-         Line = Sanitize(Line) + "\n";
-         F.write(Line);
-  # Oops, something unspeakable happened.
-  except:
-   Die(File,F,None);
-   raise;
-  Done(File,F,None);
+      User = GetAttr(x,"uid");
+      F = None;
+
+      try:
+         if MultipleSSHFiles:
+             OldMask = os.umask(0077);
+             File = masterFileName + "-" + User
+             F = open(File + ".tmp","w",0600);
+             os.umask(OldMask);
+
+         for I in x[1]["sshRSAAuthKey"]:
+             if MultipleSSHFiles:
+                 MultipleLine = "%s" % I
+                 MultipleLine = Sanitize(MultipleLine) + "\n"
+                 F.write(MultipleLine)
+             if SingleSSHFile:
+                 SingleLine = "%s: %s" % (User, I)
+                 SingleLine = Sanitize(SingleLine) + "\n"
+                 masterFile.write(SingleLine)
+
+         if MultipleSSHFiles:
+             Done(File,F,None);
+             files.append(os.path.basename(File))
+
+      # Oops, something unspeakable happened.
+      except IOError:
+          Die(File,F,None)
+          Die(masterFileName,masterFile,None)
+          raise;
+
+   if SingleSSHFile:
+       Done(masterFileName,masterFile,None)
+       files.append(os.path.basename(masterFileName))
+
+   return files
 
 # Generate the group list
 def GenGroup(l,File):
@@ -817,7 +848,7 @@ else:
 
 # Generate global things
 GlobalDir = GenerateDir+"/";
-GenSSHShadow(l,GlobalDir+"ssh-rsa-shadow");
+SSHFiles = GenSSHShadow(l,GlobalDir+"ssh-rsa-shadow");
 GenAllForward(l,GlobalDir+"mail-forward.cdb");
 GenMarkers(l,GlobalDir+"markers");
 GenPrivate(l,GlobalDir+"debian-private");
@@ -866,7 +897,8 @@ while(1):
      Allowed = None
    CurrentHost = Split[0];
 
-   DoLink(GlobalDir,OutDir,"ssh-rsa-shadow");
+   for file in SSHFiles:
+       DoLink(GlobalDir,OutDir,file);
    DoLink(GlobalDir,OutDir,"debianhosts");
    DoLink(GlobalDir,OutDir,"ssh_known_hosts");
    DoLink(GlobalDir,OutDir,"disabled-accounts")

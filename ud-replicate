@@ -68,6 +68,15 @@ done
 ln -sf `pwd -P`/ssh-rsa-shadow /etc/ssh
 ln -sf `pwd -P`/ssh_known_hosts /etc/ssh
 
+find $HOST -name "ssh-rsa-shadow-*" -type f | while read f
+do
+       user=$(echo $f | sed s@.*-@@)
+       id ${user} 2>/dev/null >/dev/null
+       if [ $? -eq 0 ]; then 
+               chown $user $f
+       fi
+done
+
 if [ -x /usr/bin/dchroot ]; then
 	CHROOTS=`dchroot --listpaths`
 	for c in $CHROOTS; do
