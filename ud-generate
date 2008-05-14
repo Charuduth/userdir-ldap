@@ -734,7 +734,7 @@ def GenSSHKnown(l,File):
 	 else: IPAdresses += [addr[1]]
 
       for I in x[1]["sshRSAHostKey"]:
-         Line = "%s,%s %s" %(",".join(HostNames + IPAdresses), I);
+         Line = "%s %s" %(",".join(HostNames + IPAdresses), I);
          Line = Sanitize(Line) + "\n";
          F.write(Line);
   # Oops, something unspeakable happened.
