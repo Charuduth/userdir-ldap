@@ -44,6 +44,7 @@ ArbChanges = {"c": "..",
               "mailDisableMessage": ".*",
 	      "mailGreylisting": "^(TRUE|FALSE)$",
 	      "mailCallout": "^(TRUE|FALSE)$",
+	      "VoIP": ".*",
 };
 
 DelItems = {"c": None,
@@ -71,6 +72,7 @@ DelItems = {"c": None,
             "mailRHSBL": None,
             "mailWhitelist": None,
             "mailDisableMessage": None,
+            "VoIP": None,
             };
 
 # Decode a GPS location from some common forms
