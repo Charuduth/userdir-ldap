@@ -1,8 +1,12 @@
 userdir-ldap (0.3.24) unstable; urgency=low
 
+  [ Stephen Gran ]
+  * ud-replicate: handle individual ssh keys
+
+  [ Mark Hymers ]
   * ud-generate: handle individual ssh keys
 
- -- Stephen Gran <sgran@debian.org>  Wed, 14 May 2008 21:51:51 +0100
+ -- Mark Hymers <mhy@debian.org>  Wed, 14 May 2008 22:09:22 +0100
 
 userdir-ldap (0.3.23) unstable; urgency=low
 
