@@ -1,3 +1,9 @@
+userdir-ldap (0.3.24) UNRELEASED; urgency=low
+
+  * Add compatibility to dchroot-dsa to ud-replicate.
+
+ -- Andreas Barth <aba@alioth.debian.org>  Fri, 16 May 2008 17:32:37 +0000
+
 userdir-ldap (0.3.23) unstable; urgency=low
 
   * Fix generation of known_hosts file.

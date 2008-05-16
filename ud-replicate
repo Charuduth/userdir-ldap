@@ -70,6 +70,11 @@ ln -sf `pwd -P`/ssh_known_hosts /etc/ssh
 
 if [ -x /usr/bin/dchroot ]; then
 	CHROOTS=`dchroot --listpaths`
+fi
+if [ -x /usr/bin/dchroot-dsa ]; then
+        CHROOTS=$(dchroot-dsa -i | grep Location | awk '{print $2}')
+fi
+if [ -n "$CHROOTS" ]; then
 	for c in $CHROOTS; do
 		if [ -x "$c/usr/bin/makedb" ]
 		then
