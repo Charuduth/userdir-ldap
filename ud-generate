@@ -701,6 +701,24 @@ def GenBSMTP(l,File,HomePrefix):
    raise;
   Done(File,F,None);
 
+# cache IP adresses
+HostToIPCache = {}
+def HostToIP(Host):
+    global HostToIPCache
+    if not Host in HostToIPCache:
+        IPAdressesT = None
+        try:
+            IPAdressesT = list(set([ (a[0],a[4][0]) for a in socket.getaddrinfo(Host, None)]))
+        except socket.gaierror, (code):
+            if code[0] != -2: raise
+        IPAdresses = []
+        for addr in IPAdressesT:
+            if addr[0] == socket.AF_INET: IPAdresses += [addr[1], "::ffff:"+addr[1]]
+            else: IPAdresses += [addr[1]]
+        HostToIPCache[Host] = IPAdresses
+    return HostToIPCache[Host]
+
+
 # Generate the ssh known hosts file
 def GenSSHKnown(l,File,mode=None):
   F = None;
@@ -722,23 +740,12 @@ def GenSSHKnown(l,File,mode=None):
       SHost = Host.find(".")
       if SHost != None: HostNames += [Host[0:SHost]]
 
-      IPAdressesT = None
-      IPAdresses = []
-      # get IP adresses back as "proto adress" to distinguish between v4 and v6
-      try:
-         IPAdressesT = set([ (a[0],a[4][0]) for a in socket.getaddrinfo(Host, None)])
-      except:
-         if code[0] != -2: raise
-      for addr in IPAdressesT:
-         if addr[0] == socket.AF_INET: IPAdresses += [addr[1], "::ffff:"+addr[1]]
-	 else: IPAdresses += [addr[1]]
-
       for I in x[1]["sshRSAHostKey"]:
          if mode and mode == 'authorized_keys':
-            #Line = 'command="rsync --server --sender -pr . /var/cache/userdir-ldap/hosts/%s",no-port-forwarding,no-X11-forwarding,no-agent-forwarding,from="%s" %s' % (Host, ",".join(HNames + IPAdresses), I)
+            #Line = 'command="rsync --server --sender -pr . /var/cache/userdir-ldap/hosts/%s",no-port-forwarding,no-X11-forwarding,no-agent-forwarding,from="%s" %s' % (Host, ",".join(HNames + HostToIP(Host)), I)
             Line = 'command="rsync --server --sender -pr . /var/cache/userdir-ldap/hosts/%s",no-port-forwarding,no-X11-forwarding,no-agent-forwarding %s' % (Host,I)
          else:
-            Line = "%s %s" %(",".join(HostNames + IPAdresses), I);
+            Line = "%s %s" %(",".join(HostNames + HostToIP(Host)), I);
          Line = Sanitize(Line) + "\n";
          F.write(Line);
   # Oops, something unspeakable happened.

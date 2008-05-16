@@ -2,6 +2,8 @@ userdir-ldap (0.3.24) UNRELEASED; urgency=low
 
   * Add compatibility to dchroot-dsa to ud-replicate.
   * Add (disabled) generation of authorized_keys suiteable for sshdist.
+  * Add performance optimization by caching IP adresses in ud-generate
+    (as a precondition for automatically adding aliases)
 
  -- Andreas Barth <aba@not.so.argh.org>  Fri, 16 May 2008 17:35:19 +0000
 
