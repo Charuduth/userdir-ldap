@@ -41,6 +41,10 @@ PassDir = ConfModule.passdir;
 Ech_ErrorLog = ConfModule.ech_errorlog;
 Ech_MainLog = ConfModule.ech_mainlog;
 
+# For backwards compatibility, we default to the old behaviour
+MultipleSSHFiles = getattr(ConfModule, 'multiplesshfiles', False)
+SingleSSHFile = getattr(ConfModule, 'singlesshfile', True)
+
 # Break up the keyring list
 userdir_gpg.SetKeyrings(ConfModule.keyrings.split(":"))
 

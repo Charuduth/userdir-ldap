@@ -8,6 +8,7 @@
 #   Copyright (c) 2001-2007  Ryan Murray <rmurray@debian.org>
 #   Copyright (c) 2008 Peter Palfrader <peter@palfrader.org>
 #   Copyright (c) 2008 Andreas Barth <aba@not.so.argh.org>
+#   Copyright (c) 2008 Mark Hymers <mhy@debian.org>
 #
 #   This program is free software; you can redistribute it and/or modify
 #   it under the terms of the GNU General Public License as published by
@@ -23,7 +24,7 @@
 #   along with this program; if not, write to the Free Software
 #   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
-import string, re, time, ldap, getopt, sys, os, pwd, posix, socket, base64, sha, shutil
+import string, re, time, ldap, getopt, sys, os, pwd, posix, socket, base64, sha, shutil, errno, tarfile, grp
 from userdir_ldap import *;
 
 global Allowed;
@@ -39,6 +40,24 @@ BSMTPCheck = re.compile(".*mx 0 (gluck)\.debian\.org\..*",re.DOTALL);
 DNSZone = ".debian.net"
 Keyrings = [ "/org/keyring.debian.org/keyrings/debian-keyring.gpg",
              "/org/keyring.debian.org/keyrings/debian-keyring.pgp" ]
+
+def safe_makedirs(dir):
+    try:
+        os.makedirs(dir)
+    except OSError, e:
+        if e.errno == errno.EEXIST:
+            pass
+        else:
+            raise e
+
+def safe_rmtree(dir):
+    try:
+        shutil.rmtree(dir)
+    except OSError, e:
+        if e.errno == errno.ENOENT:
+            pass
+        else:
+            raise e
 
 def Sanitize(Str):
   return Str.translate(string.maketrans("\n\r\t","$$$"))
@@ -97,6 +116,7 @@ def GenPasswd(l,File,HomePrefix,PwdMarker):
   try:
    F = open(File + ".tdb.tmp","w");
 
+   userlist = {}
    # Fetch all the users
    global PasswdAttrs;
    if PasswdAttrs == None:
@@ -111,6 +131,7 @@ def GenPasswd(l,File,HomePrefix,PwdMarker):
       if len(GetAttr(x,"gecos")) > 100 or len(GetAttr(x,"loginShell")) > 50:
          continue;
 
+      userlist[GetAttr(x, "uid")] = GetAttr(x, "gidNumber")
       Line = "%s:%s:%s:%s:%s:%s%s:%s" % (GetAttr(x,"uid"),\
               PwdMarker,\
               GetAttr(x,"uidNumber"),GetAttr(x,"gidNumber"),\
@@ -128,6 +149,9 @@ def GenPasswd(l,File,HomePrefix,PwdMarker):
    Die(File,None,F);
    raise;
   Done(File,None,F);
+
+  # Return the list of users so we know which keys to export
+  return userlist
 
 # Generate the shadow list
 def GenShadow(l,File):
@@ -178,18 +202,31 @@ def GenShadow(l,File):
   Done(File,None,F);
 
 # Generate the shadow list
-def GenSSHShadow(l,File):
-  F = None;
-  try:
-   OldMask = os.umask(0077);
-   F = open(File + ".tmp","w",0600);
-   os.umask(OldMask);
-
+def GenSSHShadow(l,masterFileName):
    # Fetch all the users
+   singlefile = None
+   userfiles = []
+   # Depending on config, we write out either a single file,
+   # multiple files, or both
+   if SingleSSHFile:
+       try:
+           OldMask = os.umask(0077);
+           masterFile = open(masterFileName + ".tmp","w",0600);
+           os.umask(OldMask);
+       except IOError:
+           Die(masterFileName,masterFile,None)
+           raise
+
    global PasswdAttrs;
    if PasswdAttrs == None:
       raise "No Users";
 
+   # If we're going to be dealing with multiple keys, empty the
+   # directory before we start to avoid old keys hanging around
+   if MultipleSSHFiles:
+      safe_rmtree(os.path.join(GlobalDir, 'userkeys'))
+      safe_makedirs(os.path.join(GlobalDir, 'userkeys'))
+      
    for x in PasswdAttrs:
       # If the account is locked, do not write it.
       # This is a partial stop-gap. The ssh also needs to change this
@@ -201,19 +238,45 @@ def GenSSHShadow(l,File):
       if x[1].has_key("uidNumber") == 0 or \
          x[1].has_key("sshRSAAuthKey") == 0:
          continue;
-      for I in x[1]["sshRSAAuthKey"]:
-         User = GetAttr(x,"uid");
-         Line = "%s: %s" %(User,I);
-         Line = Sanitize(Line) + "\n";
-         F.write(Line);
-  # Oops, something unspeakable happened.
-  except:
-   Die(File,F,None);
-   raise;
-  Done(File,F,None);
+      User = GetAttr(x,"uid");
+      F = None;
+
+      try:
+         if MultipleSSHFiles:
+             OldMask = os.umask(0077);
+             File = os.path.join(GlobalDir, 'userkeys', User)
+             F = open(File + ".tmp","w",0600);
+             os.umask(OldMask);
+
+         for I in x[1]["sshRSAAuthKey"]:
+             if MultipleSSHFiles:
+                 MultipleLine = "%s" % I
+                 MultipleLine = Sanitize(MultipleLine) + "\n"
+                 F.write(MultipleLine)
+             if SingleSSHFile:
+                 SingleLine = "%s: %s" % (User, I)
+                 SingleLine = Sanitize(SingleLine) + "\n"
+                 masterFile.write(SingleLine)
+
+         if MultipleSSHFiles:
+             Done(File,F,None);
+             userfiles.append(os.path.basename(File))
+
+      # Oops, something unspeakable happened.
+      except IOError:
+          Die(File,F,None)
+          Die(masterFileName,masterFile,None)
+          raise;
+
+   if SingleSSHFile:
+       Done(masterFileName,masterFile,None)
+       singlefile = os.path.basename(masterFileName)
+
+   return singlefile, userfiles
 
 # Generate the group list
 def GenGroup(l,File):
+  grouprevmap = {}
   F = None;
   try:
    F = open(File + ".tdb.tmp","w");
@@ -244,6 +307,7 @@ def GenGroup(l,File):
    # Output the group file.
    J = 0;
    for x in GroupMap.keys():
+      grouprevmap[GroupIDMap[x]] = x
       if GroupIDMap.has_key(x) == 0:
          continue;
       Line = "%s:x:%u:" % (x,GroupIDMap[x]);
@@ -262,6 +326,8 @@ def GenGroup(l,File):
    Die(File,None,F);
    raise;
   Done(File,None,F);
+
+  return grouprevmap
 
 # Generate the email forwarding list
 def GenForward(l,File):
@@ -829,7 +895,7 @@ else:
 
 # Generate global things
 GlobalDir = GenerateDir+"/";
-GenSSHShadow(l,GlobalDir+"ssh-rsa-shadow");
+SSHGlobal, SSHFiles = GenSSHShadow(l,GlobalDir+"ssh-rsa-shadow");
 GenAllForward(l,GlobalDir+"mail-forward.cdb");
 GenMarkers(l,GlobalDir+"markers");
 GenPrivate(l,GlobalDir+"debian-private");
@@ -879,23 +945,74 @@ while(1):
      Allowed = None
    CurrentHost = Split[0];
 
-   DoLink(GlobalDir,OutDir,"ssh-rsa-shadow");
+   # If we're using a single SSH file, deal with it
+   if SSHGlobal is not None:
+      DoLink(GlobalDir, OutDir, SSHGlobal)
+
    DoLink(GlobalDir,OutDir,"debianhosts");
    DoLink(GlobalDir,OutDir,"ssh_known_hosts");
    DoLink(GlobalDir,OutDir,"disabled-accounts")
 
    sys.stdout.flush();
    if ExtraList.has_key("[NOPASSWD]"):
-      GenPasswd(l,OutDir+"passwd",Split[1], "*");
+      userlist = GenPasswd(l,OutDir+"passwd",Split[1], "*");
    else:
-      GenPasswd(l,OutDir+"passwd",Split[1], "x");
+      userlist = GenPasswd(l,OutDir+"passwd",Split[1], "x");
    sys.stdout.flush();
-   GenGroup(l,OutDir+"group");
+   grouprevmap = GenGroup(l,OutDir+"group");
    if ExtraList.has_key("[UNTRUSTED]"):
 	continue;
    if not ExtraList.has_key("[NOPASSWD]"):
      GenShadow(l,OutDir+"shadow");
-	
+
+   # Now we know who we're allowing on the machine, export
+   # the relevant ssh keys
+   if MultipleSSHFiles:
+      tf = tarfile.open(name=os.path.join(GlobalDir, 'ssh-keys-%s.tar.gz' % CurrentHost), mode='w:gz')
+      for f in userlist.keys():
+        if f not in SSHFiles:
+            continue
+        # If we're not exporting their primary group, don't export 
+        # the key and warn
+        grname = None
+        if userlist[f] in grouprevmap.keys():
+            grname = grouprevmap[userlist[f]]
+        else:
+            try:
+                if int(userlist[f]) <= 100:
+                    # In these cases, look it up in the normal way so we
+                    # deal with cases where, for instance, users are in group
+                    # users as their primary group.
+                    grname = grp.getgrgid(int(userlist[f]))[0]
+            except Exception, e:
+                pass
+
+        if grname is None:
+            print "User %s is supposed to have their key exported to host %s but their primary group (gid: %s) isn't in LDAP" % (f, CurrentHost, userlist[f])
+            continue
+
+        to = tf.gettarinfo(os.path.join(GlobalDir, 'userkeys', f), f)
+        # These will only be used where the username doesn't
+        # exist on the target system for some reason; hence,
+        # in those cases, the safest thing is for the file to
+        # be owned by root but group nobody.  This deals with
+        # the bloody obscure case where the group fails to exist
+        # whilst the user does (in which case we want to avoid
+        # ending up with a file which is owned user:root to avoid
+        # a fairly obvious attack vector)
+        to.uid = 0
+        to.gid = 65534
+        # Using the username / groupname fields avoids any need
+        # to give a shit^W^W^Wcare about the UIDoffset stuff.
+        to.uname = f
+        to.gname = grname
+        to.mode  = 0600
+        tf.addfile(to, file(os.path.join(GlobalDir, 'userkeys', f)))
+
+      tf.close()
+      os.rename(os.path.join(GlobalDir, 'ssh-keys-%s.tar.gz' % CurrentHost),
+                os.path.join(OutDir, 'ssh-keys.tar.gz'))
+
    # Link in global things   
    DoLink(GlobalDir,OutDir,"markers");
    DoLink(GlobalDir,OutDir,"mail-forward.cdb");
