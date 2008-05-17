@@ -10,7 +10,7 @@ userdir-ldap (0.3.XX) Xnstable; urgency=low
     disabled. [aba]
   * ud-generate: Add performance optimization by resolving IP adresses
     for hosts only once and caching the result. [aba]
-  * ud-replicate, ud-generate: Instead of one big ssh-rsa-shadow file
+  * ud-replicate, ud-generate: In addition to one big ssh-rsa-shadow file
     ud-generate now produces per-user authorized_keys files and tars
     them up.  On the receiving end ud-replicate takes the tar and
     syncs it to userkeys/.  The goal here is to no longer require
