@@ -1,8 +1,10 @@
 userdir-ldap (0.3.XX) Xnstable; urgency=low
 
   * ud-mailgate: better regex for ssh1 keys, which we reject. [joerg, weasel]
+  * ud-replicate: Also support the imposter dchroot-dsa from the debian
+    archive. [aba, weasel]
 
- -- Peter Palfrader <weasel@debian.org>  Sat, 17 May 2008 11:18:27 +0200
+ -- Peter Palfrader <weasel@debian.org>  Sat, 17 May 2008 11:20:06 +0200
 
 userdir-ldap (0.3.23) unstable; urgency=low
 
