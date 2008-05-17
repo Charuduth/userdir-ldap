@@ -78,12 +78,10 @@ ln -sf `pwd -P`/ssh-rsa-shadow /etc/ssh
 ln -sf `pwd -P`/ssh_known_hosts /etc/ssh
 
 if [ -e ${HOST}/ssh-keys.tar.gz ]; then
-  export TMPDIR='/tmp/' 
+  export TMPDIR='/tmp/'
   tempdir=$(mktemp -d)
-  old=$(pwd -P)
-  cd $tempdir && tar -xf ${old}/${HOST}/ssh-keys.tar.gz
-  cd $old
-  mkdir userkeys 2> /dev/null || true
+  (cd $tempdir && tar -xf ${old}/${HOST}/ssh-keys.tar.gz)
+  ! [ -d userkeys ] || mkdir userkeys
   chmod 755 $tempdir
   rsync -a --delete-after $tempdir/ userkeys/
 fi
