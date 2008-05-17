@@ -1,4 +1,4 @@
-userdir-ldap (0.3.XX) Xnstable; urgency=low
+userdir-ldap (0.3.24) unstable; urgency=low
 
   * ud-mailgate: better regex for ssh1 keys, which we reject. [joerg, weasel]
   * ud-replicate: Also support the imposter dchroot-dsa from the debian
@@ -18,7 +18,7 @@ userdir-ldap (0.3.XX) Xnstable; urgency=low
     /var/lib/misc/userkeys/%u is sufficient.  For homedir creation
     we can use pam_mkhomedir. [mhy, sgran]
 
- -- Peter Palfrader <weasel@debian.org>  Sat, 17 May 2008 11:34:20 +0200
+ -- Peter Palfrader <weasel@debian.org>  Sat, 17 May 2008 14:49:28 +0200
 
 userdir-ldap (0.3.23) unstable; urgency=low
 
