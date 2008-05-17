@@ -3,8 +3,13 @@ userdir-ldap (0.3.XX) Xnstable; urgency=low
   * ud-mailgate: better regex for ssh1 keys, which we reject. [joerg, weasel]
   * ud-replicate: Also support the imposter dchroot-dsa from the debian
     archive. [aba, weasel]
+  * ud-generate: Add support for generation of authorized_keys file on
+    the db host for the sshdist user.  This is now possible since
+    ud-replicate clients use their ssh host key to authenticate to the
+    db server.  The code now supports this but the feature is still
+    disabled. [aba]
 
- -- Peter Palfrader <weasel@debian.org>  Sat, 17 May 2008 11:20:06 +0200
+ -- Peter Palfrader <weasel@debian.org>  Sat, 17 May 2008 11:25:49 +0200
 
 userdir-ldap (0.3.23) unstable; urgency=low
 

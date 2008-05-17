@@ -702,7 +702,7 @@ def GenBSMTP(l,File,HomePrefix):
   Done(File,F,None);
 
 # Generate the ssh known hosts file
-def GenSSHKnown(l,File):
+def GenSSHKnown(l,File,mode=None):
   F = None;
   try:
    OldMask = os.umask(0022);
@@ -734,7 +734,11 @@ def GenSSHKnown(l,File):
 	 else: IPAdresses += [addr[1]]
 
       for I in x[1]["sshRSAHostKey"]:
-         Line = "%s %s" %(",".join(HostNames + IPAdresses), I);
+         if mode and mode == 'authorized_keys':
+            #Line = 'command="rsync --server --sender -pr . /var/cache/userdir-ldap/hosts/%s",no-port-forwarding,no-X11-forwarding,no-agent-forwarding,from="%s" %s' % (Host, ",".join(HNames + IPAdresses), I)
+            Line = 'command="rsync --server --sender -pr . /var/cache/userdir-ldap/hosts/%s",no-port-forwarding,no-X11-forwarding,no-agent-forwarding %s' % (Host,I)
+         else:
+            Line = "%s %s" %(",".join(HostNames + IPAdresses), I);
          Line = Sanitize(Line) + "\n";
          F.write(Line);
   # Oops, something unspeakable happened.
@@ -823,6 +827,7 @@ GenMarkers(l,GlobalDir+"markers");
 GenPrivate(l,GlobalDir+"debian-private");
 GenDisabledAccounts(l,GlobalDir+"disabled-accounts");
 GenSSHKnown(l,GlobalDir+"ssh_known_hosts");
+#GenSSHKnown(l,GlobalDir+"authorized_keys", 'authorized_keys');
 GenHosts(l,GlobalDir+"debianhosts");
 GenMailDisable(l,GlobalDir+"mail-disable");
 GenMailBool(l,GlobalDir+"mail-greylist","mailGreylisting");
