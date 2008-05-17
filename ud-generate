@@ -968,7 +968,9 @@ while(1):
    # Now we know who we're allowing on the machine, export
    # the relevant ssh keys
    if MultipleSSHFiles:
+      OldMask = os.umask(0077);
       tf = tarfile.open(name=os.path.join(GlobalDir, 'ssh-keys-%s.tar.gz' % CurrentHost), mode='w:gz')
+      os.umask(OldMask);
       for f in userlist.keys():
         if f not in SSHFiles:
             continue
