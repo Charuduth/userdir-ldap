@@ -1,3 +1,9 @@
+userdir-ldap (0.3.25+common1) unstable; urgency=low
+
+  * Fix userdir-ldap.schema (objectClass now contains MAY: VoIP)
+
+ -- Martin Zobel-Helas <zobel@debian.org>  Sun, 18 May 2008 13:03:42 +0200
+
 userdir-ldap (0.3.25) unstable; urgency=low
 
   * Make ssh-keys.tar.gz readable only by the user.
