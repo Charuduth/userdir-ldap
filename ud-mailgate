@@ -239,6 +239,8 @@ def LoadBadSSH():
 #  [options] 1024 35 13188913666680[..] [comment]
 def DoSSH(Str, Attrs, badkeys, uid):
    Match = SSH2AuthSplit.match(Str);
+   if Match == None:
+      return None;
    g = Match.groups()
    typekey = g[1]
    if Match == None:
