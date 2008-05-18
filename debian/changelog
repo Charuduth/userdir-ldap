@@ -1,3 +1,11 @@
+userdir-ldap (0.3.XX) Xnstable; urgency=low
+
+  * ud-replicate: sgran pointed out that if all we care about ignoring is
+    EEXIST then we should use mkdir -p instead of [ -d userkeys ] || mkdir
+    userkeys.
+
+ -- Peter Palfrader <weasel@debian.org>  Sun, 18 May 2008 13:40:04 +0200
+
 userdir-ldap (0.3.25) unstable; urgency=low
 
   * Make ssh-keys.tar.gz readable only by the user.

@@ -81,7 +81,7 @@ if [ -e ${HOST}/ssh-keys.tar.gz ]; then
   export TMPDIR='/tmp/'
   tempdir=$(mktemp -d)
   tar -C "$tempdir" -xf ${HOST}/ssh-keys.tar.gz
-  [ -d userkeys ] || mkdir userkeys
+  mkdir -p userkeys
   chmod 755 $tempdir
   rsync -a --delete-after $tempdir/ userkeys/
 fi
