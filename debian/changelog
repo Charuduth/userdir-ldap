@@ -3,9 +3,6 @@ userdir-ldap (0.3.25+common1) unstable; urgency=low
   [ Martin Zobel-Helas ]
   * Fix userdir-ldap.schema (objectClass now contains MAY: VoIP)
 
-  [ Andreas Barth ]
-  * Disable GSSAPIAuthentication in ud-replicate (safes time)
-
   [ Joerg Jaspert ]
   * User sync_keyrings from config file in ud-generate instead of a
   hardcoded list
