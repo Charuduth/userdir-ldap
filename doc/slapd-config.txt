@@ -46,8 +46,8 @@ access to *
 
 moduleload /usr/lib/ldap/unique.so
 overlay unique
-unique_base ou=users,dc=debian,dc=org
-unique_attributes uid keyFingerPrint
+unique_uri ldap:///ou=users,dc=debian,dc=org?uidNumber,uid,keyFingerPrint?sub
+unique_uri ldap:///ou=groups,dc=debian,dc=org?gidNumber,cn?sub
 
 # End----------
 
