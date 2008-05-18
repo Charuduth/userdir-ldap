@@ -1,10 +1,14 @@
 userdir-ldap (0.3.XX) Xnstable; urgency=low
 
+  [ Peter Palfrader ]
   * ud-replicate: sgran pointed out that if all we care about ignoring is
     EEXIST then we should use mkdir -p instead of [ -d userkeys ] || mkdir
     userkeys.
 
- -- Peter Palfrader <weasel@debian.org>  Sun, 18 May 2008 13:40:04 +0200
+  [ Stephen Gran ]
+  * Document how to use unique overlay for uid and keyFingerPrint
+
+ -- Stephen Gran <sgran@debian.org>  Sun, 18 May 2008 17:58:46 +0100
 
 userdir-ldap (0.3.25+common1) unstable; urgency=low
 
