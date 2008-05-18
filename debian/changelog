@@ -1,4 +1,4 @@
-userdir-ldap (0.3.XX) Xnstable; urgency=low
+userdir-ldap (0.3.26) unstable; urgency=low
 
   * ud-replicate: sgran pointed out that if all we care about ignoring is
     EEXIST then we should use mkdir -p instead of [ -d userkeys ] || mkdir
@@ -6,8 +6,9 @@ userdir-ldap (0.3.XX) Xnstable; urgency=low
   * ud-mailgate: a bug in DoSSH caused all changes to fail that came after
     DoSSH in HandleChange.  Now DoSSH properly returns without raising an
     exception if the line to handle is not an ssh public key.
+  * Fix userdir-ldap.schema (objectClass now contains MAY: VoIP). [zobel]
 
- -- Peter Palfrader <weasel@debian.org>  Sun, 18 May 2008 14:25:26 +0200
+ -- Peter Palfrader <weasel@debian.org>  Sun, 18 May 2008 14:27:50 +0200
 
 userdir-ldap (0.3.25) unstable; urgency=low
 
