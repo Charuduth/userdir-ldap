@@ -1,8 +1,12 @@
 userdir-ldap (0.3.25+common1) unstable; urgency=low
 
+  [ Martin Zobel-Helas ]
   * Fix userdir-ldap.schema (objectClass now contains MAY: VoIP)
 
- -- Martin Zobel-Helas <zobel@debian.org>  Sun, 18 May 2008 13:03:42 +0200
+  [ Andreas Barth ]
+  * Disable GSSAPIAuthentication in ud-replicate (safes time)
+
+ -- Andreas Barth <aba@ayous.org>  Sun, 18 May 2008 11:25:31 +0000
 
 userdir-ldap (0.3.25) unstable; urgency=low
 
