@@ -131,7 +131,7 @@ def GenPasswd(l,File,HomePrefix,PwdMarker):
       if len(GetAttr(x,"gecos")) > 100 or len(GetAttr(x,"loginShell")) > 50:
          continue;
 
-      userlist[GetAttr(x, "uid")] = GetAttr(x, "gidNumber")
+      userlist[GetAttr(x, "uid")] = int(GetAttr(x, "gidNumber"))
       Line = "%s:%s:%s:%s:%s:%s%s:%s" % (GetAttr(x,"uid"),\
               PwdMarker,\
               GetAttr(x,"uidNumber"),GetAttr(x,"gidNumber"),\
@@ -968,7 +968,9 @@ while(1):
    # Now we know who we're allowing on the machine, export
    # the relevant ssh keys
    if MultipleSSHFiles:
+      OldMask = os.umask(0077);
       tf = tarfile.open(name=os.path.join(GlobalDir, 'ssh-keys-%s.tar.gz' % CurrentHost), mode='w:gz')
+      os.umask(OldMask);
       for f in userlist.keys():
         if f not in SSHFiles:
             continue
@@ -983,12 +985,12 @@ while(1):
                     # In these cases, look it up in the normal way so we
                     # deal with cases where, for instance, users are in group
                     # users as their primary group.
-                    grname = grp.getgrgid(int(userlist[f]))[0]
+                    grname = grp.getgrgid(userlist[f])[0]
             except Exception, e:
                 pass
 
         if grname is None:
-            print "User %s is supposed to have their key exported to host %s but their primary group (gid: %s) isn't in LDAP" % (f, CurrentHost, userlist[f])
+            print "User %s is supposed to have their key exported to host %s but their primary group (gid: %d) isn't in LDAP" % (f, CurrentHost, userlist[f])
             continue
 
         to = tf.gettarinfo(os.path.join(GlobalDir, 'userkeys', f), f)

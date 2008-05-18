@@ -30,7 +30,7 @@ SeenList = {}
 DNS = {}
 
 SSHFingerprint = re.compile('^(\d+) ([0-9a-f\:]{47}) (.+)$')
-SSHRSA1Match = re.compile('^\d+ (\d+) \d+ .*')
+SSHRSA1Match = re.compile('^^(.* )?\d+ \d+ \d+')
 
 ArbChanges = {"c": "..",
 	      "l": ".*",
@@ -242,7 +242,7 @@ def DoSSH(Str, Attrs, badkeys, uid):
    g = Match.groups()
    typekey = g[1]
    if Match == None:
-      Match =SSHRSA1Match.match(Str)
+      Match = SSHRSA1Match.match(Str)
       if Match is not None:
          return "RSA1 keys not supported anymore"
       return None;

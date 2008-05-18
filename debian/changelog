@@ -1,18 +1,30 @@
-userdir-ldap (0.3.23+common1) unstable; urgency=low
+userdir-ldap (0.3.25) unstable; urgency=low
 
-  [ Andreas Barth ]
-  * Add compatibility to dchroot-dsa to ud-replicate.
-  * Add (disabled) generation of authorized_keys suiteable for sshdist.
-  * Add performance optimization by caching IP adresses in ud-generate
-    (as a precondition for automatically adding aliases)
+  * Make ssh-keys.tar.gz readable only by the user.
 
-  [ Stephen Gran ]
-  * ud-replicate: handle individual ssh keys
+ -- Peter Palfrader <weasel@debian.org>  Sat, 17 May 2008 16:14:56 +0200
 
-  [ Mark Hymers ]
-  * ud-generate: handle individual ssh keys
+userdir-ldap (0.3.24) unstable; urgency=low
 
- -- Mark Hymers <mhy@debian.org>  Wed, 14 May 2008 22:09:22 +0100
+  * ud-mailgate: better regex for ssh1 keys, which we reject. [joerg, weasel]
+  * ud-replicate: Also support the imposter dchroot-dsa from the debian
+    archive. [aba, weasel]
+  * ud-generate: Add support for generation of authorized_keys file on
+    the db host for the sshdist user.  This is now possible since
+    ud-replicate clients use their ssh host key to authenticate to the
+    db server.  The code now supports this but the feature is still
+    disabled. [aba]
+  * ud-generate: Add performance optimization by resolving IP adresses
+    for hosts only once and caching the result. [aba]
+  * ud-replicate, ud-generate: In addition to one big ssh-rsa-shadow file
+    ud-generate now produces per-user authorized_keys files and tars
+    them up.  On the receiving end ud-replicate takes the tar and
+    syncs it to userkeys/.  The goal here is to no longer require
+    a patched sshd.  Setting AuthorizedKeysFile2 to
+    /var/lib/misc/userkeys/%u is sufficient.  For homedir creation
+    we can use pam_mkhomedir. [mhy, sgran]
+
+ -- Peter Palfrader <weasel@debian.org>  Sat, 17 May 2008 14:49:28 +0200
 
 userdir-ldap (0.3.23) unstable; urgency=low
 
