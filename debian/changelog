@@ -4,7 +4,9 @@ userdir-ldap (0.3.25+common1) unstable; urgency=low
   * Fix userdir-ldap.schema (objectClass now contains MAY: VoIP)
 
   [ Joerg Jaspert ]
-  * User sync_keyrings from config file in ud-generate instead of a
+  * Use sync_keyrings from config file in ud-generate instead of a
+  hardcoded list
+  * Use add_keyrings from config file in ud-useradd instead of a
   hardcoded list
 
  -- Joerg Jaspert <joerg@debian.org>  Sun, 18 May 2008 13:32:01 +0200
