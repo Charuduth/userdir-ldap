@@ -6,7 +6,11 @@ userdir-ldap (0.3.25+common1) unstable; urgency=low
   [ Andreas Barth ]
   * Disable GSSAPIAuthentication in ud-replicate (safes time)
 
- -- Andreas Barth <aba@ayous.org>  Sun, 18 May 2008 11:25:31 +0000
+  [ Joerg Jaspert ]
+  * User sync_keyrings from config file in ud-generate instead of a
+  hardcoded list
+
+ -- Joerg Jaspert <joerg@debian.org>  Sun, 18 May 2008 13:32:01 +0200
 
 userdir-ldap (0.3.25) unstable; urgency=low
 
