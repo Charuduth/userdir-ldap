@@ -960,10 +960,6 @@ while(1):
       userlist = GenPasswd(l,OutDir+"passwd",Split[1], "x");
    sys.stdout.flush();
    grouprevmap = GenGroup(l,OutDir+"group");
-   if ExtraList.has_key("[UNTRUSTED]"):
-	continue;
-   if not ExtraList.has_key("[NOPASSWD]"):
-     GenShadow(l,OutDir+"shadow");
 
    # Now we know who we're allowing on the machine, export
    # the relevant ssh keys
@@ -1008,12 +1004,17 @@ while(1):
         # to give a shit^W^W^Wcare about the UIDoffset stuff.
         to.uname = f
         to.gname = grname
-        to.mode  = 0600
+        to.mode  = 0400
         tf.addfile(to, file(os.path.join(GlobalDir, 'userkeys', f)))
 
       tf.close()
       os.rename(os.path.join(GlobalDir, 'ssh-keys-%s.tar.gz' % CurrentHost),
                 os.path.join(OutDir, 'ssh-keys.tar.gz'))
+
+   if ExtraList.has_key("[UNTRUSTED]"):
+     continue;
+   if not ExtraList.has_key("[NOPASSWD]"):
+     GenShadow(l,OutDir+"shadow");
 
    # Link in global things   
    DoLink(GlobalDir,OutDir,"markers");

@@ -1,3 +1,11 @@
+userdir-ldap (0.3.27) unstable; urgency=low
+
+  * Export ssh-keys.tar.gz to [UNTRUSTED] hosts.  Since we already export
+    ssh-rsa-shadow this is probably the right thing.
+  * Make keys in the ssh-keys tarball mode 0400 instead of mode 0600.
+
+ -- Peter Palfrader <weasel@debian.org>  Mon, 19 May 2008 08:55:28 +0200
+
 userdir-ldap (0.3.26) unstable; urgency=low
 
   * ud-replicate: sgran pointed out that if all we care about ignoring is
