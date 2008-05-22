@@ -1,3 +1,9 @@
+userdir-ldap (0.3.28) unstable; urgency=low
+
+  * Do not disable mail just because the account is locked.
+
+ -- Peter Palfrader <weasel@debian.org>  Thu, 22 May 2008 21:38:56 +0200
+
 userdir-ldap (0.3.27) unstable; urgency=low
 
   * Export ssh-keys.tar.gz to [UNTRUSTED] hosts.  Since we already export

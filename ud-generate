@@ -516,18 +516,11 @@ def GenMailDisable(l,File):
 
    for x in PasswdAttrs:
       Reason = None
-      
-      # If the account is locked, disable incoming mail
-      if (GetAttr(x,"userPassword").find("*LK*") != -1):
-         if GetAttr(x,"uid") == "luther":
-	    continue
-	 else:
-            Reason = "user account locked"
+
+      if x[1].has_key("mailDisableMessage"):
+         Reason = GetAttr(x,"mailDisableMessage")
       else:
-         if x[1].has_key("mailDisableMessage"):
-            Reason = GetAttr(x,"mailDisableMessage")
-         else:
-            continue
+         continue
 
       # Must be in the Debian group (yuk, hard coded for now)
       if GetAttr(x,"gidNumber") != "800":
