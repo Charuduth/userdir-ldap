@@ -183,12 +183,12 @@ def GenShadow(l,File):
           or GetAttr(x,"userPassword").startswith("!"):
          ShadowExpire = '1'
       else:
-         ShadowExpire = GetAttr(x,"shadowexpire")
+         ShadowExpire = GetAttr(x,"shadowExpire")
 
       Line = "%s:%s:%s:%s:%s:%s:%s:%s:" % (GetAttr(x,"uid"),\
               Pass,GetAttr(x,"shadowLastChange"),\
               GetAttr(x,"shadowMin"),GetAttr(x,"shadowMax"),\
-              GetAttr(x,"shadowWarning"),GetAttr(x,"shadowinactive"),\
+              GetAttr(x,"shadowWarning"),GetAttr(x,"shadowInactive"),\
               ShadowExpire);
       Line = Sanitize(Line) + "\n";
       F.write("0%u %s" % (I,Line));
@@ -870,8 +870,8 @@ for x in Attrs:
 PasswdAttrs = l.search_s(BaseDn,ldap.SCOPE_ONELEVEL,"uid=*",\
                 ["uid","uidNumber","gidNumber","supplementaryGid",\
                  "gecos","loginShell","userPassword","shadowLastChange",\
-                 "shadowMin","shadowMax","shadowWarning","shadowinactive",
-	         "shadowexpire","emailForward","latitude","longitude",\
+                 "shadowMin","shadowMax","shadowWarning","shadowInactive",
+	         "shadowExpire","emailForward","latitude","longitude",\
                  "allowedHost","sshRSAAuthKey","dnsZoneEntry","cn","sn",\
 	         "keyFingerPrint","privateSub","mailDisableMessage",\
                  "mailGreylisting","mailCallout","mailRBL","mailRHSBL",\

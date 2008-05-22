@@ -1,9 +1,14 @@
-userdir-ldap (0.3.XX) Xnstable; urgency=low
+userdir-ldap (0.3.30) unstable; urgency=low
 
   * When we touch usePassword in ud-info or ud-mailgate we now also
     update shadowLastChange.
+  * When we lock accounts, set shadowExpire to 1.  shadowExpire
+    is "days since Jan 1, 1970 that account is disabled".
+  * Properly capitalize shadowInactive and shadowExpire attributes in
+    ud-info and ud-generate.
+  * Add copyright statements to ud-info from bzr log.
 
- -- Peter Palfrader <weasel@debian.org>  Thu, 22 May 2008 22:26:11 +0200
+ -- Peter Palfrader <weasel@debian.org>  Thu, 22 May 2008 22:39:10 +0200
 
 userdir-ldap (0.3.29) unstable; urgency=low
 
