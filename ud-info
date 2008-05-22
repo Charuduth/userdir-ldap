@@ -328,6 +328,7 @@ while(1):
       print "   a) Arbitary Change";
       print "   R) Randomize Password";
    print "   p) Change Password";
+   print "   L) Lock account";
    print "   u) Switch Users";
    print "   x) Exit";
    
@@ -397,6 +398,20 @@ while(1):
       Pass = "{crypt}" + Pass;
       l.modify_s(UserDn,[(ldap.MOD_REPLACE,"userPassword",Pass)]);
       Attrs[0][1]["userPassword"] = [Pass];
+      continue;
+
+   # Lock account
+   if Response == 'L' and RootMode == 1:
+      Resp = raw_input("Really lock account? [no/yes]");
+      if Resp != "yes":
+         continue;
+
+      print "Setting password..";
+      l.modify_s(UserDn,[
+         (ldap.MOD_REPLACE,"userPassword","{crypt}*LK*"),
+         (ldap.MOD_REPLACE,"mailDisableMessage","account locked"), ]);
+      Attrs[0][1]["userPassword"] = ["{crypt}*LK*"];
+      Attrs[0][1]["mailDisableMessage"] = ["account locked"];
       continue;
 
    # Handle changing an arbitary value

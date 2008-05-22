@@ -1,6 +1,14 @@
+userdir-ldap (0.3.29) unstable; urgency=low
+
+  * ud-info: Add an option "L" to lock accounts in the interactive
+    interface.  Locking an account sets a user's password to "{crypt}*LK*"
+    and sets a mailDisableMessage of "account locked".
+
+ -- Peter Palfrader <weasel@debian.org>  Thu, 22 May 2008 21:49:19 +0200
+
 userdir-ldap (0.3.28) unstable; urgency=low
 
-  * Do not disable mail just because the account is locked.
+  * ud-generate: Do not disable mail just because the account is locked.
 
  -- Peter Palfrader <weasel@debian.org>  Thu, 22 May 2008 21:38:56 +0200
 
