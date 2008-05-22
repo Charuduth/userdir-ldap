@@ -1,3 +1,10 @@
+userdir-ldap (0.3.XX) Xnstable; urgency=low
+
+  * When we touch usePassword in ud-info or ud-mailgate we now also
+    update shadowLastChange.
+
+ -- Peter Palfrader <weasel@debian.org>  Thu, 22 May 2008 22:26:11 +0200
+
 userdir-ldap (0.3.29) unstable; urgency=low
 
   * ud-info: Add an option "L" to lock accounts in the interactive

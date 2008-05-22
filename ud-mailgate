@@ -551,7 +551,8 @@ def HandleChPass(Reply,DnRecord,Key):
       raise Error, "This account is locked";
 
    # Modify the password
-   Rec = [(ldap.MOD_REPLACE,"userPassword","{crypt}"+Pass)];
+   Rec = [(ldap.MOD_REPLACE,"userPassword","{crypt}"+Pass),
+          (ldap.MOD_REPLACE,"shadowLastChange",str(int(time.time()/24/60/60)))];
    Dn = "uid=" + GetAttr(DnRecord,"uid") + "," + BaseDn;
    l.modify_s(Dn,Rec);
 
