@@ -44,6 +44,7 @@ export PATH
 HOST=`hostname -f`
 SYNCHOST=`ud-config synchost`;
 LOCALSYNCON=`ud-config localsyncon`;
+EMAILAPPEND=`ud-config emailappend`;
 cd /tmp/
 cd /var/lib/misc || cd /var/state/glibc/ || cd /var/db/
 lockfile -r 1 -l 3600 lock
@@ -120,6 +121,6 @@ if [ -d "/etc/exim4" -a -e "$HOST/bsmtp" ]; then
 	fi
 fi
 if [ -d "/etc/postfix" -a -f "$HOST/forward-alias" ]; then
-	sed -e 's/:/@debian.org/' $HOST/forward-alias > /etc/postfix/debian
+	sed -e "s/:/@$EMAILAPPEND/" $HOST/forward-alias > /etc/postfix/debian
 	/usr/sbin/postmap hash:/etc/postfix/debian < /etc/postfix/debian || true
 fi

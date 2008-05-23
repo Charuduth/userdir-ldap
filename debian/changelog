@@ -5,8 +5,10 @@ userdir-ldap (0.3.XX) Xnstable; urgency=low
   hardcoded list
   * Use add_keyrings from config file in ud-useradd instead of a
   hardcoded list
+  * Use ud-config to get the emailappend value in ud-replicate, no longer
+  hardcoding @debian.org
 
- -- Peter Palfrader <weasel@debian.org>  Fri, 23 May 2008 09:59:15 +0200
+ -- Peter Palfrader <weasel@debian.org>  Fri, 23 May 2008 10:01:51 +0200
 
 userdir-ldap (0.3.30) unstable; urgency=low
 
