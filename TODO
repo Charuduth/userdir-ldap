@@ -13,3 +13,4 @@
 - fix ud-useradd emails with non-ascii in subject
 - allow to keep further auth tokens in the LDAP, for example for SMTP AUTH or
   SIP stuff. Or OpenID. Or whatever.
+* do SSL in all ldap connections that authenticate
