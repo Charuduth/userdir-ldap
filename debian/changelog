@@ -8,6 +8,9 @@ userdir-ldap (0.3.XX) Xnstable; urgency=low
   * Use ud-config to get the emailappend value in ud-replicate, no longer
   hardcoding @debian.org
 
+  [ Stephen Gran ]
+  * Document how to use unique overlay for uid and keyFingerPrint
+
  -- Peter Palfrader <weasel@debian.org>  Fri, 23 May 2008 10:01:51 +0200
 
 userdir-ldap (0.3.30) unstable; urgency=low

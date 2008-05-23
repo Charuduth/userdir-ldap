@@ -42,6 +42,13 @@ access to *
         by dn="uid=admin,ou=users,dc=debian,dc=org" write
         by group="uid=admin,ou=users,dc=debian,dc=org" write
 
+# Overlays are useful to enforce constraints:
+
+moduleload /usr/lib/ldap/unique.so
+overlay unique
+unique_uri ldap:///ou=users,dc=debian,dc=org?uidNumber,uid,keyFingerPrint?sub
+unique_uri ldap:///ou=groups,dc=debian,dc=org?gidNumber,cn?sub
+
 # End----------
 
 Note that in more modern versions of slapd, the "by addr" and "by domain"
