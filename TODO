@@ -14,3 +14,5 @@
 - allow to keep further auth tokens in the LDAP, for example for SMTP AUTH or
   SIP stuff. Or OpenID. Or whatever.
 * do SSL in all ldap connections that authenticate
+- expand authorized_keys syntax so that users can have certain keys added
+  to only some hosts.  e.g. host="gluck,ries",from="blubb".... ssh-rsa...
