@@ -70,7 +70,7 @@ for (switch, val) in options:
 l = passwdAccessLDAP(LDAPServer, BaseDn, AdminUser)
 
 # Locate the key of the user we are adding
-SetKeyrings(["/org/keyring.debian.org/keyrings/debian-keyring.gpg"])
+SetKeyrings(ConfModule.add_keyrings.split(":"))
 while (1):
    Foo = raw_input("Who are you going to add (for a GPG search)? ");
    if Foo == "":

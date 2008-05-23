@@ -1,3 +1,13 @@
+userdir-ldap (0.3.XX) Xnstable; urgency=low
+
+  [ Joerg Jaspert ]
+  * Use sync_keyrings from config file in ud-generate instead of a
+  hardcoded list
+  * Use add_keyrings from config file in ud-useradd instead of a
+  hardcoded list
+
+ -- Peter Palfrader <weasel@debian.org>  Fri, 23 May 2008 09:59:15 +0200
+
 userdir-ldap (0.3.30) unstable; urgency=low
 
   * When we touch usePassword in ud-info or ud-mailgate we now also

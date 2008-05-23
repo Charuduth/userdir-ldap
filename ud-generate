@@ -38,8 +38,7 @@ CurrentHost = "";
 EmailCheck = re.compile("^([^ <>@]+@[^ ,<>@]+)?$");
 BSMTPCheck = re.compile(".*mx 0 (gluck)\.debian\.org\..*",re.DOTALL);
 DNSZone = ".debian.net"
-Keyrings = [ "/org/keyring.debian.org/keyrings/debian-keyring.gpg",
-             "/org/keyring.debian.org/keyrings/debian-keyring.pgp" ]
+Keyrings = ConfModule.sync_keyrings.split(":")
 
 def safe_makedirs(dir):
     try:
