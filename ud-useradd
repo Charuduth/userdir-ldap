@@ -67,7 +67,7 @@ for (switch, val) in options:
    elif (switch == '-n'):
       NoAutomaticIDs = 1;
 
-l = passwdAccessLDAP(LDAPServer, BaseDn, AdminUser)
+l = passwdAccessLDAP(BaseDn, AdminUser)
 
 # Locate the key of the user we are adding
 SetKeyrings(ConfModule.add_keyrings.split(":"))

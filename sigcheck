@@ -54,7 +54,7 @@ def CheckLDAP(FingerPrint):
    ErrType = EX_TEMPFAIL;
    ErrMsg = "An error occurred while performing the LDAP lookup:";
    global l;
-   l = ldap.open(LDAPServer);
+   l = connectLDAP(LDAPServer);
    l.simple_bind_s("","");
 
    # Search for the matching key fingerprint

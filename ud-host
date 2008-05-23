@@ -241,9 +241,9 @@ for (switch, val) in options:
       FingerPrints = 1
 
 if (BindUser != ""):
-   l = passwdAccessLDAP(LDAPServer, BaseDn, BindUser)
+   l = passwdAccessLDAP(BaseDn, BindUser)
 else:
-   l = ldap.open(LDAPServer);
+   l = connectLDAP()
    l.simple_bind_s("","")
 
 if ListMode == 1:

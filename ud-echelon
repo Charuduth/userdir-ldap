@@ -94,7 +94,7 @@ try:
    ErrType = EX_TEMPFAIL;
    ErrMsg = "An error occured while performing the LDAP lookup";
    global l;
-   l = ldap.open(LDAPServer);
+   l = connectLDAP()
    if Debug == None:
       F = open(PassDir+"/pass-"+pwd.getpwuid(os.getuid())[0],"r");
       AccessPass = F.readline().strip().split(" ")

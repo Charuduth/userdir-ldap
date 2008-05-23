@@ -31,7 +31,7 @@ for (switch, val) in options:
 print "Connecting to LDAP directory";
 
 # Connect to the ldap server
-l = ldap.open(LDAPServer);
+l = connectLDAP()
 l.simple_bind_s("","");
 
 if arguments[0] == "nokey":

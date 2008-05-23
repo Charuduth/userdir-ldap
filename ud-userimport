@@ -249,7 +249,7 @@ for (switch, val) in options:
 # Main program starts here
 
 # Connect to the ldap server
-l = passwdAccessLDAP(LDAPServer, BaseDn, AdminUser)
+l = passwdAccessLDAP(BaseDn, AdminUser)
 
 if (Passwd != ""):
    DoPasswd(l,Passwd);

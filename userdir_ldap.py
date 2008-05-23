@@ -45,6 +45,11 @@ Ech_MainLog = ConfModule.ech_mainlog;
 MultipleSSHFiles = getattr(ConfModule, 'multiplesshfiles', False)
 SingleSSHFile = getattr(ConfModule, 'singlesshfile', True)
 
+try:
+   UseSSL = ConfModule.usessl;
+except AttributeError:
+   UseSSL = False;
+
 # Break up the keyring list
 userdir_gpg.SetKeyrings(ConfModule.keyrings.split(":"))
 
@@ -102,6 +107,16 @@ def PrettyShow(DnRecord):
          Result = Result + "%s: %s\n" % (x,i);
    return Result[:-1];
 
+def connectLDAP(server = None):
+   if server == None:
+      global LDAPServer
+      server = LDAPServer
+   l = ldap.open(server);
+   global UseSSL
+   if UseSSL:
+      l.start_tls_s();
+   return l;
+
 # Function to prompt for a password 
 def getpass(prompt = "Password: "):
    import termios, sys;
@@ -124,7 +139,7 @@ def getpass(prompt = "Password: "):
    print;
    return passwd;
 
-def passwdAccessLDAP(LDAPServer, BaseDn, AdminUser):
+def passwdAccessLDAP(BaseDn, AdminUser):
    """
    Ask for the AdminUser's password and connect to the LDAP server.
    Returns the connection handle.
@@ -136,7 +151,7 @@ def passwdAccessLDAP(LDAPServer, BaseDn, AdminUser):
       if len(Password) == 0:
          sys.exit(0)
 
-      l = ldap.open(LDAPServer);
+      l = connectLDAP()
       UserDn = "uid=" + AdminUser + "," + BaseDn;
 
       # Connect to the ldap server

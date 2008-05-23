@@ -52,8 +52,7 @@ for x in arguments:
 Args = Args + GPGSearchOptions + [" 2> /dev/null"]
 Keys = os.popen(" ".join(Args),"r")
 
-l = ldap.open(LDAPServer);
-l.simple_bind_s("","");
+l = connectLDAP()
 
 # Fetch the key list and map to email address
 PasswdAttrs = l.search_s(BaseDn,ldap.SCOPE_ONELEVEL,"keyfingerprint=*",\

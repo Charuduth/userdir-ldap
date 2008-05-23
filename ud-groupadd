@@ -53,7 +53,7 @@ for (switch, val) in options:
    if (switch == '-u'):
       AdminUser = val;
 
-l = passwdAccessLDAP(LDAPServer, BaseDn, AdminUser)
+l = passwdAccessLDAP(BaseDn, AdminUser)
 
 while 1:
    Group = raw_input("Group name? ");

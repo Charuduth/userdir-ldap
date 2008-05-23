@@ -467,7 +467,7 @@ def HandleChange(Reply,DnRecord,Key):
       Result = Result + Res + "\n";
 
    # Connect to the ldap server
-   l = ldap.open(LDAPServer);
+   l = connectLDAP()
    F = open(PassDir+"/pass-"+pwd.getpwuid(os.getuid())[0],"r");
    AccessPass = F.readline().strip().split(" ")
    F.close();
@@ -538,7 +538,7 @@ def HandleChPass(Reply,DnRecord,Key):
    Reply = Reply + TemplateSubst(Subst,open(TemplatesDir+"passwd-changed","r").read());
    
    # Connect to the ldap server
-   l = ldap.open(LDAPServer);
+   l = connectLDAP()
    F = open(PassDir+"/pass-"+pwd.getpwuid(os.getuid())[0],"r");
    AccessPass = F.readline().strip().split(" ")
    F.close();
@@ -616,7 +616,7 @@ try:
    ErrType = EX_TEMPFAIL;
    ErrMsg = "An error occured while performing the LDAP lookup";
    global l;
-   l = ldap.open(LDAPServer);
+   l = connectLDAP()
    l.simple_bind_s("","");
 
    # Search for the matching key fingerprint

@@ -30,7 +30,7 @@ for (switch, val) in options:
       Anon = 1;
 
 # Connect to the ldap server
-l = passwdAccessLDAP(LDAPServer, BaseDn, User)
+l = passwdAccessLDAP(BaseDn, User)
 
 Attrs = l.search_s(BaseDn,ldap.SCOPE_ONELEVEL,"latitude=*",\
          ["uid","cn","mn","sn","latitude","longitude"]);

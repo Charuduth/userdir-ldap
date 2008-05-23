@@ -70,9 +70,9 @@ if len(arguments) == 0:
 
 # Connect to the ldap server
 if NoAct == 0:
-   l = passwdAccessLDAP(LDAPServer, BaseDn, AdminUser)
+   l = passwdAccessLDAP(BaseDn, AdminUser)
 else:
-   l = ldap.open(LDAPServer);
+   l = connectLDAP()
    l.simple_bind_s("","");
 
 # Download the existing key list and put it into a map

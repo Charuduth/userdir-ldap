@@ -39,7 +39,7 @@ if len(arguments) == 0:
    sys.exit(0)
 
 # Main program starts here
-l = passwdAccessLDAP(LDAPServer, BaseDn, AdminUser)
+l = passwdAccessLDAP(BaseDn, AdminUser)
 
 List = open(arguments[1],"r");
 Set = [];

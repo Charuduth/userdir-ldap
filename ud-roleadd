@@ -50,7 +50,7 @@ for (switch, val) in options:
    if (switch == '-u'):
       AdminUser = val
 
-l = passwdAccessLDAP(LDAPServer, BaseDn, AdminUser)
+l = passwdAccessLDAP(BaseDn, AdminUser)
 
 while 1:
    account = raw_input("Who are you going to add? ")

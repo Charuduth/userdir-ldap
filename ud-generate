@@ -848,7 +848,7 @@ def GenKeyrings(l,OutDir):
     shutil.copy(k, OutDir)
 
 # Connect to the ldap server
-l = ldap.open(LDAPServer);
+l = connectLDAP()
 F = open(PassDir+"/pass-"+pwd.getpwuid(os.getuid())[0],"r");
 Pass = F.readline().strip().split(" ")
 F.close();
