@@ -2,8 +2,17 @@ userdir-ldap (0.3.3X) Xnstable; urgency=low
 
   * add "security simple_bind=128" to sample slapd.conf.
   * ud-info: Only show "Lock account" in root mode.
+  * ud-info: Add "retire developer" option that sets
+    accountStatus properly to either retiring, retired, memorial
+    or active.  Active is for all currently active developers,
+    memorial is for those who have passed away and whose accounts
+    will never be reused, retiring is a developer who is retired
+    but still receives mail at their @debian.org address.  After
+    a few months they should move on to retired, with their mail
+    also disabled.  accountStatus is just a freeform text, but
+    these 4 options should be the only ones that exist.
 
- -- Peter Palfrader <weasel@debian.org>  Sun, 25 May 2008 22:35:34 +0200
+ -- Peter Palfrader <weasel@debian.org>  Mon, 26 May 2008 01:27:11 +0200
 
 userdir-ldap (0.3.32) unstable; urgency=low
 

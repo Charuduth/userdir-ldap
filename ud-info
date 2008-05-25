@@ -75,10 +75,13 @@ AttrInfo = {"cn": ["First Name", 101],
             "mailRBL": ["Mail RBLs",22],
             "mailRHSBL": ["Mail RHSBLs",23],
             "mailWhitelist": ["Mail Whitelist",24],
+	    "VoIP": ["VoIP Address",25],
 	    "comment": ["Comment",116],
 	    "userPassword": ["Crypted Password",117],
             "dnsZoneEntry": ["d.net Entry",118],
-            "VoIP": ["VoIP Address",119]}; 
+            "accountStatus": ["DD status",301],
+            "accountComment": ["DD status comment",302],
+	    };
 
 AttrPrompt = {"cn": ["Common name or first name"],
               "mn": ["Middle name (or initial if it ends in a dot)"],
@@ -281,6 +284,20 @@ def MultiChangeAttr(Attrs,Attr):
    Attrs[1][Attr].append(NewValue);
    print;
 
+def Lock(UserDn, Attrs, DisableMail=True):
+   shadowLast = str(int(time.time()/24/60/60));
+   recs = [
+      (ldap.MOD_REPLACE,"userPassword","{crypt}*LK*"),
+      (ldap.MOD_REPLACE,"shadowLastChange",shadowLast),
+      (ldap.MOD_REPLACE,"shadowExpire","1")];
+   if DisableMail:
+      recs.append( (ldap.MOD_REPLACE,"mailDisableMessage","account locked") )
+      Attrs[0][1]["shadowLastChange"] = [shadowLast];
+   l.modify_s(UserDn,recs);
+   Attrs[0][1]["userPassword"] = ["{crypt}*LK*"];
+   Attrs[0][1]["mailDisableMessage"] = ["account locked"];
+   Attrs[0][1]["shadowExpire"] = ["1"];
+
 # Main program starts here
 User = pwd.getpwuid(os.getuid())[0];
 BindUser = User;
@@ -348,8 +365,9 @@ while(1):
 
    if RootMode == 1:
       print "   a) Arbitary Change";
+      print "   r) retire developer";
       print "   R) Randomize Password";
-      print "   L) Lock account";
+      print "   L) Lock account and disable mail";
    print "   p) Change Password";
    print "   u) Switch Users";
    print "   x) Exit";
@@ -404,6 +422,53 @@ while(1):
       Attrs[0][1]["shadowLastChange"] = [shadowLast];
       continue;
 
+   # retire DD
+   if Response == 'r' and RootMode == 1:
+      if Attrs[0][1].has_key("accountStatus") == 0:
+        curStatus = "<not set>"
+      else:
+        curStatus = Attrs[0][1]["accountStatus"][0]
+      if Attrs[0][1].has_key("accountComment") == 0:
+        curComment = "<not set>"
+      else:
+        curComment = Attrs[0][1]["accountComment"][0]
+      print "\n\nCurrent status is %s"%curStatus
+      print "Current comment is %s\n"%curComment
+
+      print "Set account to:"
+      print "  1) retiring (lock account but do not disable mail):"
+      print "  2) retired (lock account and disable mail):"
+      print "  3) memorial (lock account and disable mail):"
+      print "  4) active (do not change other settings, you will have to deal with them)"
+      print "  q) return (no change)"
+      Resp = raw_input("Action? ")
+      if Resp == "1" or Resp == "2":
+         Lock(UserDn, Attrs, Resp == "2")
+         if Resp == "1":
+           newstatus = "retiring %s"%(time.strftime("%Y-%m-%d"))
+         else:
+           newstatus = "retired %s"%(time.strftime("%Y-%m-%d"))
+         l.modify_s(UserDn,[(ldap.MOD_REPLACE,"accountStatus",newstatus)])
+         Attrs[0][1]["accountStatus"] = [newstatus]
+
+         Resp2 = raw_input("Optional RT ticket number? ")
+         if (Resp2 != ''):
+           comment = "RT#%s"%(Resp2)
+           l.modify_s(UserDn,[(ldap.MOD_REPLACE,"accountComment",comment)])
+           Attrs[0][1]["accountComment"] = [comment]
+      elif Resp == "3":
+         Lock(UserDn, Attrs)
+         newstatus = "memorial"
+         l.modify_s(UserDn,[(ldap.MOD_REPLACE,"accountStatus",newstatus)])
+         Attrs[0][1]["accountStatus"] = [newstatus]
+      elif Resp == "4":
+         newstatus = "active"
+         l.modify_s(UserDn,[(ldap.MOD_REPLACE,"accountStatus",newstatus)])
+         Attrs[0][1]["accountStatus"] = [newstatus]
+
+      continue;
+
+
    # Randomize password
    if Response == 'R' and RootMode == 1:
       Resp = raw_input("Randomize Users Password? [no/yes]");
@@ -435,16 +500,7 @@ while(1):
          continue;
 
       print "Setting password..";
-      shadowLast = str(int(time.time()/24/60/60));
-      l.modify_s(UserDn,[
-         (ldap.MOD_REPLACE,"userPassword","{crypt}*LK*"),
-         (ldap.MOD_REPLACE,"mailDisableMessage","account locked"),
-         (ldap.MOD_REPLACE,"shadowLastChange",shadowLast),
-         (ldap.MOD_REPLACE,"shadowExpire","1")]);
-      Attrs[0][1]["userPassword"] = ["{crypt}*LK*"];
-      Attrs[0][1]["mailDisableMessage"] = ["account locked"];
-      Attrs[0][1]["shadowLastChange"] = [shadowLast];
-      Attrs[0][1]["shadowExpire"] = ["1"];
+      Lock(UserDn, Attrs)
       continue;
 
    # Handle changing an arbitary value
