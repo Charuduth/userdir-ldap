@@ -1,6 +1,13 @@
 Most of the configuration of the ldap server has to do with getting correct
 access controls to keep the data safe. Here is a sample:
 
+
+# only allow plain text auth when we do crypto
+security simple_bind=128
+
+# and the database definition
+database bdb
+
 # Turn on automatic last modification time 
 lastmod on
 
