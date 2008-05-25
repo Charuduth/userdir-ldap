@@ -349,8 +349,8 @@ while(1):
    if RootMode == 1:
       print "   a) Arbitary Change";
       print "   R) Randomize Password";
+      print "   L) Lock account";
    print "   p) Change Password";
-   print "   L) Lock account";
    print "   u) Switch Users";
    print "   x) Exit";
    

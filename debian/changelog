@@ -1,8 +1,9 @@
 userdir-ldap (0.3.3X) Xnstable; urgency=low
 
   * add "security simple_bind=128" to sample slapd.conf.
+  * ud-info: Only show "Lock account" in root mode.
 
- -- Peter Palfrader <weasel@debian.org>  Sun, 25 May 2008 18:34:06 +0200
+ -- Peter Palfrader <weasel@debian.org>  Sun, 25 May 2008 22:35:34 +0200
 
 userdir-ldap (0.3.32) unstable; urgency=low
 
