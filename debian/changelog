@@ -11,8 +11,10 @@ userdir-ldap (0.3.3X) Xnstable; urgency=low
     a few months they should move on to retired, with their mail
     also disabled.  accountStatus is just a freeform text, but
     these 4 options should be the only ones that exist.
+  * Allow setting of gender in ud-mailgate.  Based on patch by Bernhard
+    R.  Link.
 
- -- Peter Palfrader <weasel@debian.org>  Mon, 26 May 2008 01:27:11 +0200
+ -- Peter Palfrader <weasel@debian.org>  Mon, 09 Jun 2008 22:59:06 +0200
 
 userdir-ldap (0.3.32) unstable; urgency=low
 

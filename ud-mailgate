@@ -32,6 +32,14 @@ DNS = {}
 SSHFingerprint = re.compile('^(\d+) ([0-9a-f\:]{47}) (.+)$')
 SSHRSA1Match = re.compile('^^(.* )?\d+ \d+ \d+')
 
+GenderTable = {"male": 1,
+	       "1": 1,
+	       "female": 2,
+	       "2": 2,
+	       "unspecified": 9,
+	       "9": 9,
+};
+
 ArbChanges = {"c": "..",
 	      "l": ".*",
 	      "facsimileTelephoneNumber": ".*",
@@ -50,6 +58,7 @@ ArbChanges = {"c": "..",
 	      "mailGreylisting": "^(TRUE|FALSE)$",
 	      "mailCallout": "^(TRUE|FALSE)$",
 	      "VoIP": ".*",
+	      "gender": "^(1|2|9|male|female|unspecified)$",
 };
 
 DelItems = {"c": None,
@@ -158,6 +167,12 @@ def DoArbChange(Str,Attrs):
    if re.match(ArbChanges[attrName],G[1]) == None:
       raise Error, "Item does not match the required format"+ArbChanges[attrName];
 
+   value = G[1];
+   if attrName == 'gender':
+      if G[1] not in GenderTable:
+         raise Error, "Gender not found in table"
+      value = GenderTable[G[1]]
+
 #   if attrName == 'birthDate':
 #      (re.match("^([0-9]{4})([01][0-9])([0-3][0-9])$",G[1]) {
 #    $bd_yr = $1; $bd_mo = $2; $bd_day = $3;
@@ -181,8 +196,8 @@ def DoArbChange(Str,Attrs):
 #  } elsif (not defined($query->param('birthdate')) or $query->param('birthdate') =~ /^\s*$/) {
 #    $bd_ok = 1;
 #  }
-   Attrs.append((ldap.MOD_REPLACE,attrName,G[1]));
-   return "Changed entry %s to %s"%(attrName,G[1]);
+   Attrs.append((ldap.MOD_REPLACE,attrName,value));
+   return "Changed entry %s to %s"%(attrName,value);
 
 # Handle changing a set of arbitary fields
 #  <field>: value
