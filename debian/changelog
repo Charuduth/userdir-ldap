@@ -12,7 +12,7 @@ userdir-ldap (0.3.3X) Xnstable; urgency=low
     also disabled.  accountStatus is just a freeform text, but
     these 4 options should be the only ones that exist.
   * Allow setting of gender in ud-mailgate.  Based on patch by Bernhard
-    R.  Link.
+    R. Link.
 
  -- Peter Palfrader <weasel@debian.org>  Mon, 09 Jun 2008 22:59:06 +0200
 
