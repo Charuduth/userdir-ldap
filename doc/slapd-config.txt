@@ -6,48 +6,7 @@ access controls to keep the data safe. Here is a sample:
 security simple_bind=128
 
 # and the database definition
-database bdb
-
-# Turn on automatic last modification time 
-lastmod on
-
-# Index some things
-index uid eq
-index keyfingerprint eq
-index cn,sn approx,sub,eq
-
-# Administrate 
-#rootdn "uid=admin,ou=users,dc=debian,dc=org"
-#rootpw
-
-# Restrict reading/modification of the password to administration and self
-access to attrs=userpassword,sshrsaauthkey
-        by self write
-        by dn="uid=admin,ou=users,dc=debian,dc=org" write
-        by group="uid=admin,ou=users,dc=debian,dc=org" write
-        by * compare    
-
-access to attrs=emailforward
-        by dn="uid=admin,ou=users,dc=debian,dc=org" write
-        by group="uid=admin,ou=users,dc=debian,dc=org" write
-        by self write
-        by addr=127.0.0.1 read
-        by domain=.*\.debian\.org read
-        by * none
-access to attrs=c,l,loginShell,ircNick
-        by dn="uid=admin,ou=users,dc=debian,dc=org" write
-        by group="uid=admin,ou=users,dc=debian,dc=org" write
-        by self write
-access to attrs=facsimileTelephoneNumber,telephoneNumber,postalAddress,postalC
-ode,loginShell,onvacation,privateSub,latitude,longitude
-        by dn="uid=admin,ou=users,dc=debian,dc=org" write
-        by group="uid=admin,ou=users,dc=debian,dc=org" write
-        by self write
-        by dn="uid=.*,ou=users,dc=debian,dc=org" read
-        by * none
-access to * 
-        by dn="uid=admin,ou=users,dc=debian,dc=org" write
-        by group="uid=admin,ou=users,dc=debian,dc=org" write
+include /etc/ldap/userdir-ldap-slapd.conf
 
 # Overlays are useful to enforce constraints:
 

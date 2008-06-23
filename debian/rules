@@ -6,6 +6,9 @@
 build:
 	dh_testdir
 	$(MAKE) -C doc
+	# feel free to put dc=debian,dc=org and debian.org into some config file so that this is easier on others who
+	# also use userdir-ldap.
+	sed -e 's/@@DN@@/dc=debian,dc=org/g; s/@@DOMAIN@@/debian.org/g' < userdir-ldap-slapd.conf.in > userdir-ldap-slapd.conf
 	touch build
 
 clean:
@@ -13,6 +16,7 @@ clean:
 	rm -f build
 	find . -name '*.py[co]' -print0 | xargs -0 --no-run-if-empty rm -f
 	$(MAKE) -C doc clean
+	rm -f userdir-ldap-slapd.conf
 	dh_clean
 
 binary-indep: build

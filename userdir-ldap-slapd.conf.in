@@ -1,0 +1,68 @@
+# The backend type, ldbm, is the default standard
+database bdb
+
+# The base of your directory
+suffix          "@@DN@@"
+
+# Where the database file are physically stored
+directory       "/var/lib/ldap"
+
+# Indexing options
+index uid eq
+index keyfingerprint eq
+index cn,sn sub,eq
+index dnsZoneEntry eq
+index uidNumber eq
+index gidNumber eq
+index ircNick sub,eq
+index c eq
+index gender eq
+index birthDate eq
+
+# Don't limit queries to the default of 500
+sizelimit 10000
+
+# Save the time that the entry gets modified
+lastmod on
+
+# owner writeable
+access to attrs=userPassword,sshrsaauthkey
+	by group="cn=LDAP Administrator,ou=users,@@DN@@" write
+	by dn="uid=sshdist,ou=users,@@DN@@"  write
+	by self write
+	by * compare
+
+# debian readable
+access to attrs=activity-pgp,activity-from,dnsZoneEntry
+	by group="cn=LDAP Administrator,ou=users,@@DN@@" write
+	by dn="uid=sshdist,ou=users,@@DN@@" write
+	by peername.ip=127.0.0.1 read
+	by domain=alioth.debian.org none
+	by domain.subtree=@@DOMAIN@@ read
+	by dn.regex="uid=.*,ou=users,@@DN@@" read
+	by * none
+
+# owner writeable, debian readable, authenticated user readable
+access to attrs=c,l,loginShell,ircNick,labeledURI,icqUIN,jabberJID,onVacation,birthDate,mailDisableMessage,gender,emailforward,mailCallout,mailGreylisting,mailRBL,mailRHSBL,mailWhitelist
+	by group="cn=LDAP Administrator,ou=users,@@DN@@" write
+	by dn="uid=sshdist,ou=users,@@DN@@" write
+	by self write
+	by dn.regex="uid=.*,ou=users,@@DN@@" read
+	by peername.ip=127.0.0.1 read
+	by domain=alioth.debian.org none
+	by domain.subtree=@@DOMAIN@@ read
+	by * none
+
+# owner writeable, authenticated user readable
+access to attrs=facsimileTelephoneNumber,telephoneNumber,postalAddress,postalCode,loginShell,onVacation,privateSub,latitude,longitude,VoIP
+	by group="cn=LDAP Administrator,ou=users,@@DN@@" write
+	by dn="uid=sshdist,ou=users,@@DN@@" write
+	by self write
+	by dn.regex="uid=.*,ou=users,@@DN@@" read
+	by * none
+
+# globally readable
+access to *
+	by group="cn=LDAP Administrator,ou=users,@@DN@@" write
+	by dn="uid=sshdist,ou=users,@@DN@@" write
+	by * read

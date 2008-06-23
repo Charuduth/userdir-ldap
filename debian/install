@@ -24,3 +24,4 @@ userdir-ldap.conf etc/userdir-ldap/
 generate.conf etc/userdir-ldap/
 templates/ etc/userdir-ldap/
 userdir-ldap.schema etc/ldap/schema/
+userdir-ldap-slapd.conf etc/ldap/
