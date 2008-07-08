@@ -1,4 +1,4 @@
-userdir-ldap (0.3.XX) unstable; urgency=low
+userdir-ldap (0.3.34) unstable; urgency=low
 
   * ud-info: fix changing of DD status/DD status comment -
     we were missing prompt information so we got a backtrace.
@@ -12,7 +12,7 @@ userdir-ldap (0.3.XX) unstable; urgency=low
     - Check that the primary key is not expired, even if we get a
       GOODSIG status from gnupg.  Based on patch by Jeremy T. Bouse.
 
- -- Peter Palfrader <weasel@debian.org>  Tue, 08 Jul 2008 14:27:26 +0200
+ -- Peter Palfrader <weasel@debian.org>  Tue, 08 Jul 2008 14:33:08 +0200
 
 userdir-ldap (0.3.33) unstable; urgency=low
 
