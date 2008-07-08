@@ -368,10 +368,15 @@ def GPGCheckSig(Message):
             Why = "Unable to verify signature, signing key missing.";
 
 	 # Expired signature
-	 if Split[1] == "SIGEXPIRED" or Split[1] == "EXPSIG":
+	 if Split[1] == "EXPSIG":
 	    GoodSig = 0;
             Why = "Signature has expired";
-	    
+
+	 # Expired signature
+	 if Split[1] == "EXPKEYSIG":
+	    GoodSig = 0;
+            Why = "Signing key (%s, %s) has expired"%(Split[2], Split[3]);
+
 	 # Revoked key
 	 if Split[1] == "KEYREVOKED" or Split[1] == "REVKEYSIG":
 	    GoodSig = 0;

@@ -116,7 +116,10 @@ AttrPrompt = {"cn": ["Common name or first name"],
               "labeledURI": ["Web home page"],
               "jabberJID": ["Jabber ID"],
               "icqUin": ["ICQ UIN Number"],
-              "VoIP": ["VoIP Address"]};
+              "VoIP": ["VoIP Address"],
+              "accountStatus": ["DD status"],
+              "accountComment": ["DD status comment"],
+              };
 
 # Create a map of IDs to desc,value,attr
 OrderedIndex = {};
@@ -124,6 +127,10 @@ for at in AttrInfo.keys():
    if (AttrInfo[at][1] != 0):
       OrderedIndex[AttrInfo[at][1]] = [AttrInfo[at][0], "", at];
 OrigOrderedIndex = copy.deepcopy(OrderedIndex);
+
+for id in OrderedIndex:
+   if not AttrPrompt.has_key( OrderedIndex[id][2] ):
+      print "Warning: no AttrPrompt for %s"%(id)
 
 # Show shadow information
 def PrintShadow(Attrs):

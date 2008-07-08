@@ -1,3 +1,12 @@
+userdir-ldap (0.3.XX) unstable; urgency=low
+
+  * ud-info: fix changing of DD status/DD status comment -
+    we were missing prompt information so we got a backtrace.
+  * ud-info: Warn when we don't have a prompt string for
+    attributes on startup.
+
+ -- Peter Palfrader <weasel@debian.org>  Tue, 08 Jul 2008 09:44:39 +0200
+
 userdir-ldap (0.3.33) unstable; urgency=low
 
   * add "security simple_bind=128" to sample slapd.conf.
