@@ -4,8 +4,10 @@ userdir-ldap (0.3.XX) unstable; urgency=low
     we were missing prompt information so we got a backtrace.
   * ud-info: Warn when we don't have a prompt string for
     attributes on startup.
+  * ud-info: Change the "retired" status to "inactive".
+    inactive covers memorial, removed, expelled more clearly.
 
- -- Peter Palfrader <weasel@debian.org>  Tue, 08 Jul 2008 09:44:39 +0200
+ -- Peter Palfrader <weasel@debian.org>  Tue, 08 Jul 2008 10:33:51 +0200
 
 userdir-ldap (0.3.33) unstable; urgency=low
 
