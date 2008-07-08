@@ -343,7 +343,15 @@ def GPGCheckSig(Message):
 	       GoodSig = 1;
 	    KeyID = Split[2];
 	    Owner = ' '.join(Split[3:])
-	    
+	    # If this message is signed with a subkey which has not yet
+	    # expired, GnuPG will say GOODSIG here, even if the primary
+	    # key already has expired.  This came up in discussion of
+	    # bug #489225.  GPGKeySearch only returns non-expired keys.
+	    Verify = GPGKeySearch(KeyID);
+	    if len(Verify) == 0:
+	       GoodSig = 0
+	       Why = "Key has expired (no unexpired key found in keyring matching %s)"%(KeyId);
+
 	 # Bad signature response
 	 if Split[1] == "BADSIG":
 	    GoodSig = 0;
@@ -426,6 +434,8 @@ def GPGCheckSig(Message):
 # to GPG for processing. The result is a list of tuples of the form:
 #   (KeyID,KeyFinger,Owner,Length)
 # Which is similar to the key identification tuple output by GPGChecksig
+#
+# Do not return keys where the primary key has expired
 def GPGKeySearch(SearchCriteria):
    Args = [GPGPath] + GPGBasicOptions + GPGKeyRings + GPGSearchOptions + \
           [SearchCriteria," 2> /dev/null"]
@@ -433,6 +443,7 @@ def GPGKeySearch(SearchCriteria):
    Result = [];
    Owner = "";
    KeyID = "";
+   Expired = None;
    Hits = {};
 
    dir = os.path.expanduser("~/.gnupg")
@@ -454,13 +465,15 @@ def GPGKeySearch(SearchCriteria):
             KeyID = Split[4];
             Owner = Split[9];
             Length = int(Split[2]);
+            Expired = Split[1] == 'e'
 
          # Output the key
          if Split[0] == 'fpr':
             if Hits.has_key(Split[9]):
                continue;
             Hits[Split[9]] = None;
-            Result.append( (KeyID,Split[9],Owner,Length) );
+            if not Expired:
+               Result.append( (KeyID,Split[9],Owner,Length) );
    finally:
       if Strm != None:
          Strm.close();
