@@ -1,3 +1,10 @@
+userdir-ldap (0.3.36) unstable; urgency=low
+
+  * Aha.  Error is not some magic variable or exception, it's a
+    normal string that needs defining when we use it.
+
+ -- Peter Palfrader <weasel@debian.org>  Sat, 19 Jul 2008 21:35:39 +0200
+
 userdir-ldap (0.3.35) unstable; urgency=low
 
   * Check if a key has encryption capabilities and fail saying so when

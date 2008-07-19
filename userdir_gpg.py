@@ -254,6 +254,7 @@ def GPGWriteFilter(Program,Options,Message):
 # It is best if the recipient is specified using the hex key fingerprint
 # of the target, ie 0x64BE1319CCF6D393BF87FF9358A6D4EE
 def GPGEncrypt(Message,To,PGP2):
+   Error = "KeyringError"
    # Encrypt using the PGP5 block encoding and with the PGP5 option set.
    # This will handle either RSA or DSA/DH asymetric keys.
    # In PGP2 compatible mode IDEA and rfc1991 encoding are used so that
