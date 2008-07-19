@@ -259,6 +259,14 @@ def GPGEncrypt(Message,To,PGP2):
    # In PGP2 compatible mode IDEA and rfc1991 encoding are used so that
    # PGP2 can read the result. RSA keys do not need PGP2 to be set, as GPG
    # can read a message encrypted with blowfish and RSA.
+   searchkey = GPGKeySearch(To);
+   if len(searchkey) == 0:
+      raise Error, "No key found matching %s"%(To);
+   elif len(searchkey) > 1:
+      raise Error, "Multiple keys found matching %s"%(To);
+   if searchkey[0][4].find("E") < 0:
+      raise Error, "Key %s has no encryption capability - are all encryption subkeys expired or revoked?  Are there any encryption subkeys?"%(To);
+
    if PGP2 == 0:
       try:
          Res = None;
@@ -443,6 +451,7 @@ def GPGKeySearch(SearchCriteria):
    Result = [];
    Owner = "";
    KeyID = "";
+   Capabilities = ""
    Expired = None;
    Hits = {};
 
@@ -464,7 +473,8 @@ def GPGKeySearch(SearchCriteria):
          if Split[0] == 'pub':
             KeyID = Split[4];
             Owner = Split[9];
-            Length = int(Split[2]);
+            Length = int(Split[2])
+            Capabilities = Split[11]
             Expired = Split[1] == 'e'
 
          # Output the key
@@ -473,7 +483,7 @@ def GPGKeySearch(SearchCriteria):
                continue;
             Hits[Split[9]] = None;
             if not Expired:
-               Result.append( (KeyID,Split[9],Owner,Length) );
+               Result.append( (KeyID,Split[9],Owner,Length,Capabilities) );
    finally:
       if Strm != None:
          Strm.close();
