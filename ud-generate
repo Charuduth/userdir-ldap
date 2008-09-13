@@ -35,6 +35,8 @@ GroupIDMap = {};
 Allowed = None;
 CurrentHost = "";
 
+UUID_FORMAT = '[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}'
+
 EmailCheck = re.compile("^([^ <>@]+@[^ ,<>@]+)?$");
 BSMTPCheck = re.compile(".*mx 0 (gluck)\.debian\.org\..*",re.DOTALL);
 DNSZone = ".debian.net"
@@ -199,6 +201,58 @@ def GenShadow(l,File):
    Die(File,None,F);
    raise;
   Done(File,None,F);
+
+# Generate the sudo passwd file
+def GenShadowSudo(l,File):
+  F = None;
+  try:
+   OldMask = os.umask(0077);
+   F = open(File + ".tmp","w",0600);
+   os.umask(OldMask);
+
+   # Fetch all the users
+   global PasswdAttrs;
+   if PasswdAttrs == None:
+      raise "No Users";
+
+   for x in PasswdAttrs:
+      if x[1].has_key("uidNumber") == 0 or IsInGroup(x) == 0:
+         continue;
+      if not x[1].has_key('sudoPassword'):
+         continue
+
+      Pass = None
+      for entry in x[1]['sudoPassword']:
+         Match = re.compile('^('+UUID_FORMAT+') (confirmed|unconfirmed) ([a-z0-9.,*]+) ([^ ]+)$').match(entry.lower())
+         if Match == None:
+            continue
+         status = Match.group(2)
+         hosts = Match.group(3)
+         cryptedpass = Match.group(4)
+
+         if status != 'confirmed':
+            continue
+         for_all = hosts == "*"
+         for_this_host = CurrentHost in hosts.split(',')
+         if not (for_all or for_this_host):
+            continue
+         Pass = cryptedpass
+         if for_this_host: # this makes sure we take a per-host entry over the for-all entry
+           break
+      if not Pass:
+         continue
+      if len(Pass) > 50:
+         continue
+
+      Line = "%s:%s" % (GetAttr(x,"uid"), Pass)
+      Line = Sanitize(Line) + "\n";
+      F.write("%s" % (Line));
+
+  # Oops, something unspeakable happened.
+  except:
+   Die(File,F,None);
+   raise;
+  Done(File,F,None);
 
 # Generate the shadow list
 def GenSSHShadow(l,masterFileName):
@@ -874,7 +928,7 @@ PasswdAttrs = l.search_s(BaseDn,ldap.SCOPE_ONELEVEL,"uid=*",\
                  "allowedHost","sshRSAAuthKey","dnsZoneEntry","cn","sn",\
 	         "keyFingerPrint","privateSub","mailDisableMessage",\
                  "mailGreylisting","mailCallout","mailRBL","mailRHSBL",\
-                 "mailWhitelist"]);
+                 "mailWhitelist", "sudoPassword"]);
 # Fetch all the hosts
 HostAttrs    = l.search_s(HostBaseDn,ldap.SCOPE_ONELEVEL,"sshRSAHostKey=*",\
                 ["hostname","sshRSAHostKey"]);
@@ -952,6 +1006,7 @@ while(1):
       userlist = GenPasswd(l,OutDir+"passwd",Split[1], "x");
    sys.stdout.flush();
    grouprevmap = GenGroup(l,OutDir+"group");
+   GenShadowSudo(l, OutDir+"sudo-passwd")
 
    # Now we know who we're allowing on the machine, export
    # the relevant ssh keys

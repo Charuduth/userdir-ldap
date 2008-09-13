@@ -489,7 +489,7 @@ def FinishConfirmSudopassword(l, uid, Attrs):
 
    newldap = []
    for entry in inldap:
-      Match = re.compile('^('+UUID_FORMAT+') (confirmed|unconfirmed) ([a-z0-9,*]+) ([^ ]+)$').match(entry.lower())
+      Match = re.compile('^('+UUID_FORMAT+') (confirmed|unconfirmed) ([a-z0-9.,*]+) ([^ ]+)$').match(entry.lower())
       if Match == None:
          raise Error, "Could not parse existing sudopasswd entry"
       uuid = Match.group(1)

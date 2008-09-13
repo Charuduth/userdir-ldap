@@ -8,8 +8,9 @@ userdir-ldap (0.3.3xxx) unstable; urgency=low
   * ud-mailgate: Implement confirmation of sudoPassword field:
       A confirmationation is of the form
       "confirm sudopassword <uuid> <hostlist> <hmac_sha1("<uuid>:<hosts>:<cryptedpass>")>"
+  * ud-generate: generate a sudo passwd file
 
- -- Peter Palfrader <weasel@debian.org>  Sat, 13 Sep 2008 18:27:47 +0200
+ -- Peter Palfrader <weasel@debian.org>  Sat, 13 Sep 2008 20:16:04 +0200
 
 userdir-ldap (0.3.36) unstable; urgency=low
 
