@@ -454,6 +454,7 @@ def HandleChange(Reply,DnRecord,Key):
    Result = "";
    Attrs = [];
    Show = 0;
+   CommitChanges = 1
    for Line in Lines: 
       Line = Line.strip()
       if Line == "":
@@ -477,7 +478,8 @@ def HandleChange(Reply,DnRecord,Key):
       # Fail, if someone tries to send someone elses signed email to the
       # daemon then we want to abort ASAP.
       if Res == None:
-         Result = Result + "Command is not understood. Halted\n";
+         CommitChanges = 0
+         Result = Result + "Command is not understood. Halted - no changes committed\n";
          break;
       Result = Result + Res + "\n";
 
@@ -494,7 +496,8 @@ def HandleChange(Reply,DnRecord,Key):
        or GetAttr(oldAttrs[0],"userPassword").startswith("!")):
       raise Error, "This account is locked";
    Dn = "uid=" + GetAttr(DnRecord,"uid") + "," + BaseDn;
-   l.modify_s(Dn,Attrs);
+   if CommitChanges == 1:
+      l.modify_s(Dn,Attrs);
 
    Attribs = "";
    if Show == 1:
