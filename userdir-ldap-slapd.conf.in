@@ -29,7 +29,7 @@ lastmod on
 access to attrs=userPassword,sshrsaauthkey
 	by group="cn=LDAP Administrator,ou=users,@@DN@@" write
 	by dn="uid=sshdist,ou=users,@@DN@@"  write
-	by self write
+	by self read
 	by * compare
 
 # debian readable
