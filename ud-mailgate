@@ -7,7 +7,12 @@
 
 import userdir_gpg, userdir_ldap, sys, traceback, time, ldap, os, commands
 import pwd, tempfile
-import hmac, haslib
+import hmac
+try:
+   import hashlib
+except ImportError:
+   import sha as sha1_module
+
 from userdir_gpg import *
 from userdir_ldap import *
 
@@ -98,7 +103,7 @@ def make_hmac(str):
    key = F.readline()
    F.close();
 
-   return hmac.new(key, str, hashlib.sha1).hexdigest
+   return hmac.new(key, str, sha1_module).hexdigest
 
 
 
@@ -473,7 +478,7 @@ def DoConfirmSudopassword(Str):
    SudoPasswd[uuid] = (hosts, hmac)
    return "got confirm for sudo password %s on host(s) %s, auth code %s" % (uuid,hosts, hmac)
 
-def FinishConfirmSudopassword(l, dn, Attrs):
+def FinishConfirmSudopassword(l, uid, Attrs):
    global SudoPasswd
    result = "\n"
 
@@ -486,7 +491,7 @@ def FinishConfirmSudopassword(l, dn, Attrs):
    else:
       inldap = []
 
-   first_entry = 0
+   newldap = []
    for entry in inldap:
       Match = re.compile('^('+UUID_FORMAT+') (confirmed|unconfirmed) ([a-z0-9,*]+) ([^ ]+)$'),match(entry.lower())
       if Match == None:
@@ -511,14 +516,16 @@ def FinishConfirmSudopassword(l, dn, Attrs):
          del SudoPasswd[uuid]
 
       newentry = " ".join([uuid, status, hosts, cryptedpass])
-      if first_entry:
-         Attrs.append((ldap.MOD_ADD,"sudoPassword",newentry))
+      if len(newldap) == 0:
+         newldap.append((ldap.MOD_ADD,"sudoPassword",newentry))
       else:
-         Attrs.append((ldap.MOD_REPLACE,"sudoPassword",newentry))
-         first_entry = 1
+         newldap.append((ldap.MOD_REPLACE,"sudoPassword",newentry))
 
    for entry in SudoPasswd:
       result = result + "Entry %s that you confirm is not listed in ldap."%(entry)
+
+   for entry in newldap:
+      Attrs.append(entry)
 
    return result
 
@@ -573,9 +580,9 @@ def HandleChange(Reply,DnRecord,Key):
    try:
       Res = FinishConfirmSudopassword(l, GetAttr(DnRecord,"uid"), Attrs)
       Result = Result + Res + "\n";
-   except:
+   except Error, e:
       CommitChanges = 0
-      Result = Result + "ConfirmSudopassword raised an error - no changes committed\n";
+      Result = Result + "FinishConfirmSudopassword raised an error (%s) - no changes committed\n"%(e);
    # Modify the record
    Dn = "uid=" + GetAttr(DnRecord,"uid") + "," + BaseDn;
    if CommitChanges == 1:
