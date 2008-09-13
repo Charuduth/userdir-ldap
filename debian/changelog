@@ -2,8 +2,14 @@ userdir-ldap (0.3.3xxx) unstable; urgency=low
 
   * ud-mailgate: Do not commit any changes if one of the requests is invalid
     or could not be parsed or caused an error or anything.
+  * Add sudoPassword to schema, and the slapd.conf/ACL snippet
+    A sudoPassword entry in LDAP has the form of
+      "<uuid> (confirmed|unconfirmed) <hostlist> <cryptedpassword>"
+  * ud-mailgate: Implement confirmation of sudoPassword field:
+      A confirmationation is of the form
+      "confirm sudopassword <uuid> <hostlist> <hmac_sha1("<uuid>:<hosts>:<cryptedpass>")>"
 
- -- Peter Palfrader <weasel@debian.org>  Sat, 13 Sep 2008 16:29:37 +0200
+ -- Peter Palfrader <weasel@debian.org>  Sat, 13 Sep 2008 18:27:47 +0200
 
 userdir-ldap (0.3.36) unstable; urgency=low
 

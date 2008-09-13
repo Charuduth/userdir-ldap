@@ -7,6 +7,7 @@
 
 import userdir_gpg, userdir_ldap, sys, traceback, time, ldap, os, commands
 import pwd, tempfile
+import hmac, haslib
 from userdir_gpg import *
 from userdir_ldap import *
 
@@ -18,6 +19,8 @@ ChangeFrom = ConfModule.changefrom;
 ReplayCacheFile = ConfModule.replaycachefile;
 SSHFingerprintFile = ConfModule.fingerprintfile
 
+UUID_FORMAT = '[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}'
+
 EX_TEMPFAIL = 75;
 EX_PERMFAIL = 65;      # EX_DATAERR
 Error = 'Message Error';
@@ -28,6 +31,7 @@ mailRHSBL = {}
 mailWhitelist = {}
 SeenList = {}
 DNS = {}
+SudoPasswd = {}
 
 SSHFingerprint = re.compile('^(\d+) ([0-9a-f\:]{47}) (.+)$')
 SSHRSA1Match = re.compile('^^(.* )?\d+ \d+ \d+')
@@ -88,6 +92,15 @@ DelItems = {"c": None,
             "mailDisableMessage": None,
             "VoIP": None,
             };
+
+def make_hmac(str):
+   F = open(PassDir+"/key-hmac","r");
+   key = F.readline()
+   F.close();
+
+   return hmac.new(key, str, hashlib.sha1).hexdigest
+
+
 
 # Decode a GPS location from some common forms
 def LocDecode(Str,Dir):
@@ -446,6 +459,69 @@ def DoRBL(Str,Attrs):
    SeenList[Key] = 1;
    return "%s replaced with %s" % (Key,Host)
 
+# Handle a ConfirmSudoPassword request
+def DoConfirmSudopassword(Str):
+   Match = re.compile('^confirm sudopassword ('+UUID_FORMAT+') ([a-z0-9,*]+) ([0-9a-f]{40})$').match(Str.lower())
+   if Match == None:
+      return None
+
+   uuid = Match.group(1)
+   hosts = Match.group(2)
+   hmac = Match.group(3)
+
+   global SudoPasswd
+   SudoPasswd[uuid] = (hosts, hmac)
+   return "got confirm for sudo password %s on host(s) %s, auth code %s" % (uuid,hosts, hmac)
+
+def FinishConfirmSudopassword(l, dn, Attrs):
+   global SudoPasswd
+   result = "\n"
+
+   res = l.search_s(BaseDn,ldap.SCOPE_ONELEVEL,"uid="+uid, ['sudoPassword']);
+   if len(res) != 1:
+      raise Error, "Not exactly one hit when searching for user"
+   Attrs = res[0][1]
+   if Attrs.has_key('sudoPassword'):
+      inldap = Attrs['sudoPassword']
+   else:
+      inldap = []
+
+   first_entry = 0
+   for entry in inldap:
+      Match = re.compile('^('+UUID_FORMAT+') (confirmed|unconfirmed) ([a-z0-9,*]+) ([^ ]+)$'),match(entry.lower())
+      if Match == None:
+         raise Error, "Could not parse existing sudopasswd entry"
+      uuid = Match.group(1)
+      status = Match.group(2)
+      hosts = Match.group(3)
+      cryptedpass = Match.group(4)
+
+      if SudoPasswd.has_key(uuid):
+         confirmedHosts = SudoPasswd[uuid][0]
+         confirmedHmac = SudoPasswd[uuid][1]
+         if status == "confirmed":
+            result = result + "Entry %s for sudo password on hosts %s already confirmed.\n"%(uuid, hosts)
+         elif confirmedHosts != hosts:
+            result = result + "Entry %s hostlist mismatch (%s vs. %s).\n"%(uuid, hosts, confirmedHosts)
+         elif make_hmac(':'.join([uuid, hosts, cryptedpass])) == confirmedHmac:
+            result = result + "Entry %s for sudo password on hosts %s now confirmed.\n"%(uuid, hosts)
+            status = 'confirmed'
+         else:
+            result = result + "Entry %s for sudo password on hosts %s HMAC verify failed.\n"%(uuid, hosts)
+         del SudoPasswd[uuid]
+
+      newentry = " ".join([uuid, status, hosts, cryptedpass])
+      if first_entry:
+         Attrs.append((ldap.MOD_ADD,"sudoPassword",newentry))
+      else:
+         Attrs.append((ldap.MOD_REPLACE,"sudoPassword",newentry))
+         first_entry = 1
+
+   for entry in SudoPasswd:
+      result = result + "Entry %s that you confirm is not listed in ldap."%(entry)
+
+   return result
+
 # Handle an [almost] arbitary change
 def HandleChange(Reply,DnRecord,Key):
    global PlainText;
@@ -470,11 +546,11 @@ def HandleChange(Reply,DnRecord,Key):
             badkeys = LoadBadSSH()
             Res = DoPosition(Line,Attrs) or DoDNS(Line,Attrs,DnRecord) or \
                   DoArbChange(Line,Attrs) or DoSSH(Line,Attrs,badkeys,GetAttr(DnRecord,"uid")) or \
-                  DoDel(Line,Attrs) or DoRBL(Line,Attrs)
+                  DoDel(Line,Attrs) or DoRBL(Line,Attrs) or DoConfirmSudopassword(Line)
       except:
          Res = None;
          Result = Result + "==> %s: %s\n" %(sys.exc_type,sys.exc_value);
-	 
+
       # Fail, if someone tries to send someone elses signed email to the
       # daemon then we want to abort ASAP.
       if Res == None:
@@ -489,12 +565,18 @@ def HandleChange(Reply,DnRecord,Key):
    AccessPass = F.readline().strip().split(" ")
    F.close();
 
-   # Modify the record
    l.simple_bind_s("uid="+AccessPass[0]+","+BaseDn,AccessPass[1]);
    oldAttrs = l.search_s(BaseDn,ldap.SCOPE_ONELEVEL,"uid="+GetAttr(DnRecord,"uid"));
    if ((GetAttr(oldAttrs[0],"userPassword").find("*LK*") != -1) 
        or GetAttr(oldAttrs[0],"userPassword").startswith("!")):
       raise Error, "This account is locked";
+   try:
+      Res = FinishConfirmSudopassword(l, GetAttr(DnRecord,"uid"), Attrs)
+      Result = Result + Res + "\n";
+   except:
+      CommitChanges = 0
+      Result = Result + "ConfirmSudopassword raised an error - no changes committed\n";
+   # Modify the record
    Dn = "uid=" + GetAttr(DnRecord,"uid") + "," + BaseDn;
    if CommitChanges == 1:
       l.modify_s(Dn,Attrs);
