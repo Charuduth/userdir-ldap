@@ -364,7 +364,7 @@ attributetype ( 1.3.6.1.4.1.9586.100.4.2.36
 	NAME 'sudoPassword'
 	DESC 'sudo password'
 	EQUALITY octetStringMatch
-	SYNTAX 1.3.6.1.4.1.1466.115.121.1.40{128} )
+	SYNTAX 1.3.6.1.4.1.1466.115.121.1.40 )
 
 
 # Public object classes
