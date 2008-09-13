@@ -96,7 +96,7 @@ DelItems = {"c": None,
             };
 
 def make_hmac(str):
-   F = open(PassDir+"/key-hmac","r");
+   F = open(PassDir+"/key-hmac-"+pwd.getpwuid(os.getuid())[0],"r");
    key = F.readline().strip()
    F.close();
 
@@ -482,15 +482,14 @@ def FinishConfirmSudopassword(l, uid, Attrs):
    res = l.search_s(BaseDn,ldap.SCOPE_ONELEVEL,"uid="+uid, ['sudoPassword']);
    if len(res) != 1:
       raise Error, "Not exactly one hit when searching for user"
-   Attrs = res[0][1]
-   if Attrs.has_key('sudoPassword'):
-      inldap = Attrs['sudoPassword']
+   if res[0][1].has_key('sudoPassword'):
+      inldap = res[0][1]['sudoPassword']
    else:
       inldap = []
 
    newldap = []
    for entry in inldap:
-      Match = re.compile('^('+UUID_FORMAT+') (confirmed|unconfirmed) ([a-z0-9,*]+) ([^ ]+)$'),match(entry.lower())
+      Match = re.compile('^('+UUID_FORMAT+') (confirmed|unconfirmed) ([a-z0-9,*]+) ([^ ]+)$').match(entry.lower())
       if Match == None:
          raise Error, "Could not parse existing sudopasswd entry"
       uuid = Match.group(1)
@@ -514,9 +513,9 @@ def FinishConfirmSudopassword(l, uid, Attrs):
 
       newentry = " ".join([uuid, status, hosts, cryptedpass])
       if len(newldap) == 0:
-         newldap.append((ldap.MOD_ADD,"sudoPassword",newentry))
-      else:
          newldap.append((ldap.MOD_REPLACE,"sudoPassword",newentry))
+      else:
+         newldap.append((ldap.MOD_ADD,"sudoPassword",newentry))
 
    for entry in SudoPasswd:
       result = result + "Entry %s that you confirm is not listed in ldap."%(entry)
