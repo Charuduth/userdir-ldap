@@ -100,7 +100,7 @@ DelItems = {"c": None,
 
 def make_hmac(str):
    F = open(PassDir+"/key-hmac","r");
-   key = F.readline()
+   key = F.readline().strip()
    F.close();
 
    return hmac.new(key, str, sha1_module).hexdigest
