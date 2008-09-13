@@ -100,7 +100,7 @@ def make_hmac(str):
    key = F.readline().strip()
    F.close();
 
-   return hmac.new(key, str, sha1_module).hexdigest
+   return hmac.new(key, str, sha1_module).hexdigest()
 
 
 
