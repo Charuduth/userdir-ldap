@@ -27,10 +27,6 @@ except:
 ConfModule = imp.load_source("userdir_config","/etc/userdir-ldap.conf",File);
 File.close();
 
-File = open(PassDir+"/key-hmac-"+pwd.getpwuid(os.getuid())[0],"r");
-HmacKey = F.readline().strip()
-File.close();
-
 # Cheap hack
 BaseDn = ConfModule.basedn;
 HostBaseDn = ConfModule.hostbasedn;
@@ -44,6 +40,10 @@ TemplatesDir = ConfModule.templatesdir;
 PassDir = ConfModule.passdir;
 Ech_ErrorLog = ConfModule.ech_errorlog;
 Ech_MainLog = ConfModule.ech_mainlog;
+
+File = open(PassDir+"/key-hmac-"+pwd.getpwuid(os.getuid())[0],"r");
+HmacKey = F.readline().strip()
+File.close();
 
 # For backwards compatibility, we default to the old behaviour
 MultipleSSHFiles = getattr(ConfModule, 'multiplesshfiles', False)
