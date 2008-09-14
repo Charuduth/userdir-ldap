@@ -453,7 +453,7 @@ def DoRBL(Str,Attrs):
 
 # Handle a ConfirmSudoPassword request
 def DoConfirmSudopassword(Str):
-   Match = re.compile('^confirm sudopassword ('+UUID_FORMAT+') ([a-z0-9,*]+) ([0-9a-f]{40})$').match(Str.lower())
+   Match = re.compile('^confirm sudopassword ('+UUID_FORMAT+') ([a-z0-9,*]+) ([0-9a-f]{40})$').match(Str)
    if Match == None:
       return None
 
@@ -479,7 +479,7 @@ def FinishConfirmSudopassword(l, uid, Attrs):
 
    newldap = []
    for entry in inldap:
-      Match = re.compile('^('+UUID_FORMAT+') (confirmed:[0-9a-f]{40}|unconfirmed) ([a-z0-9.,*]+) ([^ ]+)$').match(entry.lower())
+      Match = re.compile('^('+UUID_FORMAT+') (confirmed:[0-9a-f]{40}|unconfirmed) ([a-z0-9.,*]+) ([^ ]+)$').match(entry)
       if Match == None:
          raise Error, "Could not parse existing sudopasswd entry"
       uuid = Match.group(1)
