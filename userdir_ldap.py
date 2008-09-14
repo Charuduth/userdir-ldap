@@ -19,6 +19,8 @@
 # Some routines and configuration that are used by the ldap progams
 import termios, re, imp, ldap, sys, crypt, rfc822, pwd, os;
 import userdir_gpg
+import hmac
+import sha as sha1_module
 
 try:
    File = open("/etc/userdir-ldap/userdir-ldap.conf");

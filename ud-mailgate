@@ -7,8 +7,6 @@
 
 import userdir_gpg, userdir_ldap, sys, traceback, time, ldap, os, commands
 import pwd, tempfile
-import hmac
-import sha as sha1_module
 
 from userdir_gpg import *
 from userdir_ldap import *
