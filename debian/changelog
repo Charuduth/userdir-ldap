@@ -1,4 +1,4 @@
-userdir-ldap (0.3.3xxx) unstable; urgency=low
+userdir-ldap (0.3.37) unstable; urgency=low
 
   * ud-mailgate: Do not commit any changes if one of the requests is invalid
     or could not be parsed or caused an error or anything.
@@ -11,7 +11,7 @@ userdir-ldap (0.3.3xxx) unstable; urgency=low
       "confirm sudopassword <uuid> <hostlist> <hmac_sha1("confirm-new-password:<uuid>:<hosts>:<cryptedpass>")>"
   * ud-generate: generate a sudo passwd file
 
- -- Peter Palfrader <weasel@debian.org>  Sat, 13 Sep 2008 20:16:04 +0200
+ -- Peter Palfrader <weasel@debian.org>  Sun, 14 Sep 2008 23:45:36 +0200
 
 userdir-ldap (0.3.36) unstable; urgency=low
 
