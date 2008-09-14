@@ -27,6 +27,10 @@ except:
 ConfModule = imp.load_source("userdir_config","/etc/userdir-ldap.conf",File);
 File.close();
 
+File = open(PassDir+"/key-hmac-"+pwd.getpwuid(os.getuid())[0],"r");
+HmacKey = F.readline().strip()
+File.close();
+
 # Cheap hack
 BaseDn = ConfModule.basedn;
 HostBaseDn = ConfModule.hostbasedn;
@@ -450,3 +454,9 @@ def Group2GID(l, name):
       return int(GetAttr(res[0], "gidNumber"))
 
    return -1
+
+def make_hmac(str):
+   return hmac.new(HmacKey, str, sha1_module).hexdigest()
+
+def make_sudopasswd_hmac(purpose, uuid, hosts, cryptedpass):
+   return make_hmac(':'.join([purpose, uuid, hosts, cryptedpass]))

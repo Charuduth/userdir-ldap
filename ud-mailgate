@@ -95,14 +95,6 @@ DelItems = {"c": None,
             "VoIP": None,
             };
 
-def make_hmac(str):
-   F = open(PassDir+"/key-hmac-"+pwd.getpwuid(os.getuid())[0],"r");
-   key = F.readline().strip()
-   F.close();
-
-   return hmac.new(key, str, sha1_module).hexdigest()
-
-
 
 # Decode a GPS location from some common forms
 def LocDecode(Str,Dir):
@@ -489,7 +481,7 @@ def FinishConfirmSudopassword(l, uid, Attrs):
 
    newldap = []
    for entry in inldap:
-      Match = re.compile('^('+UUID_FORMAT+') (confirmed|unconfirmed) ([a-z0-9.,*]+) ([^ ]+)$').match(entry.lower())
+      Match = re.compile('^('+UUID_FORMAT+') (confirmed:[0-9a-f]{40}|unconfirmed) ([a-z0-9.,*]+) ([^ ]+)$').match(entry.lower())
       if Match == None:
          raise Error, "Could not parse existing sudopasswd entry"
       uuid = Match.group(1)
@@ -500,13 +492,16 @@ def FinishConfirmSudopassword(l, uid, Attrs):
       if SudoPasswd.has_key(uuid):
          confirmedHosts = SudoPasswd[uuid][0]
          confirmedHmac = SudoPasswd[uuid][1]
-         if status == "confirmed":
-            result = result + "Entry %s for sudo password on hosts %s already confirmed.\n"%(uuid, hosts)
+         if status.startswith('confirmed:'):
+            if status == 'confirmed:'+make_sudopasswd_hmac('password-is-confirmed', uuid, hosts, cryptedpass):
+               result = result + "Entry %s for sudo password on hosts %s already confirmed.\n"%(uuid, hosts)
+            else:
+               result = result + "Entry %s for sudo password on hosts %s is listed as confirmed, but HMAC does not verify.\n"%(uuid, hosts)
          elif confirmedHosts != hosts:
             result = result + "Entry %s hostlist mismatch (%s vs. %s).\n"%(uuid, hosts, confirmedHosts)
-         elif make_hmac(':'.join([uuid, hosts, cryptedpass])) == confirmedHmac:
+         elif make_sudopasswd_hmac('confirm-new-password', uuid, hosts, cryptedpass) == confirmedHmac:
             result = result + "Entry %s for sudo password on hosts %s now confirmed.\n"%(uuid, hosts)
-            status = 'confirmed'
+            status = 'confirmed:'+make_sudopasswd_hmac('password-is-confirmed', uuid, hosts, cryptedpass)
          else:
             result = result + "Entry %s for sudo password on hosts %s HMAC verify failed.\n"%(uuid, hosts)
          del SudoPasswd[uuid]
