@@ -43,10 +43,6 @@ PassDir = ConfModule.passdir;
 Ech_ErrorLog = ConfModule.ech_errorlog;
 Ech_MainLog = ConfModule.ech_mainlog;
 
-File = open(PassDir+"/key-hmac-"+pwd.getpwuid(os.getuid())[0],"r");
-HmacKey = File.readline().strip()
-File.close();
-
 # For backwards compatibility, we default to the old behaviour
 MultipleSSHFiles = getattr(ConfModule, 'multiplesshfiles', False)
 SingleSSHFile = getattr(ConfModule, 'singlesshfile', True)
@@ -458,6 +454,9 @@ def Group2GID(l, name):
    return -1
 
 def make_hmac(str):
+   File = open(PassDir+"/key-hmac-"+pwd.getpwuid(os.getuid())[0],"r");
+   HmacKey = File.readline().strip()
+   File.close();
    return hmac.new(HmacKey, str, sha1_module).hexdigest()
 
 def make_sudopasswd_hmac(purpose, uuid, hosts, cryptedpass):

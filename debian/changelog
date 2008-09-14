@@ -1,3 +1,9 @@
+userdir-ldap (0.3.40) unstable; urgency=low
+
+  * Reading the hmac key only once is too troublesome.
+
+ -- Peter Palfrader <weasel@debian.org>  Mon, 15 Sep 2008 01:12:23 +0200
+
 userdir-ldap (0.3.39) unstable; urgency=low
 
   * Lowercasing hashed sudo passwords in ud-mailgate not considered smart.
