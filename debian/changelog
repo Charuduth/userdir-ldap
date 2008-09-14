@@ -1,9 +1,9 @@
 userdir-ldap (0.3.38) unstable; urgency=low
 
   * Fix order of some calls so stuff works again.
-  * And import pwd in userdir_ldap.py.
+  * And import pwd and os in userdir_ldap.py.
 
- -- Peter Palfrader <weasel@debian.org>  Mon, 15 Sep 2008 00:13:51 +0200
+ -- Peter Palfrader <weasel@debian.org>  Mon, 15 Sep 2008 00:15:37 +0200
 
 userdir-ldap (0.3.37) unstable; urgency=low
 
