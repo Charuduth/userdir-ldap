@@ -42,7 +42,7 @@ Ech_ErrorLog = ConfModule.ech_errorlog;
 Ech_MainLog = ConfModule.ech_mainlog;
 
 File = open(PassDir+"/key-hmac-"+pwd.getpwuid(os.getuid())[0],"r");
-HmacKey = F.readline().strip()
+HmacKey = File.readline().strip()
 File.close();
 
 # For backwards compatibility, we default to the old behaviour
