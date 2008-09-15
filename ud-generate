@@ -223,7 +223,7 @@ def GenShadowSudo(l,File):
 
       Pass = None
       for entry in x[1]['sudoPassword']:
-         Match = re.compile('^('+UUID_FORMAT+') (confirmed:[0-9a-f]{40}|unconfirmed) ([a-z0-9.,*]+) ([^ ]+)$').match(entry.lower())
+         Match = re.compile('^('+UUID_FORMAT+') (confirmed:[0-9a-f]{40}|unconfirmed) ([a-z0-9.,*]+) ([^ ]+)$').match(entry)
          if Match == None:
             continue
          uuid = Match.group(1)
