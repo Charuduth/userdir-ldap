@@ -2,8 +2,12 @@ userdir-ldap (0.3.42) unstable; urgency=low
 
   * Export all accounts into sudo-passwd, even if they
     do not have a sudo password set.  Set their password to '*' then.
+    etc/pam.d/sudo should look like this then:
+      auth [authinfo_unavail=ignore success=done ignore=ignore default=die] pam_pwdfile.so pwdfile=/var/lib/misc/thishost/sudo-passwd
+      auth required pam_unix.so nullok_secure try_first_pass
+      @include common-account
 
- -- Peter Palfrader <weasel@debian.org>  Tue, 16 Sep 2008 14:29:32 +0200
+ -- Peter Palfrader <weasel@debian.org>  Tue, 16 Sep 2008 14:30:41 +0200
 
 userdir-ldap (0.3.41) unstable; urgency=low
 
