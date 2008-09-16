@@ -216,34 +216,31 @@ def GenShadowSudo(l,File):
       raise "No Users";
 
    for x in PasswdAttrs:
+      Pass = '*'
       if x[1].has_key("uidNumber") == 0 or IsInGroup(x) == 0:
          continue;
-      if not x[1].has_key('sudoPassword'):
-         continue
 
-      Pass = None
-      for entry in x[1]['sudoPassword']:
-         Match = re.compile('^('+UUID_FORMAT+') (confirmed:[0-9a-f]{40}|unconfirmed) ([a-z0-9.,*]+) ([^ ]+)$').match(entry)
-         if Match == None:
-            continue
-         uuid = Match.group(1)
-         status = Match.group(2)
-         hosts = Match.group(3)
-         cryptedpass = Match.group(4)
+      if x[1].has_key('sudoPassword'):
+         for entry in x[1]['sudoPassword']:
+            Match = re.compile('^('+UUID_FORMAT+') (confirmed:[0-9a-f]{40}|unconfirmed) ([a-z0-9.,*]+) ([^ ]+)$').match(entry)
+            if Match == None:
+               continue
+            uuid = Match.group(1)
+            status = Match.group(2)
+            hosts = Match.group(3)
+            cryptedpass = Match.group(4)
 
-         if status != 'confirmed:'+make_sudopasswd_hmac('password-is-confirmed', uuid, hosts, cryptedpass):
-            continue
-         for_all = hosts == "*"
-         for_this_host = CurrentHost in hosts.split(',')
-         if not (for_all or for_this_host):
-            continue
-         Pass = cryptedpass
-         if for_this_host: # this makes sure we take a per-host entry over the for-all entry
-           break
-      if not Pass:
-         continue
-      if len(Pass) > 50:
-         continue
+            if status != 'confirmed:'+make_sudopasswd_hmac('password-is-confirmed', uuid, hosts, cryptedpass):
+               continue
+            for_all = hosts == "*"
+            for_this_host = CurrentHost in hosts.split(',')
+            if not (for_all or for_this_host):
+               continue
+            Pass = cryptedpass
+            if for_this_host: # this makes sure we take a per-host entry over the for-all entry
+              break
+         if len(Pass) > 50:
+            Pass = '*'
 
       Line = "%s:%s" % (GetAttr(x,"uid"), Pass)
       Line = Sanitize(Line) + "\n";

@@ -1,3 +1,10 @@
+userdir-ldap (0.3.42) unstable; urgency=low
+
+  * Export all accounts into sudo-passwd, even if they
+    do not have a sudo password set.  Set their password to '*' then.
+
+ -- Peter Palfrader <weasel@debian.org>  Tue, 16 Sep 2008 14:29:32 +0200
+
 userdir-ldap (0.3.41) unstable; urgency=low
 
   * ud-generate: lower casing the sudopasswd ldap entry prior to parsing
