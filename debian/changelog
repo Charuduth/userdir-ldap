@@ -1,3 +1,9 @@
+userdir-ldap (0.3.43) unstable; urgency=low
+
+  * FQHNs sometimes, well always, include dots.
+
+ -- Peter Palfrader <weasel@debian.org>  Tue, 16 Sep 2008 15:07:21 +0200
+
 userdir-ldap (0.3.42) unstable; urgency=low
 
   * Export all accounts into sudo-passwd, even if they

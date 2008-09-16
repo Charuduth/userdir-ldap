@@ -453,7 +453,7 @@ def DoRBL(Str,Attrs):
 
 # Handle a ConfirmSudoPassword request
 def DoConfirmSudopassword(Str):
-   Match = re.compile('^confirm sudopassword ('+UUID_FORMAT+') ([a-z0-9,*]+) ([0-9a-f]{40})$').match(Str)
+   Match = re.compile('^confirm sudopassword ('+UUID_FORMAT+') ([a-z0-9.,*]+) ([0-9a-f]{40})$').match(Str)
    if Match == None:
       return None
 
