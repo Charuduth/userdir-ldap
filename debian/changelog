@@ -1,3 +1,10 @@
+userdir-ldap (0.3.XX) unstable; urgency=low
+
+  * ud-mailgate: Do not support del requests for sshDSAAuthKey - there is no
+    such attribute.
+
+ -- Peter Palfrader <weasel@debian.org>  Fri, 26 Sep 2008 14:21:26 +0200
+
 userdir-ldap (0.3.43) unstable; urgency=low
 
   * FQHNs sometimes, well always, include dots.
