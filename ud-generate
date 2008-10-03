@@ -1091,3 +1091,7 @@ while(1):
      for k in Keyrings:
        try: posix.remove(OutDir+os.path.basename(k));
        except: pass;
+
+# vim:set et:
+# vim:set ts=3:
+# vim:set shiftwidth=3:
