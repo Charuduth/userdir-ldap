@@ -1,9 +1,11 @@
-userdir-ldap (0.3.XX) unstable; urgency=low
+userdir-ldap (0.3.44) unstable; urgency=low
 
   * ud-mailgate: Do not support del requests for sshDSAAuthKey - there is no
     such attribute.
+  * ud-generate: do not export sudopassword to untrusted or nopasswd hosts,
+    unless the password is explicitly added for this host and not just for '*'.
 
- -- Peter Palfrader <weasel@debian.org>  Fri, 26 Sep 2008 14:21:26 +0200
+ -- Peter Palfrader <weasel@debian.org>  Fri, 03 Oct 2008 13:23:22 +0200
 
 userdir-ldap (0.3.43) unstable; urgency=low
 

@@ -203,7 +203,7 @@ def GenShadow(l,File):
   Done(File,None,F);
 
 # Generate the sudo passwd file
-def GenShadowSudo(l,File):
+def GenShadowSudo(l,File, untrusted):
   F = None;
   try:
    OldMask = os.umask(0077);
@@ -235,6 +235,9 @@ def GenShadowSudo(l,File):
             for_all = hosts == "*"
             for_this_host = CurrentHost in hosts.split(',')
             if not (for_all or for_this_host):
+               continue
+            # ignore * passwords for untrusted hosts, but copy host specific passwords
+            if for_all and untrusted:
                continue
             Pass = cryptedpass
             if for_this_host: # this makes sure we take a per-host entry over the for-all entry
@@ -1004,7 +1007,7 @@ while(1):
       userlist = GenPasswd(l,OutDir+"passwd",Split[1], "x");
    sys.stdout.flush();
    grouprevmap = GenGroup(l,OutDir+"group");
-   GenShadowSudo(l, OutDir+"sudo-passwd")
+   GenShadowSudo(l, OutDir+"sudo-passwd", ExtraList.has_key("[UNTRUSTED]") or ExtraList.has_key("[NOPASSWD]"))
 
    # Now we know who we're allowing on the machine, export
    # the relevant ssh keys
