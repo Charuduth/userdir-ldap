@@ -1060,12 +1060,14 @@ while(1):
                 os.path.join(OutDir, 'ssh-keys.tar.gz'))
 
    if ExtraList.has_key("[UNTRUSTED]"):
+     print "[UNTRUSTED] tag is obsolete and may be removed in the future."
      continue;
    if not ExtraList.has_key("[NOPASSWD]"):
      GenShadow(l,OutDir+"shadow");
 
    # Link in global things
-   DoLink(GlobalDir,OutDir,"markers");
+   if not ExtraList.has_key("[NOMARKERS]"):
+     DoLink(GlobalDir,OutDir,"markers");
    DoLink(GlobalDir,OutDir,"mail-forward.cdb");
    DoLink(GlobalDir,OutDir,"mail-disable");
    DoLink(GlobalDir,OutDir,"mail-greylist");

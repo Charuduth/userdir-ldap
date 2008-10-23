@@ -1,3 +1,10 @@
+userdir-ldap (0.3.45) unstable; urgency=low
+
+  * ud-generate: Declare [UNTRSUTED] flag as obsolete.
+  * ud-generate: Add [NOMARKERS] flag to not push markers (gps coordinates) to host.
+
+ -- Peter Palfrader <weasel@debian.org>  Thu, 23 Oct 2008 20:25:09 +0200
+
 userdir-ldap (0.3.44) unstable; urgency=low
 
   * ud-mailgate: Do not support del requests for sshDSAAuthKey - there is no
