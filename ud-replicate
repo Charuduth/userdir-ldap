@@ -59,7 +59,7 @@ $LOCALSYNCON)
     ;;
 esac
 
-rsync ${verbose} -e 'ssh -i /etc/ssh/ssh_host_rsa_key -o PreferredAuthentications=publickey' -rp "${udhost}/var/cache/userdir-ldap/hosts/$HOST" .
+rsync ${verbose} --delete-after -e 'ssh -i /etc/ssh/ssh_host_rsa_key -o PreferredAuthentications=publickey' -rp "${udhost}/var/cache/userdir-ldap/hosts/$HOST" .
 
 makedb "$HOST/passwd.tdb" -o passwd.db.t
 if [ -s "$HOST/shadow.tdb" ]
