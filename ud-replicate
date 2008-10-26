@@ -95,22 +95,41 @@ elif [ -x /usr/bin/dchroot-dsa ]; then
 fi
 if [ -n "$CHROOTS" ]; then
 	for c in $CHROOTS; do
+		if [ "$c" = "/" ] || [ "$c" = "" ]; then
+			echo "$0 WTF: \$c is '' or '/' here." 2>&1
+			exit 1
+		fi
 		if [ -x "$c/usr/bin/makedb" ]
 		then
+			mkdir -p "$c/var/lib/misc/$HOST"
 
-			test ! -d "$c/var/lib/misc/$HOST" || mkdir -p "$c/var/lib/misc/$HOST"
+			# remove extra stuff from earlier times and so
+			find "$c/var/lib/misc/$HOST" -mindepth 1 \
+				! -name group.tdb -a \
+				! -name passwd.tdb -a \
+				! -name ssh_known_hosts \
+				-print0 | xargs --no-run-if-empty -0 rm -f
+			rsync -a ${verbose} $HOST/group.tdb $HOST/passwd.tdb $HOST/ssh_known_hosts "$c/var/lib/misc/$HOST"
 
-			rsync -a ${verbose} $HOST/group.tdb $HOST/passwd.tdb $HOST/ssh* "$c/var/lib/misc/$HOST"
+			# clean up from the times we supposedly did shadow stuff in chroots
+			rm -f "$c/var/lib/misc/shadow.db"
 
-			test ! -f "$c/var/lib/misc/$HOST/shadow.tdb" || rm -f "$c/var/lib/misc/$HOST/shadow.tdb"
-			test ! -f "$c/var/lib/misc/shadow.db" || rm -f "$c/var/lib/misc/shadow.db"
-
+			# from failed makedb runs earlier.
+			rm -f "$c/var/lib/misc/passwd.db.t" \
+			      "$c/var/lib/misc/group.db.t"
+			# build passwd information
 			chroot "$c" makedb "/var/lib/misc/$HOST/passwd.tdb" -o /var/lib/misc/passwd.db.t
 			chroot "$c" makedb "/var/lib/misc/$HOST/group.tdb" -o /var/lib/misc/group.db.t
 			mv -f "$c/var/lib/misc/passwd.db.t" "$c/var/lib/misc/passwd.db"
 			mv -f "$c/var/lib/misc/group.db.t" "$c/var/lib/misc/group.db"
+
 			ln -sf "$HOST/ssh_known_hosts" "$c/var/lib/misc/"
-			ln -sf ../../var/lib/misc/ssh_known_hosts "$c/etc/ssh"
+			if [ -d "$c/etc/ssh" ]; then
+				ln -sf ../../var/lib/misc/ssh_known_hosts "$c/etc/ssh"
+			elif [ -L "$c/etc/ssh" ] && [ "`readlink \"$c/etc/ssh\"`" = "../../var/lib/misc/ssh_known_hosts" ]; then
+				# clean up past mistakes
+				rm -f "$c/etc/ssh"
+			fi
 		fi
 	done
 fi
