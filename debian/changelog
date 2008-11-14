@@ -1,3 +1,12 @@
+userdir-ldap (0.3.48) unstable; urgency=low
+
+  * ud-generate: Remove support for single ssh key shadow file.
+  * ud-generate: Make ssh key tarballs the default.
+  * ud-generate: Move ssh tarball generation into its own function.
+    Currently it's part of the main loop.
+
+ -- Peter Palfrader <weasel@debian.org>  Fri, 14 Nov 2008 23:04:21 +0100
+
 userdir-ldap (0.3.47) unstable; urgency=low
 
   * Fix a typo on ud-mailgate.

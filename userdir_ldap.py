@@ -1,6 +1,7 @@
 #   Copyright (c) 1999-2000  Jason Gunthorpe <jgg@debian.org>
 #   Copyright (c) 2001-2003  Ryan Murray <rmurray@debian.org>
 #   Copyright (c) 2004-2005  Joey Schulze <joey@infodrom.org>
+#   Copyright (c) 2008 Peter Palfrader <peter@palfrader.org>
 #
 #   This program is free software; you can redistribute it and/or modify
 #   it under the terms of the GNU General Public License as published by
@@ -42,10 +43,6 @@ TemplatesDir = ConfModule.templatesdir;
 PassDir = ConfModule.passdir;
 Ech_ErrorLog = ConfModule.ech_errorlog;
 Ech_MainLog = ConfModule.ech_mainlog;
-
-# For backwards compatibility, we default to the old behaviour
-MultipleSSHFiles = getattr(ConfModule, 'multiplesshfiles', False)
-SingleSSHFile = getattr(ConfModule, 'singlesshfile', True)
 
 try:
    UseSSL = ConfModule.usessl;
