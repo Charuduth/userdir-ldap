@@ -230,7 +230,7 @@ def GenShadowSudo(l,File, untrusted):
             hosts = Match.group(3)
             cryptedpass = Match.group(4)
 
-            if status != 'confirmed:'+make_sudopasswd_hmac('password-is-confirmed', uuid, hosts, cryptedpass):
+            if status != 'confirmed:'+make_passwd_hmac('password-is-confirmed', 'sudo', x[1]['uid'][0], uuid, hosts, cryptedpass):
                continue
             for_all = hosts == "*"
             for_this_host = CurrentHost in hosts.split(',')

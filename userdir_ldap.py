@@ -459,5 +459,5 @@ def make_hmac(str):
    File.close();
    return hmac.new(HmacKey, str, sha1_module).hexdigest()
 
-def make_sudopasswd_hmac(purpose, uuid, hosts, cryptedpass):
-   return make_hmac(':'.join([purpose, uuid, hosts, cryptedpass]))
+def make_passwd_hmac(status, purpose, uid, uuid, hosts, cryptedpass):
+   return make_hmac(':'.join([status, purpose, uid, uuid, hosts, cryptedpass]))
