@@ -72,10 +72,13 @@ fi
 makedb "$HOST/group.tdb" -o group.db.t
 mv -f passwd.db.t passwd.db
 mv -f group.db.t group.db
-for a in $HOST/ssh-rsa-shadow $HOST/ssh_known_hosts; do
-	ln -sf $a .
-done
-ln -sf `pwd -P`/ssh-rsa-shadow /etc/ssh
+if [ -e "$HOST/ssh-rsa-shadow" ]; then
+	ln -sf $HOST/ssh-rsa-shadow .
+	ln -sf `pwd -P`/ssh-rsa-shadow /etc/ssh
+else
+	rm -f ssh-rsa-shadow /etc/ssh/ssh-rsa-shadow
+fi
+ln -sf $HOST/ssh_known_hosts .
 ln -sf `pwd -P`/ssh_known_hosts /etc/ssh
 
 if [ -e ${HOST}/ssh-keys.tar.gz ]; then

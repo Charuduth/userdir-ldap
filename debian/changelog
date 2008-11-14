@@ -1,3 +1,10 @@
+userdir-ldap (0.3.49) unstable; urgency=low
+
+  * ud-replicate: Only link ssh-rsa-shadow to var/lib/misc/$host and etc/ssh
+    if it exists.  Else remove the symlink.
+
+ -- Peter Palfrader <weasel@debian.org>  Fri, 14 Nov 2008 23:14:58 +0100
+
 userdir-ldap (0.3.48) unstable; urgency=low
 
   * ud-generate: Remove support for single ssh key shadow file.
