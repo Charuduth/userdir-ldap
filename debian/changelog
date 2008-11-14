@@ -1,3 +1,9 @@
+userdir-ldap (0.3.47) unstable; urgency=low
+
+  * Fix a typo on ud-mailgate.
+
+ -- Peter Palfrader <weasel@debian.org>  Fri, 14 Nov 2008 20:40:19 +0100
+
 userdir-ldap (0.3.46) unstable; urgency=low
 
   * Change the hmac that protect sudopassword entries to also

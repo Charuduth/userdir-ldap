@@ -490,7 +490,7 @@ def FinishConfirmSudopassword(l, uid, Attrs):
          confirmedHosts = SudoPasswd[uuid][0]
          confirmedHmac = SudoPasswd[uuid][1]
          if status.startswith('confirmed:'):
-            if status == 'confirmed:'+make_passwd_hmac('password-is-confirmed', 'sudo', uid, ,uuid, hosts, cryptedpass):
+            if status == 'confirmed:'+make_passwd_hmac('password-is-confirmed', 'sudo', uid, uuid, hosts, cryptedpass):
                result = result + "Entry %s for sudo password on hosts %s already confirmed.\n"%(uuid, hosts)
             else:
                result = result + "Entry %s for sudo password on hosts %s is listed as confirmed, but HMAC does not verify.\n"%(uuid, hosts)
