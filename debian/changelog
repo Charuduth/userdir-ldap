@@ -1,3 +1,9 @@
+userdir-ldap (0.3.50) unstable; urgency=low
+
+  * ud-generate: Support $gid@$host supplementary group entries for users.
+
+ -- Peter Palfrader <weasel@debian.org>  Sat, 15 Nov 2008 11:20:09 +0100
+
 userdir-ldap (0.3.49) unstable; urgency=low
 
   * ud-replicate: Only link ssh-rsa-shadow to var/lib/misc/$host and etc/ssh
