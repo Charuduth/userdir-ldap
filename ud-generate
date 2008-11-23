@@ -376,7 +376,7 @@ def addGroups(existingGroups, newGroups, uid):
         continue
 
       if not GroupIDMap.has_key(group):
-         print "Group does not exist ",group,"but",uid,"is in it"
+         print "Group", group, "does not exist but", uid, "is in it"
          continue
 
       existingGroups.append(group)
