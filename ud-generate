@@ -910,10 +910,6 @@ def GenSSHKnown(l,File,mode=None):
       if Host.endswith(HostDomain):
          HostNames.append(Host[:-(len(HostDomain)+1)])
 
-      #<weasel> [[]] makes http links
-      #<weasel> but integrating it somehow into the purpose line might be a good idea
-      #<weasel> maybe [[*fooobar]] things would be a link but not added to the ssh key list,
-      #         and [[-..]] or something would be just an ssh entry but no link
       # in the purpose field [[host|some other text]] (where some other text is optional)
       # makes a hyperlink on the web thing. we now also add these hosts to the ssh known_hosts
       # file.  But so that we don't have to add everything we link we can add an asterisk
