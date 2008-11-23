@@ -43,6 +43,7 @@ TemplatesDir = ConfModule.templatesdir;
 PassDir = ConfModule.passdir;
 Ech_ErrorLog = ConfModule.ech_errorlog;
 Ech_MainLog = ConfModule.ech_mainlog;
+HostDomain = getattr(ConfModule, "hostdomain", EmailAppend)
 
 try:
    UseSSL = ConfModule.usessl;
