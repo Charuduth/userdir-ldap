@@ -91,13 +91,10 @@ def IsInGroup(DnRecord):
   if DnRecord[1].has_key("supplementaryGid") == 0:
      return 0;
 
-  # Check the supplementary groups
-  for I in DnRecord[1]["supplementaryGid"]:
-     s = I.split('@', 1)
-     group = s[0]
-     if len(s) == 2 and s[1] != CurrentHost:
-           continue;
-     if Allowed.has_key(group):
+  supgroups=[]
+  addGroups(supgroups, DnRecord[1]["supplementaryGid"], GetAttr(DnRecord,"uid"))
+  for g in supgroups:
+     if Allowed.has_key(g):
         return 1;
   return 0;
 

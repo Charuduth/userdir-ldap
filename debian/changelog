@@ -4,8 +4,11 @@ userdir-ldap (0.3.XX) unstable; urgency=low
   * Fix group does not exist warning (layout/spacing issues).
   * call addGroups with the proper number of arguments, when doing so
     recursively.
+  * Also do the subgroups/transitive stuff dance when considering
+    if a user is in a group for exporting them to a host in the
+    first place.
 
- -- Peter Palfrader <weasel@debian.org>  Sun, 23 Nov 2008 22:07:47 +0100
+ -- Peter Palfrader <weasel@debian.org>  Sun, 23 Nov 2008 22:08:17 +0100
 
 userdir-ldap (0.3.51) unstable; urgency=low
 
