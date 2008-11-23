@@ -4,7 +4,7 @@ MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 8bit
 Subject: New Debian maintainer __REALNAME__
-Cc: da-manager@debian.org
+Cc: da-manager@debian.org, debian-admin@debian.org
 Reply-To: da-manager@debian.org
 Date: __DATE__
 User-Agent: nm-create script run by __WHOAMI__
@@ -38,21 +38,19 @@ to know which one has chroots available for you.
 You need to use ssh to log into the machines; telnet and rlogin are
 disabled for security reasons.  The LDAP directory is able to share RSA
 ssh keys among machines, please see <URL:http://db.debian.org/doc-mail.html>
-Otherwise when you first login a ~/.ssh directory will be created with
-the appropriate permissions.  Please be aware of the security
-implications of using RSA authentication and ssh agents.
+Please be aware of the security implications of using RSA authentication
+and ssh agents.
 
 To give you a quick overview here is a list of the most important
 machines from the project you can access.  First there is
 ftp-master.debian.org, it is our main archive server and the place
 where you upload your packages.  It is restricted, so you can only
 upload with anonymous FTP - a tool like dput or dupload can aid this
-process.  The Projects web pages, CVS archive, the main shell server
-and various other stuff is located on gluck.debian.org.  This machine
-is also reachable as {cvs,people,www}.debian.org.  If you want your
-own Debian related site to appear behind
-<URL:http://people.debian.org/~__LOGIN__> then put it at this machine
-in the directory ~/public_html/.
+process.  The Projects CVS archive, the main shell server and various
+other stuff is located on gluck.debian.org.  This machine is also
+reachable as {cvs,people}.debian.org.  If you want your own Debian
+related site to appear behind <URL:http://people.debian.org/~__LOGIN__>
+then put it at this machine in the directory ~/public_html/.
 
 The machine hosting most of our VCS repositories
 ({svn,bzr,git,arch,hg}.debian.org) is alioth.debian.org. It's handled
@@ -120,6 +118,7 @@ may wish to take a look at the "Work-Needing and Prospective Packages",
 Welcome to the project!
 
 -- 
+Debian System Administrators on behalf of
 The Debian New Maintainer Team
 
 __PASSWORD__

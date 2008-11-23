@@ -1,3 +1,10 @@
+userdir-ldap (0.3.XX) unstable; urgency=low
+
+  * Update template/welcome-message-800 to match the actual template used
+    on db.debian.org.
+
+ -- Peter Palfrader <weasel@debian.org>  Sun, 23 Nov 2008 14:20:10 +0100
+
 userdir-ldap (0.3.50) unstable; urgency=low
 
   * ud-generate: Support $gid@$host supplementary group entries for users.
