@@ -2,8 +2,10 @@ userdir-ldap (0.3.XX) unstable; urgency=low
 
   * Remove cruft comment.
   * Fix group does not exist warning (layout/spacing issues).
+  * call addGroups with the proper number of arguments, when doing so
+    recursively.
 
- -- Peter Palfrader <weasel@debian.org>  Sun, 23 Nov 2008 22:07:00 +0100
+ -- Peter Palfrader <weasel@debian.org>  Sun, 23 Nov 2008 22:07:47 +0100
 
 userdir-ldap (0.3.51) unstable; urgency=low
 

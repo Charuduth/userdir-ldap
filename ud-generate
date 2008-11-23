@@ -382,7 +382,7 @@ def addGroups(existingGroups, newGroups, uid):
       existingGroups.append(group)
 
       if SubGroupMap.has_key(group):
-         addGroups(existingGroups, SubGroupMap[group])
+         addGroups(existingGroups, SubGroupMap[group], uid)
 
 # Generate the group list
 def GenGroup(l,File):
