@@ -9,6 +9,7 @@
 #   Copyright (c) 2008 Peter Palfrader <peter@palfrader.org>
 #   Copyright (c) 2008 Andreas Barth <aba@not.so.argh.org>
 #   Copyright (c) 2008 Mark Hymers <mhy@debian.org>
+#   Copyright (c) 2008 Luk Claes <luk@debian.org>
 #
 #   This program is free software; you can redistribute it and/or modify
 #   it under the terms of the GNU General Public License as published by
@@ -32,6 +33,7 @@ global CurrentHost;
 
 PasswdAttrs = None;
 GroupIDMap = {};
+SubGroupMap = {};
 Allowed = None;
 CurrentHost = "";
 
@@ -355,6 +357,31 @@ def GenSSHtarballs(userlist, SSHFiles, grouprevmap, target):
    tf.close()
    os.rename(os.path.join(GlobalDir, 'ssh-keys-%s.tar.gz' % CurrentHost), target)
 
+# add a list of groups to existing groups,
+# including all subgroups thereof, recursively.
+# basically this proceduces the transitive hull of the groups in
+# addgroups.
+def addGroups(existingGroups, newGroups, uid):
+   for group in newGroups:
+      # if it's a <group>@host, split it and verify it's on the current host.
+      s = group.split('@', 1)
+      if len(s) == 2 and s[1] != CurrentHost:
+         continue;
+      group = s[0]
+
+      # let's see if we handled this group already
+      if group in existingGroups:
+        continue
+
+      if not GroupIDMap.has_key(group):
+         print "Group does not exist ",group,"but",uid,"is in it"
+         continue
+
+      existingGroups.append(group)
+
+      if SubGroupMap.has_key(group):
+         addGroups(existingGroups, SubGroupMap[group])
+
 # Generate the group list
 def GenGroup(l,File):
   grouprevmap = {}
@@ -374,20 +401,16 @@ def GenGroup(l,File):
 
    # Sort them into a list of groups having a set of users
    for x in PasswdAttrs:
+      uid = GetAttr(x,"uid")
       if x[1].has_key("uidNumber") == 0 or IsInGroup(x) == 0:
          continue;
       if x[1].has_key("supplementaryGid") == 0:
          continue;
 
-      for I in x[1]["supplementaryGid"]:
-         s = I.split('@', 1)
-         group = s[0]
-         if len(s) == 2 and s[1] != CurrentHost:
-            continue;
-         if GroupMap.has_key(group):
-            GroupMap[group].append(GetAttr(x,"uid"));
-         else:
-            print "Group does not exist ",group,"but",GetAttr(x,"uid"),"is in it";
+      supgroups=[]
+      addGroups(supgroups, x[1]["supplementaryGid"], uid)
+      for g in supgroups:
+         GroupMap[g].append(uid);
 
    # Output the group file.
    J = 0;
@@ -944,13 +967,15 @@ l.simple_bind_s("uid="+Pass[0]+","+BaseDn,Pass[1]);
 # Fetch all the groups
 GroupIDMap = {};
 Attrs = l.search_s(BaseDn,ldap.SCOPE_ONELEVEL,"gid=*",\
-                  ["gid","gidNumber"]);
+                  ["gid","gidNumber","subGroup"]);
 
-# Generate the GroupMap and GroupIDMap
+# Generate the SubGroupMap and GroupIDMap
 for x in Attrs:
    if x[1].has_key("gidNumber") == 0:
       continue;
    GroupIDMap[x[1]["gid"][0]] = int(x[1]["gidNumber"][0]);
+   if x[1].has_key("subGroup") != 0:
+      SubGroupMap.setdefault(x[1]["gid"][0], []).extend(x[1]["subGroup"]);
 
 # Fetch all the users
 PasswdAttrs = l.search_s(BaseDn,ldap.SCOPE_ONELEVEL,"uid=*",\

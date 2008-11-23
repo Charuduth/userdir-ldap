@@ -4,6 +4,7 @@
 #   - [PP] Now version controlled in db.d.o bzr repository - 2007-12-25
 #   - [HE] Add 'purpose', 'physicalHost' to debianServer - 2007-12-25
 #   - [zobel] Add 'VoIP' - 2008-05-10
+#   - [luk] Add 'subGroup' to group - 2008-11-22
 #
 # 0.7 [RM]
 #   - Add 'gender' and 'birthDate' to debianDeveloper
@@ -99,6 +100,7 @@
 #   .34 - physicalHost
 #   .35 - VoIP
 #   .36 - sudoPassword
+#   .37 - subGroup
 #
 # .3 - experimental LDAP objectClasses
 #   .1 - debianDeveloper
@@ -366,6 +368,13 @@ attributetype ( 1.3.6.1.4.1.9586.100.4.2.36
 	EQUALITY octetStringMatch
 	SYNTAX 1.3.6.1.4.1.1466.115.121.1.40 )
 
+attributetype ( 1.3.6.1.4.1.9586.100.4.2.37
+	NAME 'subGroup'
+	DESC 'name of other group for which membership implied by memberschip to this group'
+	EQUALITY caseIgnoreIA5Match
+	SUBSTR caseIgnoreIA5SubstringsMatch
+	SYNTAX 1.3.6.1.4.1.1466.115.121.1.26 )
+
 
 # Public object classes
 
@@ -381,7 +390,7 @@ objectclass ( 1.3.6.1.4.1.9586.100.4.1.2
 	SUP top STRUCTURAL
 	DESC 'attributes used for Debian groups'
 	MUST ( gid $ gidNumber )
-	MAY ( description ) )
+	MAY ( description $ subGroup ) )
 
 # Experimental attribute types
 
