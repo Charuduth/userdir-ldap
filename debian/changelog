@@ -1,3 +1,11 @@
+userdir-ldap (0.3.XX) unstable; urgency=low
+
+  * Properly show shadowlastchange and mail disabled message when
+    locking an account, but not disabling email.  It was written to
+    ldap correctly, but we updated the data to display wrongly.
+
+ -- Peter Palfrader <weasel@debian.org>  Mon, 24 Nov 2008 11:24:16 +0100
+
 userdir-ldap (0.3.52) unstable; urgency=low
 
   * Remove cruft comment.

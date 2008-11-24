@@ -299,10 +299,10 @@ def Lock(UserDn, Attrs, DisableMail=True):
       (ldap.MOD_REPLACE,"shadowExpire","1")];
    if DisableMail:
       recs.append( (ldap.MOD_REPLACE,"mailDisableMessage","account locked") )
-      Attrs[0][1]["shadowLastChange"] = [shadowLast];
+      Attrs[0][1]["mailDisableMessage"] = ["account locked"];
    l.modify_s(UserDn,recs);
    Attrs[0][1]["userPassword"] = ["{crypt}*LK*"];
-   Attrs[0][1]["mailDisableMessage"] = ["account locked"];
+   Attrs[0][1]["shadowLastChange"] = [shadowLast];
    Attrs[0][1]["shadowExpire"] = ["1"];
 
 # Main program starts here
