@@ -321,7 +321,7 @@ def FormatPGPKey(Str):
    if (len(Str) == 32):
       I = 0;
       while (I < len(Str)):
-         if I+2 == 32/2:
+         if I == 32/2:
             Res = "%s %s%s "%(Res,Str[I],Str[I+1]);
          else:
             Res = "%s%s%s "%(Res,Str[I],Str[I+1]);
@@ -330,7 +330,7 @@ def FormatPGPKey(Str):
       # OpenPGP Print
       I = 0;
       while (I < len(Str)):
-         if I+4 == 40/2:
+         if I == 40/2:
             Res = "%s %s%s%s%s "%(Res,Str[I],Str[I+1],Str[I+2],Str[I+3]);
          else:
             Res = "%s%s%s%s%s "%(Res,Str[I],Str[I+1],Str[I+2],Str[I+3]);
