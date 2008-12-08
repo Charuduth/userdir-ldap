@@ -565,15 +565,18 @@ def HandleChange(Reply,DnRecord,Key):
    if ((GetAttr(oldAttrs[0],"userPassword").find("*LK*") != -1) 
        or GetAttr(oldAttrs[0],"userPassword").startswith("!")):
       raise Error, "This account is locked";
-   try:
-      Res = FinishConfirmSudopassword(l, GetAttr(DnRecord,"uid"), Attrs)
-      Result = Result + Res + "\n";
-   except Error, e:
-      CommitChanges = 0
-      Result = Result + "FinishConfirmSudopassword raised an error (%s) - no changes committed\n"%(e);
+
+   if CommitChanges == 1: # only if we are still good to go
+      try:
+         Res = FinishConfirmSudopassword(l, GetAttr(DnRecord,"uid"), Attrs)
+         Result = Result + Res + "\n";
+      except Error, e:
+         CommitChanges = 0
+         Result = Result + "FinishConfirmSudopassword raised an error (%s) - no changes committed\n"%(e);
+
    # Modify the record
-   Dn = "uid=" + GetAttr(DnRecord,"uid") + "," + BaseDn;
    if CommitChanges == 1:
+      Dn = "uid=" + GetAttr(DnRecord,"uid") + "," + BaseDn;
       l.modify_s(Dn,Attrs);
 
    Attribs = "";
@@ -582,7 +585,7 @@ def HandleChange(Reply,DnRecord,Key):
       if len(Attrs) == 0:
          raise Error, "User not found"
       Attribs = GPGEncrypt(PrettyShow(Attrs[0])+"\n","0x"+Key[1],Key[4]);
-      
+
    Subst = {};
    Subst["__FROM__"] = ChangeFrom;
    Subst["__EMAIL__"] = EmailAddress(DnRecord);
@@ -792,4 +795,7 @@ except:
    if ErrType != EX_PERMFAIL:
       sys.exit(ErrType);
    sys.exit(0);
-   
+
+# vim:set et:
+# vim:set ts=3:
+# vim:set shiftwidth=3:

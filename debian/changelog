@@ -1,12 +1,14 @@
-userdir-ldap (0.3.XX) unstable; urgency=low
+userdir-ldap (0.3.53) unstable; urgency=low
 
   * Properly show shadowlastchange and mail disabled message when
     locking an account, but not disabling email.  It was written to
     ldap correctly, but we updated the data to display wrongly.
   * Fix formatting of PGP fingerprints - the double space was always
     one element too early.
+  * Do not call FinishConfirmSudopassword if we already decided to
+    not commit this change mail because of parse errors.
 
- -- Peter Palfrader <weasel@debian.org>  Tue, 02 Dec 2008 23:43:27 +0100
+ -- Peter Palfrader <weasel@debian.org>  Mon, 08 Dec 2008 11:39:54 +0100
 
 userdir-ldap (0.3.52) unstable; urgency=low
 
