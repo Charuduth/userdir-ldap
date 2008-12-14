@@ -942,33 +942,44 @@ def GenSSHKnown(l,File,mode=None):
 
 # Generate the debianhosts file (list of all IP addresses)
 def GenHosts(l,File):
-  F = None;
+  F = None
   try:
-   OldMask = os.umask(0022);
-   F = open(File + ".tmp","w",0644);
-   os.umask(OldMask);
+    OldMask = os.umask(0022)
+    F = open(File + ".tmp","w",0644)
+    os.umask(OldMask)
 
-   # Fetch all the hosts
-   HostNames = l.search_s(HostBaseDn,ldap.SCOPE_ONELEVEL,"hostname=*",\
-                ["hostname"]);
+    # Fetch all the hosts
+    hostnames = l.search_s(HostBaseDn, ldap.SCOPE_ONELEVEL, "hostname=*",
+                           ["hostname"])
 
-   if HostNames == None:
-      raise "No Hosts";
+    if hostnames == None:
+       raise "No Hosts"
 
-   for x in HostNames:
-      if x[1].has_key("hostname") == 0:
-         continue;
-      Host = GetAttr(x,"hostname");
-      try:
-        Addr = socket.gethostbyname(Host);
-        F.write(Addr + "\n");
-      except:
-        pass
+    seen = set()
+    for x in hostnames:
+      host = GetAttr(x,"hostname", None)
+      if host:
+        addrs = []
+        try:
+          addrs += socket.getaddrinfo(host, None, socket.AF_INET)
+        except socket.error:
+          pass
+        try:
+          addrs += socket.getaddrinfo(host, None, socket.AF_INET6)
+        except socket.error:
+          pass
+
+        for addrinfo in addrs:
+          if addrinfo[0] in (socket.AF_INET, socket.AF_INET6):
+            addr = addrinfo[4][0]
+            if addr not in seen:
+              print >> F, addrinfo[4][0]
+              seen.add(addr)
   # Oops, something unspeakable happened.
   except:
-   Die(File,F,None);
-   raise;
-  Done(File,F,None);
+    Die(File,F,None)
+    raise
+  Done(File,F,None)
 
 def GenKeyrings(l,OutDir):
   for k in Keyrings:
