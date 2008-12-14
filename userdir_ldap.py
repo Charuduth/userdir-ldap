@@ -2,6 +2,7 @@
 #   Copyright (c) 2001-2003  Ryan Murray <rmurray@debian.org>
 #   Copyright (c) 2004-2005  Joey Schulze <joey@infodrom.org>
 #   Copyright (c) 2008 Peter Palfrader <peter@palfrader.org>
+#   Copyright (c) 2008 Thomas Viehmann <tv@beamnet.de>
 #
 #   This program is free software; you can redistribute it and/or modify
 #   it under the terms of the GNU General Public License as published by
@@ -18,7 +19,7 @@
 #   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
 # Some routines and configuration that are used by the ldap progams
-import termios, re, imp, ldap, sys, crypt, rfc822, pwd, os;
+import termios, re, imp, ldap, sys, crypt, rfc822, pwd, os, getpass
 import userdir_gpg
 import hmac
 import sha as sha1_module
@@ -117,28 +118,6 @@ def connectLDAP(server = None):
       l.start_tls_s();
    return l;
 
-# Function to prompt for a password 
-def getpass(prompt = "Password: "):
-   import termios, sys;
-   fd = sys.stdin.fileno();
-   old = termios.tcgetattr(fd);
-   new = termios.tcgetattr(fd);
-   new[3] = new[3] & ~termios.ECHO;          # lflags
-   try:
-      termios.tcsetattr(fd, termios.TCSADRAIN, new);
-      try:
-         passwd = raw_input(prompt);
-      except KeyboardInterrupt:
-         termios.tcsetattr(fd, termios.TCSADRAIN, old);
-         print
-         sys.exit(0)
-      except EOFError:
-         passwd = ""
-   finally:
-      termios.tcsetattr(fd, termios.TCSADRAIN, old);
-   print;
-   return passwd;
-
 def passwdAccessLDAP(BaseDn, AdminUser):
    """
    Ask for the AdminUser's password and connect to the LDAP server.
@@ -146,7 +125,7 @@ def passwdAccessLDAP(BaseDn, AdminUser):
    """
    print "Accessing LDAP directory as '" + AdminUser + "'";
    while (1):
-      Password = getpass(AdminUser + "'s password: ");
+      Password = getpass.getpass(AdminUser + "'s password: ")
 
       if len(Password) == 0:
          sys.exit(0)
