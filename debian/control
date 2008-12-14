@@ -4,7 +4,7 @@ Priority: optional
 Maintainer: Debian Administration team <debian-admin@lists.debian.org>
 Build-Depends: debhelper (>= 5), python-support (>= 0.3), yodl
 Standards-Version: 3.7.3
-Uploaders: Ryan Murray <rmurray@debian.org>, Peter Palfrader <weasel@debian.org>
+Uploaders: Ryan Murray <rmurray@debian.org>, Peter Palfrader <weasel@debian.org>, Joey Schulze <joey@debian.org>, Martin Zobel-Helas <zobel@debian.org>
 
 Package: userdir-ldap
 Architecture: all
