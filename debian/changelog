@@ -1,16 +1,17 @@
 userdir-ldap (0.3.54) unstable; urgency=low
 
+  [ Martin Zobel-Helas ]
   * Add new attribute mailSpamOptOut to turn on/off spam filtering
-    entirely
+    entirely.
+  [ Joey Schulze ]
   * Add support for this attribute in ud-info taking into account that
-    only boolean values are acceptable
-  * ud-generate: Add IPv6 addresses to debianhosts 
-    (Patch by Thomas Viehmann)
+    only boolean values are acceptable.
+  [ Thomas Viehmann ]
+  * ud-generate: Add IPv6 addresses to debianhosts.
   * ud-info, userdir_ldap.py: remove function getpass and use the one 
-    from python standard library getpass
-    (Patch by Thomas Viehmann)
+    from python standard library getpass.
 
- --
+ -- Martin Zobel-Helas <zobel@debian.org>  Sun, 14 Dec 2008 02:22:55 +0100
 
 userdir-ldap (0.3.53) unstable; urgency=low
 
