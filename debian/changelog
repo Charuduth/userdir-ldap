@@ -1,3 +1,12 @@
+userdir-ldap (0.3.54) unstable; urgency=low
+
+  * Add new attribute mailSpamOptOut to turn on/off spam filtering
+    entirely
+  * Add support for this attribute in ud-info taking into account that
+    only boolean values are acceptable
+
+ --
+
 userdir-ldap (0.3.53) unstable; urgency=low
 
   * Properly show shadowlastchange and mail disabled message when
