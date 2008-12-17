@@ -1,3 +1,17 @@
+userdir-ldap (0.3.56) unstable; urgency=low
+
+  * There is a deadlock situation when ud-mailgate gets a mail claiming
+    to be from itself:
+    - ud-mailgate opens and locks the replay cache
+    - verification of the mail fails for whatever reason
+    - a reply is sent (to itself)
+    - exim tries to deliver the mail by directly calling ud-mailgate
+    - ud-mailgate tries to acquire the lock -> deadlock
+    Fix this by changing when we open the replay cache, and unlock it
+    as soon as we are done.
+
+ -- Peter Palfrader <weasel@debian.org>  Wed, 17 Dec 2008 12:54:10 +0100
+
 userdir-ldap (0.3.55) unstable; urgency=low
 
   [ Joey Schulze ]

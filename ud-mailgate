@@ -668,8 +668,6 @@ try:
    # Startup the replay cache
    ErrType = EX_TEMPFAIL;
    ErrMsg = "Failed to initialize the replay cache:";
-   RC = ReplayCache(ReplayCacheFile);
-   RC.Clean();
 
    # Get the email 
    ErrType = EX_PERMFAIL;
@@ -704,12 +702,6 @@ try:
    else:
       PlainText = Res[3];   
 
-   # Check the signature against the replay cache
-   ErrMsg = "The replay cache rejected your message. Check your clock!";
-   Rply = RC.Check(Res[1]);
-   if Rply != None:
-      raise Error, Rply;
-
    # Connect to the ldap server
    ErrType = EX_TEMPFAIL;
    ErrMsg = "An error occured while performing the LDAP lookup";
@@ -726,7 +718,17 @@ try:
    if len(Attrs) != 1:
       raise Error, "Oddly your key fingerprint is assigned to more than one account.."
 
+
+   # Check the signature against the replay cache
+   RC = ReplayCache(ReplayCacheFile);
+   RC.Clean();
+   ErrMsg = "The replay cache rejected your message. Check your clock!";
+   Rply = RC.Check(Res[1]);
+   if Rply != None:
+      RC.close()
+      raise Error, Rply;
    RC.Add(Res[1]);
+   RC.close()
 
    # Determine the sender address
    ErrMsg = "A problem occured while trying to formulate the reply";
