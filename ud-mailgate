@@ -786,7 +786,7 @@ except:
    try:
       ErrReply = TemplateSubst(Subst,open(TemplatesDir+"error-reply","r").read());
 
-      Child = os.popen("/usr/sbin/sendmail -t","w");
+      Child = os.popen("/usr/sbin/sendmail -t -oi -f ''","w");
       Child.write(ErrReplyHead);
       Child.write(ErrReply);
       if Child.close() != None:
