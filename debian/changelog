@@ -1,3 +1,11 @@
+userdir-ldap (0.3.58) unstable; urgency=low
+
+  * ud-info: Fix regression from r493: When we log in as admin user and modify
+    another user we got shown that other user but all changes would be made
+    against our own record.
+
+ -- Peter Palfrader <weasel@debian.org>  Fri, 19 Dec 2008 09:25:20 +0100
+
 userdir-ldap (0.3.57) unstable; urgency=low
 
   * In ud-mailgate use an empty envelope from when sending error messages.

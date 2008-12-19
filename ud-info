@@ -351,14 +351,15 @@ else:
 
 # Connect to the ldap server
 l = connectLDAP()
+UserDn = "uid=" + User + "," + BaseDn
 if (BindUser != ""):
    Password = getpass.getpass(BindUser + "'s password: ")
-   UserDn = "uid=" + BindUser + "," + BaseDn
+   BindUserDn = "uid=" + BindUser + "," + BaseDn
 else:
    Password = ""
-   UserDn = ""
+   BindUserDn = ""
 try:
-   l.simple_bind_s(UserDn,Password)
+   l.simple_bind_s(BindUserDn,Password)
 except ldap.LDAPError,e:
    print >> sys.stderr, "LDAP error:", e.args[0]['desc']
    print >> sys.stderr, "           ", e.args[0]['info']
