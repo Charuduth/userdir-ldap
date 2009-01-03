@@ -1,3 +1,9 @@
+userdir-ldap (0.3.XX) Xnstable; urgency=low
+
+  * Role accounts may have dnsZoneEntry attributes.
+
+ -- Peter Palfrader <weasel@debian.org>  Sat, 03 Jan 2009 15:21:02 +0100
+
 userdir-ldap (0.3.58) unstable; urgency=low
 
   * ud-info: Fix regression from r493: When we log in as admin user and modify
