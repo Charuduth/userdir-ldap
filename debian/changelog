@@ -1,8 +1,9 @@
 userdir-ldap (0.3.XX) Xnstable; urgency=low
 
   * Role accounts may have dnsZoneEntry attributes.
+  * ud-generate: and export dns zones to the zonefile for roleaccounts.
 
- -- Peter Palfrader <weasel@debian.org>  Sat, 03 Jan 2009 15:21:02 +0100
+ -- Peter Palfrader <weasel@debian.org>  Sat, 03 Jan 2009 15:34:53 +0100
 
 userdir-ldap (0.3.58) unstable; urgency=low
 

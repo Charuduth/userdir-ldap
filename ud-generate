@@ -735,6 +735,16 @@ def GenMailList(l,File,Key):
    raise;
   Done(File,F,None);
 
+def isRoleAccount(pwEntry):
+   if not pwEntry.has_key("objectClass"):
+      raise "pwEntry has no objectClass"
+   oc =  pwEntry['objectClass']
+   try:
+      i = oc.index('debianRoleAccount')
+      return True
+   except ValueError:
+      return False
+
 # Generate the DNS Zone file
 def GenDNS(l,File,HomePrefix):
   F = None;
@@ -752,7 +762,7 @@ def GenDNS(l,File,HomePrefix):
          continue;
 
       # If the account has no PGP key, do not write it
-      if x[1].has_key("keyFingerPrint") == 0:
+      if x[1].has_key("keyFingerPrint") == 0 and not isRoleAccount(x[1]):
          continue;
       try:
          F.write("; %s\n"%(EmailAddress(x)));
@@ -1015,7 +1025,7 @@ PasswdAttrs = l.search_s(BaseDn,ldap.SCOPE_ONELEVEL,"uid=*",\
                  "allowedHost","sshRSAAuthKey","dnsZoneEntry","cn","sn",\
                  "keyFingerPrint","privateSub","mailDisableMessage",\
                  "mailGreylisting","mailCallout","mailRBL","mailRHSBL",\
-                 "mailWhitelist", "sudoPassword"]);
+                 "mailWhitelist", "sudoPassword", "objectClass"]);
 # Fetch all the hosts
 HostAttrs    = l.search_s(HostBaseDn,ldap.SCOPE_ONELEVEL,"sshRSAHostKey=*",\
                 ["hostname","sshRSAHostKey","purpose"]);
