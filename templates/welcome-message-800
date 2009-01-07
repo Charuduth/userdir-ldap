@@ -43,14 +43,16 @@ and ssh agents.
 
 To give you a quick overview here is a list of the most important
 machines from the project you can access.  First there is
-ftp-master.debian.org, it is our main archive server and the place
+ftp.upload.debian.org, it is our main archive server and the place
 where you upload your packages.  It is restricted, so you can only
 upload with anonymous FTP - a tool like dput or dupload can aid this
-process.  The Projects CVS archive, the main shell server and various
-other stuff is located on gluck.debian.org.  This machine is also
-reachable as {cvs,people}.debian.org.  If you want your own Debian
-related site to appear behind <URL:http://people.debian.org/~__LOGIN__>
-then put it at this machine in the directory ~/public_html/.
+process.  The Projects CVS archive and various other stuff is located
+on gluck.debian.org.  This machine is also reachable as
+cvs.debian.org.  The Project main shell server is located at
+ravel.debian.org.  This machine is also reachable as
+people.debian.org.  If you want your own Debian related site to appear
+behind <URL:http://people.debian.org/~__LOGIN__> then put it at this
+machine in the directory ~/public_html/.
 
 The machine hosting most of our VCS repositories
 ({svn,bzr,git,arch,hg}.debian.org) is alioth.debian.org. It's handled
@@ -72,6 +74,10 @@ Debian machines, and also to allow other developers and general users to
 find out more about you.  Many of the fields are only visible to other
 registered Debian developers.  This is also the only way to change your
 password.  The passwd program does not yet work.
+
+You can refer to http://wiki.debian.org/MigrateToDDAccount to find
+additional notes to help you migrate your previous information to your
+new account.
 
 Before we go on with other important information let's remember the most
 important documents from the NM process.  That you now got your account

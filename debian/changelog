@@ -3,8 +3,11 @@ userdir-ldap (0.3.XX) Xnstable; urgency=low
   * Role accounts may have dnsZoneEntry attributes.
   * ud-generate: and export dns zones to the zonefile for roleaccounts.
   * Remove a lie from welcome-message-60000 - not that it's the only one.
+  * Apply patch to welcome-message-800 provided by Sandro Tosi:
+    - some machines/services have been renamed
+    - point to http://wiki.debian.org/MigrateToDDAccount
 
- -- Peter Palfrader <weasel@debian.org>  Wed, 07 Jan 2009 17:02:36 +0100
+ -- Peter Palfrader <weasel@debian.org>  Wed, 07 Jan 2009 17:03:41 +0100
 
 userdir-ldap (0.3.58) unstable; urgency=low
 
