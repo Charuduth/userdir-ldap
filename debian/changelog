@@ -6,8 +6,9 @@ userdir-ldap (0.3.XX) Xnstable; urgency=low
   * Apply patch to welcome-message-800 provided by Sandro Tosi:
     - some machines/services have been renamed
     - point to http://wiki.debian.org/MigrateToDDAccount
+  * More tweaks on welcome-message-800.
 
- -- Peter Palfrader <weasel@debian.org>  Wed, 07 Jan 2009 17:03:41 +0100
+ -- Peter Palfrader <weasel@debian.org>  Wed, 07 Jan 2009 17:12:58 +0100
 
 userdir-ldap (0.3.58) unstable; urgency=low
 

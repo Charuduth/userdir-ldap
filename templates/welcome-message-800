@@ -20,8 +20,14 @@ until this information is synced with all developer-accessible machines.
 You should be able to login or upload packages after about 30-60 minutes.
 The password for this account can be found appended to this message,
 encrypted with your GPG key.
+
 Email sent to <__LOGIN__@debian.org> will be forwarded to <__EMAIL__>,
 to change this visit <URL:http://db.debian.org/forward.html>.
+The Debian mail setup allows verious per-user settings, like enabling
+greylisting and sender-verify-callouts and per-user dns blocklists.
+Please refer to <URL:http://db.debian.org/doc-mail.html> on how to change
+these settings.  Some may also be exposed via the web interface behind
+<URL:https://db.debian.org/login.html>.
 
 You now have access to various project machines, for a list of them take
 a look at <URL:http://db.debian.org/machines.cgi>.
@@ -42,16 +48,18 @@ Please be aware of the security implications of using RSA authentication
 and ssh agents.
 
 To give you a quick overview here is a list of the most important
-machines from the project you can access.  First there is
-ftp.upload.debian.org, it is our main archive server and the place
-where you upload your packages.  It is restricted, so you can only
-upload with anonymous FTP - a tool like dput or dupload can aid this
-process.  The Projects CVS archive and various other stuff is located
-on gluck.debian.org.  This machine is also reachable as
-cvs.debian.org.  The Project main shell server is located at
-ravel.debian.org.  This machine is also reachable as
-people.debian.org.  If you want your own Debian related site to appear
-behind <URL:http://people.debian.org/~__LOGIN__> then put it at this
+machines from the project you can access.  There is the main archive
+server, but shell access to it is restricted for security reasons, so you
+can only upload with anonymous FTP - please use the service name
+ftp.upload.debian.org as the target for your uploads (so that we can
+point that some place else when the archive system is down for
+maintenance etc.).  A tool like dput or dupload can aid this
+process.
+
+The project main shell server is located at ravel.debian.org.  This
+machine is also reachable as people.debian.org.  If you want your own
+Debian related site to appear behind
+<URL:http://people.debian.org/~__LOGIN__/> then put it at this
 machine in the directory ~/public_html/.
 
 The machine hosting most of our VCS repositories
@@ -73,7 +81,7 @@ The information stored here is used to maintain your accounts on various
 Debian machines, and also to allow other developers and general users to
 find out more about you.  Many of the fields are only visible to other
 registered Debian developers.  This is also the only way to change your
-password.  The passwd program does not yet work.
+password.  The passwd program does not work.
 
 You can refer to http://wiki.debian.org/MigrateToDDAccount to find
 additional notes to help you migrate your previous information to your
