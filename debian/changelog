@@ -5,8 +5,9 @@ userdir-ldap (0.3.60) unstable; urgency=low
     it first.
   * Create an exception generator to make it easy to create new types of 
     exceptions.
+  * Actually install the new exceptions module
 
- -- Stephen Gran <sgran@debian.org>  Sat, 28 Feb 2009 11:10:25 +0000
+ -- Stephen Gran <sgran@debian.org>  Sat, 28 Feb 2009 12:10:35 +0000
 
 userdir-ldap (0.3.59) unstable; urgency=low
 
