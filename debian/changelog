@@ -1,3 +1,9 @@
+userdir-ldap (0.3.61) unstable; urgency=low
+
+  * Gratuitous version increment
+
+ -- Stephen Gran <sgran@debian.org>  Sat, 28 Feb 2009 12:42:45 +0000
+
 userdir-ldap (0.3.60) unstable; urgency=low
 
   * Stop using string exceptions in ud-mailgate.  We should probably stop
