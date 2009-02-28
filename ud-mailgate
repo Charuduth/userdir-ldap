@@ -2,6 +2,7 @@
 # -*- mode: python -*-
 
 #   Prior copyright probably rmurray, troup, joey, jgg -- weasel 2008
+#   Copyright (c) 2009 Stephen Gran <steve@lobefin.net>
 #   Copyright (c) 2008 Peter Palfrader <peter@palfrader.org>
 #   Copyright (c) 2008 Joerg Jaspert <joerg@debian.org>
 
@@ -10,6 +11,7 @@ import pwd, tempfile
 
 from userdir_gpg import *
 from userdir_ldap import *
+from userdir_exceptions import *
 
 # Error codes from /usr/include/sysexits.h
 ReplyTo = ConfModule.replyto;
@@ -127,11 +129,11 @@ def LocDecode(Str,Dir):
       
    # Some simple checks
    if float(Deg) > 180:
-      raise "Failed","Bad degrees";
+      raise UDFormatError, "Bad degrees";
    if Min != None and float(Min) > 60:
-      raise "Failed","Bad minutes";
+      raise UDFormatError, "Bad minutes";
    if Sec != None and float(Sec) > 60:
-      raise "Failed","Bad seconds";
+      raise UDFormatError, "Bad seconds";
       
    # Pad on an extra leading 0 to disambiguate small numbers
    if len(Deg) <= 1 or Deg[1] == '.':
@@ -169,12 +171,12 @@ def DoArbChange(Str,Attrs):
       return None;
 
    if re.match(ArbChanges[attrName],G[1]) == None:
-      raise Error, "Item does not match the required format"+ArbChanges[attrName];
+      raise UDFormatError, "Item does not match the required format"+ArbChanges[attrName];
 
    value = G[1];
    if attrName == 'gender':
       if G[1] not in GenderTable:
-         raise Error, "Gender not found in table"
+         raise UDFormatError, "Gender not found in table"
       value = GenderTable[G[1]]
 
 #   if attrName == 'birthDate':
@@ -236,7 +238,7 @@ def DoPosition(Str,Attrs):
       Lat = DecDegree(sLat,1);
       Long = DecDegree(sLong,1);
    except:
-      raise Error, "Positions were found, but they are not correctly formed";
+      raise UDFormatError, "Positions were found, but they are not correctly formed";
 
    Attrs.append((ldap.MOD_REPLACE,"latitude",sLat));
    Attrs.append((ldap.MOD_REPLACE,"longitude",sLong));
@@ -276,7 +278,7 @@ def DoSSH(Str, Attrs, badkeys, uid):
    (result, output) = commands.getstatusoutput(cmd)
    os.remove(path)
    if (result != 0):
-      raise Error, "ssh-keygen -l invocation failed!\n%s\n" % (output)
+      raise UDExecuteError, "ssh-keygen -l invocation failed!\n%s\n" % (output)
 
 
    # Head
@@ -299,12 +301,12 @@ def DoSSH(Str, Attrs, badkeys, uid):
          Child.write(ErrReplyHead)
          Child.write(ErrReply)
          if Child.close() != None:
-            raise Error, "Sendmail gave a non-zero return code"
+            raise UDExecuteError, "Sendmail gave a non-zero return code"
       except:
          sys.exit(EX_TEMPFAIL)
 
       # And now break and stop processing input, which sends a reply to the user.
-      raise Error, "SSH keys must have at least 1024 bits, processing halted, NOTHING MODIFIED AT ALL"
+      raise UDFormatError, "SSH keys must have at least 1024 bits, processing halted, NOTHING MODIFIED AT ALL"
    elif g[1] in badkeys:
       try:
          # Body
@@ -315,12 +317,12 @@ def DoSSH(Str, Attrs, badkeys, uid):
          Child.write(ErrReplyHead)
          Child.write(ErrReply)
          if Child.close() != None:
-            raise Error, "Sendmail gave a non-zero return code"
+            raise UDExecuteError, "Sendmail gave a non-zero return code"
       except:
          sys.exit(EX_TEMPFAIL)
 
       # And now break and stop processing input, which sends a reply to the user.
-      raise Error, "Submitted SSH Key known to be bad and insecure, processing halted, NOTHING MODIFIED AT ALL"
+      raise UDFormatError, "Submitted SSH Key known to be bad and insecure, processing halted, NOTHING MODIFIED AT ALL"
 
    if (typekey == "dss"):
       return "DSA keys not accepted anymore"
@@ -355,7 +357,7 @@ def DoDNS(Str,Attrs,DnRecord):
    # Check if the name is already taken
    G = re.match('^([-\w+]+)\s',Str)
    if G == None:
-     raise Error, "Hostname not found although we already passed record syntax checks"
+     raise UDFormatError, "Hostname not found although we already passed record syntax checks"
    hostname = G.group(1)
 
    # Check for collisions
@@ -417,7 +419,7 @@ def DoDNS(Str,Attrs,DnRecord):
          seenEmptypart = True
      sanitized = "%s IN AAAA %s" % (hostname, ipv6address)
    else:
-     raise Error, "None of the types I recognize was it.  I shouldn't be here.  confused."
+     raise UDFormatError, "None of the types I recognize was it.  I shouldn't be here.  confused."
 
    if SeenDNS:
      Attrs.append((ldap.MOD_ADD,"dnsZoneEntry",sanitized));
@@ -470,7 +472,7 @@ def FinishConfirmSudopassword(l, uid, Attrs):
 
    res = l.search_s(BaseDn,ldap.SCOPE_ONELEVEL,"uid="+uid, ['sudoPassword']);
    if len(res) != 1:
-      raise Error, "Not exactly one hit when searching for user"
+      raise UDFormatError, "Not exactly one hit when searching for user"
    if res[0][1].has_key('sudoPassword'):
       inldap = res[0][1]['sudoPassword']
    else:
@@ -480,7 +482,7 @@ def FinishConfirmSudopassword(l, uid, Attrs):
    for entry in inldap:
       Match = re.compile('^('+UUID_FORMAT+') (confirmed:[0-9a-f]{40}|unconfirmed) ([a-z0-9.,*]+) ([^ ]+)$').match(entry)
       if Match == None:
-         raise Error, "Could not parse existing sudopasswd entry"
+         raise UDFormatError, "Could not parse existing sudopasswd entry"
       uuid = Match.group(1)
       status = Match.group(2)
       hosts = Match.group(3)
@@ -564,7 +566,7 @@ def HandleChange(Reply,DnRecord,Key):
    oldAttrs = l.search_s(BaseDn,ldap.SCOPE_ONELEVEL,"uid="+GetAttr(DnRecord,"uid"));
    if ((GetAttr(oldAttrs[0],"userPassword").find("*LK*") != -1) 
        or GetAttr(oldAttrs[0],"userPassword").startswith("!")):
-      raise Error, "This account is locked";
+      raise UDNotAllowedError, "This account is locked";
 
    if CommitChanges == 1: # only if we are still good to go
       try:
@@ -583,7 +585,7 @@ def HandleChange(Reply,DnRecord,Key):
    if Show == 1:
       Attrs = l.search_s(BaseDn,ldap.SCOPE_ONELEVEL,"uid="+GetAttr(DnRecord,"uid"));
       if len(Attrs) == 0:
-         raise Error, "User not found"
+         raise UDNotAllowedError, "User not found"
       Attribs = GPGEncrypt(PrettyShow(Attrs[0])+"\n","0x"+Key[1],Key[4]);
 
    Subst = {};
@@ -619,7 +621,7 @@ def HandleChPass(Reply,DnRecord,Key):
    Password = None;
 
    if Message == None:
-      raise Error, "Unable to generate the encrypted reply, gpg failed.";
+      raise UDFormatError, "Unable to generate the encrypted reply, gpg failed.";
 
    if (Key[4] == 1):
       Type = "Your message was encrypted using PGP 2.x\ncompatibility mode.";
@@ -646,7 +648,7 @@ def HandleChPass(Reply,DnRecord,Key):
    Attrs = l.search_s(BaseDn,ldap.SCOPE_ONELEVEL,"uid="+GetAttr(DnRecord,"uid"));
    if (GetAttr(Attrs[0],"userPassword").find("*LK*") != -1) \
              or GetAttr(Attrs[0],"userPassword").startswith("!"):
-      raise Error, "This account is locked";
+      raise UDNotAllowedError, "This account is locked";
 
    # Modify the password
    Rec = [(ldap.MOD_REPLACE,"userPassword","{crypt}"+Pass),
@@ -678,17 +680,17 @@ try:
    ErrMsg = "Message is not PGP signed:"
    if Msg[0].find("-----BEGIN PGP SIGNED MESSAGE-----") == -1 and \
       Msg[0].find("-----BEGIN PGP MESSAGE-----") == -1:
-      raise Error, "No PGP signature";
+      raise UDFormatError, "No PGP signature";
    
    # Check the signature
    ErrMsg = "Unable to check the signature or the signature was invalid:";
    Res = GPGCheckSig(Msg[0]);
 
    if Res[0] != None:
-      raise Error, Res[0];
+      raise UDFormatError, Res[0];
       
    if Res[3] == None:
-      raise Error, "Null signature text";
+      raise UDFormatError, "Null signature text";
 
    # Extract the plain message text in the event of mime encoding
    global PlainText;
@@ -714,9 +716,9 @@ try:
 
    ErrType = EX_PERMFAIL;
    if len(Attrs) == 0:
-      raise Error, "Key not found"
+      raise UDFormatError, "Key not found"
    if len(Attrs) != 1:
-      raise Error, "Oddly your key fingerprint is assigned to more than one account.."
+      raise UDFormatError, "Oddly your key fingerprint is assigned to more than one account.."
 
 
    # Check the signature against the replay cache
@@ -726,7 +728,7 @@ try:
    Rply = RC.Check(Res[1]);
    if Rply != None:
       RC.close()
-      raise Error, Rply;
+      raise UDNotAllowedError, Rply;
    RC.Add(Res[1]);
    RC.close()
 
@@ -736,7 +738,7 @@ try:
    if Sender == None:
       Sender = Email.getheader("From");
    if Sender == None:
-      raise Error, "Unable to determine the sender's address";
+      raise UDFormatError, "Unable to determine the sender's address";
 
    # Formulate a reply
    Date = time.strftime("%a, %d %b %Y %H:%M:%S +0000",time.gmtime(time.time()));
@@ -747,13 +749,13 @@ try:
       Reply = HandlePing(Reply,Attrs[0],Res[2]);
    elif sys.argv[1] == "chpass":
       if PlainText.strip().find("Please change my Debian password") != 0:
-         raise Error,"Please send a signed message where the first line of text is the string 'Please change my Debian password'";
+         raise UDFormatError,"Please send a signed message where the first line of text is the string 'Please change my Debian password'";
       Reply = HandleChPass(Reply,Attrs[0],Res[2]);
    elif sys.argv[1] == "change":
       Reply = HandleChange(Reply,Attrs[0],Res[2]);
    else:
       print sys.argv;
-      raise Error, "Incorrect Invokation";
+      raise UDFormatError, "Incorrect Invokation";
 
    # Send the message through sendmail      
    ErrMsg = "A problem occured while trying to send the reply";
@@ -761,7 +763,7 @@ try:
 #   Child = os.popen("cat","w");
    Child.write(Reply);
    if Child.close() != None:
-      raise Error, "Sendmail gave a non-zero return code";
+      raise UDExecuteError, "Sendmail gave a non-zero return code";
 
 except:
    # Error Reply Header
@@ -790,7 +792,7 @@ except:
       Child.write(ErrReplyHead);
       Child.write(ErrReply);
       if Child.close() != None:
-         raise Error, "Sendmail gave a non-zero return code";
+         raise UDExecuteError, "Sendmail gave a non-zero return code";
    except:
       sys.exit(EX_TEMPFAIL);
       

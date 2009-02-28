@@ -1,3 +1,13 @@
+userdir-ldap (0.3.60) unstable; urgency=low
+
+  * Stop using string exceptions in ud-mailgate.  We should probably stop
+    using them everywhere, but this one is causing bounces, so we'll deal with
+    it first.
+  * Create an exception generator to make it easy to create new types of 
+    exceptions.
+
+ -- Stephen Gran <sgran@debian.org>  Sat, 28 Feb 2009 11:10:25 +0000
+
 userdir-ldap (0.3.59) unstable; urgency=low
 
   * Role accounts may have dnsZoneEntry attributes.
