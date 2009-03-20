@@ -1,3 +1,10 @@
+userdir-ldap (0.3.62) unstable; urgency=low
+
+  * ud-generate: do not die when building ssh_known_hosts
+    just because a host is not (yet) in DNS.
+
+ -- Peter Palfrader <weasel@debian.org>  Fri, 20 Mar 2009 16:35:02 +0100
+
 userdir-ldap (0.3.61) unstable; urgency=low
 
   * Gratuitous version increment

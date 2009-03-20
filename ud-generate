@@ -889,9 +889,10 @@ def HostToIP(Host):
         except socket.gaierror, (code):
             if code[0] != -2: raise
         IPAdresses = []
-        for addr in IPAdressesT:
-            if addr[0] == socket.AF_INET: IPAdresses += [addr[1], "::ffff:"+addr[1]]
-            else: IPAdresses += [addr[1]]
+        if not IPAdressesT is None:
+            for addr in IPAdressesT:
+               if addr[0] == socket.AF_INET: IPAdresses += [addr[1], "::ffff:"+addr[1]]
+               else: IPAdresses += [addr[1]]
         HostToIPCache[Host] = IPAdresses
     return HostToIPCache[Host]
 
