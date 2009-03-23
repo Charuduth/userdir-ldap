@@ -423,7 +423,7 @@ def GPGCheckSig(Message):
       # A gpg failure is an automatic bad signature
       if Exit[1] != 0 and Why == None:
          GoodSig = 0;
-         Why = "GPG execution failed " + str(Exit[0]);
+         Why = "GPG execution returned non-zero exit status: " + str(Exit[1]);
 
       if GoodSig == 0 and (Why == None or len(Why) == 0):
          Why = "Checking Failed";
