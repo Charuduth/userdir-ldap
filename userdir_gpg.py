@@ -52,6 +52,9 @@ CleanCutOff = 7*24*60*60;
 AgeCutOff = 4*24*60*60;
 FutureCutOff = 3*24*60*60;
 
+def ClearKeyrings():
+   del GPGKeyRings[:]
+
 # Set the keyrings, the input is a list of keyrings
 def SetKeyrings(Rings):
    for x in Rings:

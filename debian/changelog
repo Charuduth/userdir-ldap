@@ -1,8 +1,9 @@
 userdir-ldap (0.3.64) unstable; urgency=low
 
   * userdir-ldap.conf: add keyring.pgp to default add_keyrings.
+  * userdir_gpg.py: add a ClearKeyrings().
 
- -- Peter Palfrader <weasel@debian.org>  Mon, 06 Apr 2009 01:33:51 +0200
+ -- Peter Palfrader <weasel@debian.org>  Mon, 06 Apr 2009 01:34:39 +0200
 
 userdir-ldap (0.3.63) unstable; urgency=low
 
