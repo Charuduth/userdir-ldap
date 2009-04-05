@@ -62,9 +62,7 @@ for (switch, val) in options:
        LoadOverride(val);
    elif (switch == '-a'):
        NoAct = 0;
-if len(arguments) == 0:
-   print "Give some keyrings to probe";
-   sys.exit(0);
+
 
 # Main program starts here
 
@@ -105,14 +103,16 @@ Attrs = None;
 print;
 
 # Popen GPG with the correct magic special options
-Args = [GPGPath] + GPGBasicOptions;
+ClearKeyrings()
+if len(arguments) == 0:
+   print "Using default keyrings: %s"%ConfModule.add_keyrings;
+   SetKeyrings(ConfModule.add_keyrings.split(":"))
 for x in arguments:
-   Args.append("--keyring");
    if x.find("/") == -1:
-      Args.append("./"+x);
-   else:
-      Args.append(x);
-Args = Args + GPGSearchOptions + [" 2> /dev/null"]
+      x= "./"+x
+   SetKeyrings( [x] )
+
+Args = [GPGPath] + GPGBasicOptions + GPGKeyRings + GPGSearchOptions + [" 2> /dev/null"]
 Keys = os.popen(" ".join(Args),"r");
 
 # Loop over the GPG key file
