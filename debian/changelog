@@ -1,3 +1,11 @@
+userdir-ldap (0.3.65) unstable; urgency=low
+
+  * userdir-ldap.conf: remove from default keyrings:
+    - /home/jgg/keys/extrakeys.gpg
+    - /home/jgg/keys/guest-keys.gpg
+
+ -- Peter Palfrader <weasel@debian.org>  Mon, 06 Apr 2009 01:40:37 +0200
+
 userdir-ldap (0.3.64) unstable; urgency=low
 
   * userdir-ldap.conf: add keyring.pgp to default add_keyrings.
