@@ -42,7 +42,7 @@ UUID_FORMAT = '[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}'
 
 EmailCheck = re.compile("^([^ <>@]+@[^ ,<>@]+)?$");
 BSMTPCheck = re.compile(".*mx 0 (gluck)\.debian\.org\..*",re.DOTALL);
-PurposeHostField = re.compile(r"\[\[([\*\-]?[a-z0-9.\-]*)(?:\|.*)?\]\]")
+PurposeHostField = re.compile(r".*\[\[([\*\-]?[a-z0-9.\-]*)(?:\|.*)?\]\]")
 DNSZone = ".debian.net"
 Keyrings = ConfModule.sync_keyrings.split(":")
 
