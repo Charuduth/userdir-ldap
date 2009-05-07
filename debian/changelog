@@ -1,3 +1,9 @@
+userdir-ldap (0.3.66+XX) unstable; urgency=low
+
+  * ud-replicate no longer uses localsyncon=*samosa*.
+
+ -- Peter Palfrader <weasel@debian.org>  Thu, 07 May 2009 23:41:35 +0200
+
 userdir-ldap (0.3.66) unstable; urgency=low
 
   * We would previously ignore purpose hosts for ssh known hosts purposes
