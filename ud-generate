@@ -33,6 +33,7 @@ global Allowed;
 global CurrentHost;
 
 PasswdAttrs = None;
+disabledusers = []
 GroupIDMap = {};
 SubGroupMap = {};
 Allowed = None;
@@ -585,6 +586,7 @@ def GenDisabledAccounts(l,File):
 
    # Fetch all the users
    global PasswdAttrs;
+   global disabledusers
    if PasswdAttrs == None:
       raise "No Users";
 
@@ -603,6 +605,8 @@ def GenDisabledAccounts(l,File):
 
       if Line != "":
          F.write(Sanitize(Line) + "\n")
+
+      disabledusers.append(x)
 
   # Oops, something unspeakable happened.
   except:
@@ -1057,6 +1061,8 @@ GenKeyrings(l,GlobalDir);
 
 # Compatibility.
 GenForward(l,GlobalDir+"forward-alias");
+
+PasswdAttrs = filter(lambda x: not x in disabledusers, PasswdAttrs)
 
 while(1):
    Line = F.readline();
