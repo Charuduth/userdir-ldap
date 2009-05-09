@@ -198,7 +198,7 @@ def GenPasswd(File, HomePrefix, PwdMarker):
    return userlist
 
 # Generate the shadow list
-def GenShadow(l, File):
+def GenShadow(File):
    F = None
    try:
       OldMask = os.umask(0077)
@@ -244,7 +244,7 @@ def GenShadow(l, File):
    Done(File, None, F)
 
 # Generate the sudo passwd file
-def GenShadowSudo(l, File, untrusted):
+def GenShadowSudo(File, untrusted):
    F = None
    try:
       OldMask = os.umask(0077)
@@ -480,7 +480,7 @@ def CheckForward():
          x[1].pop("emailForward")
 
 # Generate the email forwarding list
-def GenForward(l, File):
+def GenForward(File):
    F = None
    try:
       OldMask = os.umask(0022)
@@ -505,7 +505,7 @@ def GenForward(l, File):
       raise
    Done(File, F, None)
 
-def GenAllForward(l, File):
+def GenAllForward(File):
    Fdb = None
    try:
       OldMask = os.umask(0022)
@@ -535,7 +535,7 @@ def GenAllForward(l, File):
       raise "cdbmake gave an error"
 
 # Generate the anon XEarth marker file
-def GenMarkers(l, File):
+def GenMarkers(File):
    F = None
    try:
       F = open(File + ".tmp", "w")
@@ -561,7 +561,7 @@ def GenMarkers(l, File):
    Done(File, F, None)
 
 # Generate the debian-private subscription list
-def GenPrivate(l, File):
+def GenPrivate(File):
    F = None
    try:
       F = open(File + ".tmp", "w")
@@ -630,7 +630,7 @@ def GenDisabledAccounts(File):
    Done(File, F, None)
 
 # Generate the list of local addresses that refuse all mail
-def GenMailDisable(l, File):
+def GenMailDisable(File):
    F = None
    try:
       F = open(File + ".tmp", "w")
@@ -664,7 +664,7 @@ def GenMailDisable(l, File):
    Done(File, F, None)
 
 # Generate a list of uids that should have boolean affects applied
-def GenMailBool(l, File, Key):
+def GenMailBool(File, Key):
    F = None
    try:
       F = open(File + ".tmp", "w")
@@ -699,7 +699,7 @@ def GenMailBool(l, File, Key):
    Done(File, F, None)
 
 # Generate a list of hosts for RBL or whitelist purposes.
-def GenMailList(l, File, Key):
+def GenMailList(File, Key):
    F = None
    try:
       F = open(File + ".tmp", "w")
@@ -759,7 +759,7 @@ def isRoleAccount(pwEntry):
       return False
 
 # Generate the DNS Zone file
-def GenDNS(l, File, HomePrefix):
+def GenDNS(File, HomePrefix):
    F = None
    try:
       F = open(File + ".tmp", "w")
@@ -812,7 +812,7 @@ def GenDNS(l, File, HomePrefix):
    Done(File, F, None)
 
 # Generate the DNS SSHFP records
-def GenSSHFP(l, File, HomePrefix):
+def GenSSHFP(File, HomePrefix):
    F = None
    try:
       F = open(File + ".tmp", "w")
@@ -847,7 +847,7 @@ def GenSSHFP(l, File, HomePrefix):
    Done(File, F, None)
 
 # Generate the BSMTP file
-def GenBSMTP(l, File, HomePrefix):
+def GenBSMTP(File, HomePrefix):
    F = None
    try:
       F = open(File + ".tmp", "w")
@@ -909,7 +909,7 @@ def HostToIP(Host):
    return HostToIPCache[Host]
 
 # Generate the ssh known hosts file
-def GenSSHKnown(l, File, mode=None):
+def GenSSHKnown(File, mode=None):
    F = None
    try:
       OldMask = os.umask(0022)
@@ -1003,7 +1003,7 @@ def GenHosts(l, File):
      raise
    Done(File, F, None)
 
-def GenKeyrings(l, OutDir):
+def GenKeyrings(OutDir):
    for k in Keyrings:
       shutil.copy(k, OutDir)
 
@@ -1064,25 +1064,25 @@ PasswdAttrs = filter(lambda x: not x in RetiredUsers, PasswdAttrs)
 
 CheckForward()
 
-GenMailDisable(l, GlobalDir + "mail-disable")
-GenAllForward(l, GlobalDir + "mail-forward.cdb")
-GenPrivate(l, GlobalDir + "debian-private")
+GenMailDisable(GlobalDir + "mail-disable")
+GenAllForward(GlobalDir + "mail-forward.cdb")
+GenPrivate(GlobalDir + "debian-private")
 #GenSSHKnown(l,GlobalDir+"authorized_keys", 'authorized_keys')
-GenMailBool(l, GlobalDir + "mail-greylist", "mailGreylisting")
-GenMailBool(l, GlobalDir + "mail-callout", "mailCallout")
-GenMailList(l, GlobalDir + "mail-rbl", "mailRBL")
-GenMailList(l, GlobalDir + "mail-rhsbl", "mailRHSBL")
-GenMailList(l, GlobalDir + "mail-whitelist", "mailWhitelist")
-GenKeyrings(l, GlobalDir)
+GenMailBool(GlobalDir + "mail-greylist", "mailGreylisting")
+GenMailBool(GlobalDir + "mail-callout", "mailCallout")
+GenMailList(GlobalDir + "mail-rbl", "mailRBL")
+GenMailList(GlobalDir + "mail-rhsbl", "mailRHSBL")
+GenMailList(GlobalDir + "mail-whitelist", "mailWhitelist")
+GenKeyrings(GlobalDir)
 
 # Compatibility.
-GenForward(l, GlobalDir + "forward-alias")
+GenForward(GlobalDir + "forward-alias")
 
 PasswdAttrs = filter(lambda x: not x in DisabledUsers, PasswdAttrs)
 
 SSHFiles = GenSSHShadow()
-GenMarkers(l, GlobalDir + "markers")
-GenSSHKnown(l, GlobalDir + "ssh_known_hosts")
+GenMarkers(GlobalDir + "markers")
+GenSSHKnown(GlobalDir + "ssh_known_hosts")
 GenHosts(l, GlobalDir + "debianhosts")
 
 while(1):
@@ -1129,7 +1129,7 @@ while(1):
       userlist = GenPasswd(OutDir + "passwd", Split[1], "x")
    sys.stdout.flush()
    grouprevmap = GenGroup(OutDir + "group")
-   GenShadowSudo(l, OutDir + "sudo-passwd", ExtraList.has_key("[UNTRUSTED]") or ExtraList.has_key("[NOPASSWD]"))
+   GenShadowSudo(OutDir + "sudo-passwd", ExtraList.has_key("[UNTRUSTED]") or ExtraList.has_key("[NOPASSWD]"))
 
    # Now we know who we're allowing on the machine, export
    # the relevant ssh keys
@@ -1139,7 +1139,7 @@ while(1):
       print "[UNTRUSTED] tag is obsolete and may be removed in the future."
       continue
    if not ExtraList.has_key("[NOPASSWD]"):
-      GenShadow(l, OutDir + "shadow")
+      GenShadow(OutDir + "shadow")
 
    # Link in global things
    if not ExtraList.has_key("[NOMARKERS]"):
@@ -1156,11 +1156,11 @@ while(1):
    DoLink(GlobalDir, OutDir, "forward-alias")
 
    if ExtraList.has_key("[DNS]"):
-      GenDNS(l, OutDir + "dns-zone", Split[1])
-      GenSSHFP(l, OutDir + "dns-sshfp", Split[1])
+      GenDNS(OutDir + "dns-zone", Split[1])
+      GenSSHFP(OutDir + "dns-sshfp", Split[1])
 
    if ExtraList.has_key("[BSMTP]"):
-      GenBSMTP(l, OutDir + "bsmtp", Split[1])
+      GenBSMTP(OutDir + "bsmtp", Split[1])
 
    if ExtraList.has_key("[PRIVATE]"):
       DoLink(GlobalDir, OutDir, "debian-private")
