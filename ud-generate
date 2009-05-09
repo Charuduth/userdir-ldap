@@ -36,7 +36,6 @@ global CurrentHost
 
 PasswdAttrs = None
 DisabledUsers = []
-RetiredUsers = []
 GroupIDMap = {}
 SubGroupMap = {}
 Allowed = None
@@ -107,6 +106,12 @@ def IsRetired(DnRecord):
          return False
 
    return False
+
+def IsGidDebian(x):
+   try:
+      return int(GetAttr(x, "gidNumber", 0)) == 800
+   except ValueError:
+      return False
 
 # See if this user is in the group list
 def IsInGroup(DnRecord):
@@ -461,8 +466,8 @@ def GenGroup(File):
    return grouprevmap
 
 def CheckForward():
-   global PasswdAttrs
-   for x in PasswdAttrs:
+   global DebianUsers
+   for x in DebianUsers:
       if x[1].has_key("emailForward") == 0:
          continue
    
@@ -488,10 +493,10 @@ def GenForward(File):
       os.umask(OldMask)
      
       # Fetch all the users
-      global PasswdAttrs
+      global DebianUsers
      
       # Write out the email address for each user
-      for x in PasswdAttrs:
+      for x in DebianUsers:
          if x[1].has_key("emailForward") == 0:
             continue
      
@@ -513,10 +518,10 @@ def GenAllForward(File):
       os.umask(OldMask)
      
       # Fetch all the users
-      global PasswdAttrs
+      global DebianUsers
      
       # Write out the email address for each user
-      for x in PasswdAttrs:
+      for x in DebianUsers:
          if x[1].has_key("emailForward") == 0:
             continue
      
@@ -541,10 +546,10 @@ def GenMarkers(File):
       F = open(File + ".tmp", "w")
      
       # Fetch all the users
-      global PasswdAttrs
+      global DebianUsers
      
       # Write out the position for each user
-      for x in PasswdAttrs:
+      for x in DebianUsers:
          if x[1].has_key("latitude") == 0 or x[1].has_key("longitude") == 0:
             continue
          try:
@@ -567,19 +572,15 @@ def GenPrivate(File):
       F = open(File + ".tmp", "w")
      
       # Fetch all the users
-      global PasswdAttrs
+      global DebianUsers
      
       # Write out the position for each user
-      for x in PasswdAttrs:
+      for x in DebianUsers:
          if x[1].has_key("privateSub") == 0:
             continue
      
          # If the account has no PGP key, do not write it
          if x[1].has_key("keyFingerPrint") == 0:
-            continue
-     
-         # Must be in the Debian group (yuk, hard coded for now)
-         if GetAttr(x, "gidNumber") != "800":
             continue
      
          try:
@@ -636,18 +637,14 @@ def GenMailDisable(File):
       F = open(File + ".tmp", "w")
      
       # Fetch all the users
-      global PasswdAttrs
+      global DebianUsers
      
-      for x in PasswdAttrs:
+      for x in DebianUsers:
          Reason = None
      
          if x[1].has_key("mailDisableMessage"):
             Reason = GetAttr(x, "mailDisableMessage")
          else:
-            continue
-     
-         # Must be in the Debian group (yuk, hard coded for now)
-         if GetAttr(x, "gidNumber") != "800":
             continue
      
          try:
@@ -670,16 +667,12 @@ def GenMailBool(File, Key):
       F = open(File + ".tmp", "w")
      
       # Fetch all the users
-      global PasswdAttrs
+      global DebianUsers
      
-      for x in PasswdAttrs:
+      for x in DebianUsers:
          Reason = None
      
          if x[1].has_key(Key) == 0:
-            continue
-     
-         # Must be in the Debian group (yuk, hard coded for now)
-         if GetAttr(x, "gidNumber") != "800":
             continue
      
          if GetAttr(x, Key) != "TRUE":
@@ -705,16 +698,12 @@ def GenMailList(File, Key):
       F = open(File + ".tmp", "w")
      
       # Fetch all the users
-      global PasswdAttrs
+      global DebianUsers
      
-      for x in PasswdAttrs:
+      for x in DebianUsers:
          Reason = None
      
          if x[1].has_key(Key) == 0:
-            continue
-     
-         # Must be in the Debian group (yuk, hard coded for now)
-         if GetAttr(x, "gidNumber") != "800":
             continue
      
          try:
@@ -853,10 +842,10 @@ def GenBSMTP(File, HomePrefix):
       F = open(File + ".tmp", "w")
      
       # Fetch all the users
-      global PasswdAttrs
+      global DebianUsers
      
       # Write out the zone file entry for each user
-      for x in PasswdAttrs:
+      for x in DebianUsers:
          if x[1].has_key("dnsZoneEntry") == 0:
             continue
      
@@ -1056,11 +1045,8 @@ else:
 GlobalDir = GenerateDir + "/"
 GenDisabledAccounts(GlobalDir + "disabled-accounts")
 
-for x in PasswdAttrs:
-   if IsRetired(x):
-      RetiredUsers.append(x)
-
-PasswdAttrs = filter(lambda x: not x in RetiredUsers, PasswdAttrs)
+PasswdAttrs = filter(not IsRetired, PasswdAttrs)
+DebianUsers = filter(IsGidDebian, PasswdAttrs)
 
 CheckForward()
 
