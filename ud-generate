@@ -73,6 +73,31 @@ def DoLink(From,To,File):
    except: pass;
    posix.link(From+File,To+File);
 
+def IsRetired(DnRecord):
+   """
+   Looks for accountStatus in the LDAP record and tries to
+   match it against one of the known retired statuses
+   """
+
+   status = GetAttr(DnRecord,"accountStatus", None)
+   if status is None:
+      return False
+
+   if status.find("inactive") != -1:
+      return True
+
+   if status.find("memorial") != -1:
+      return True
+
+   if status.find("retiring") != -1:
+      line = status.split()
+      # We'll give them a few extra days over what we said
+      age = 6 * 31 * 24 * 60 * 60
+      if (time.time() - time.mktime(time.strptime(line[1], "%Y-%m-%d")) > (age):
+            return True
+
+   return False
+
 # See if this user is in the group list
 def IsInGroup(DnRecord):
   if Allowed == None:
@@ -131,6 +156,9 @@ def GenPasswd(l,File,HomePrefix,PwdMarker):
 
    I = 0;
    for x in PasswdAttrs:
+      if IsRetired(x):
+         continue
+
       if x[1].has_key("uidNumber") == 0 or IsInGroup(x) == 0:
          continue;
 
@@ -175,6 +203,9 @@ def GenShadow(l,File):
 
    I = 0;
    for x in PasswdAttrs:
+      if IsRetired(x):
+         continue
+
       if x[1].has_key("uidNumber") == 0 or IsInGroup(x) == 0:
          continue;
 
@@ -222,6 +253,9 @@ def GenShadowSudo(l,File, untrusted):
       raise "No Users";
 
    for x in PasswdAttrs:
+      if IsRetired(x):
+         continue
+
       Pass = '*'
       if x[1].has_key("uidNumber") == 0 or IsInGroup(x) == 0:
          continue;
@@ -275,6 +309,9 @@ def GenSSHShadow(l):
    safe_makedirs(os.path.join(GlobalDir, 'userkeys'))
 
    for x in PasswdAttrs:
+      if IsRetired(x):
+         continue
+
       # If the account is locked, do not write it.
       # This is a partial stop-gap. The ssh also needs to change this
       # to ignore ~/.ssh/authorized* files.
@@ -452,6 +489,9 @@ def GenForward(l,File):
 
    # Write out the email address for each user
    for x in PasswdAttrs:
+      if IsRetired(x):
+         continue
+
       if x[1].has_key("emailForward") == 0 or IsInGroup(x) == 0:
          continue;
 
@@ -486,6 +526,9 @@ def GenAllForward(l,File):
 
    # Write out the email address for each user
    for x in PasswdAttrs:
+      if IsRetired(x):
+         continue
+
       if x[1].has_key("emailForward") == 0:
          continue;
 
@@ -521,6 +564,9 @@ def GenMarkers(l,File):
 
    # Write out the position for each user
    for x in PasswdAttrs:
+      if IsRetired(x):
+         continue
+
       if x[1].has_key("latitude") == 0 or x[1].has_key("longitude") == 0:
          continue;
       try:
@@ -549,6 +595,9 @@ def GenPrivate(l,File):
 
    # Write out the position for each user
    for x in PasswdAttrs:
+      if IsRetired(x):
+         continue
+
       if x[1].has_key("privateSub") == 0:
          continue;
 
@@ -626,6 +675,9 @@ def GenMailDisable(l,File):
       raise "No Users";
 
    for x in PasswdAttrs:
+      if IsRetired(x):
+         continue
+
       Reason = None
 
       if x[1].has_key("mailDisableMessage"):
@@ -662,6 +714,9 @@ def GenMailBool(l,File,Key):
       raise "No Users";
 
    for x in PasswdAttrs:
+      if IsRetired(x):
+         continue
+
       Reason = None
 
       if x[1].has_key(Key) == 0:
@@ -699,6 +754,9 @@ def GenMailList(l,File,Key):
       raise "No Users";
 
    for x in PasswdAttrs:
+      if IsRetired(x):
+         continue
+
       Reason = None
 
       if x[1].has_key(Key) == 0:
@@ -1030,7 +1088,7 @@ PasswdAttrs = l.search_s(BaseDn,ldap.SCOPE_ONELEVEL,"uid=*",\
                  "allowedHost","sshRSAAuthKey","dnsZoneEntry","cn","sn",\
                  "keyFingerPrint","privateSub","mailDisableMessage",\
                  "mailGreylisting","mailCallout","mailRBL","mailRHSBL",\
-                 "mailWhitelist", "sudoPassword", "objectClass"]);
+                 "mailWhitelist", "sudoPassword", "objectClass", "accountStatus"]);
 # Fetch all the hosts
 HostAttrs    = l.search_s(HostBaseDn,ldap.SCOPE_ONELEVEL,"sshRSAHostKey=*",\
                 ["hostname","sshRSAHostKey","purpose"]);
