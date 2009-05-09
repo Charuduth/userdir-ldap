@@ -157,7 +157,7 @@ def Done(File, F, Fdb):
       os.rename(File + ".tdb.tmp", File + ".tdb")
 
 # Generate the password list
-def GenPasswd(l, File, HomePrefix, PwdMarker):
+def GenPasswd(File, HomePrefix, PwdMarker):
    F = None
    try:
       F = open(File + ".tdb.tmp", "w")
@@ -408,7 +408,7 @@ def addGroups(existingGroups, newGroups, uid):
          addGroups(existingGroups, SubGroupMap[group], uid)
 
 # Generate the group list
-def GenGroup(l, File):
+def GenGroup(File):
    grouprevmap = {}
    F = None
    try:
@@ -596,7 +596,7 @@ def GenPrivate(l, File):
    Done(File, F, None)
 
 # Generate a list of locked accounts
-def GenDisabledAccounts(l, File):
+def GenDisabledAccounts(File):
    F = None
    try:
       F = open(File + ".tmp", "w")
@@ -1054,7 +1054,7 @@ else:
 
 # Generate global things
 GlobalDir = GenerateDir + "/"
-GenDisabledAccounts(l, GlobalDir + "disabled-accounts")
+GenDisabledAccounts(GlobalDir + "disabled-accounts")
 
 for x in PasswdAttrs:
    if IsRetired(x):
@@ -1124,11 +1124,11 @@ while(1):
 
    sys.stdout.flush()
    if ExtraList.has_key("[NOPASSWD]"):
-      userlist = GenPasswd(l, OutDir + "passwd", Split[1], "*")
+      userlist = GenPasswd(OutDir + "passwd", Split[1], "*")
    else:
-      userlist = GenPasswd(l, OutDir + "passwd", Split[1], "x")
+      userlist = GenPasswd(OutDir + "passwd", Split[1], "x")
    sys.stdout.flush()
-   grouprevmap = GenGroup(l, OutDir + "group")
+   grouprevmap = GenGroup(OutDir + "group")
    GenShadowSudo(l, OutDir + "sudo-passwd", ExtraList.has_key("[UNTRUSTED]") or ExtraList.has_key("[NOPASSWD]"))
 
    # Now we know who we're allowing on the machine, export
