@@ -69,14 +69,14 @@ def safe_rmtree(dir):
          raise e
 
 def Sanitize(Str):
-   return Str.translate(string.maketrans("\n\r\t","$$$"))
+   return Str.translate(string.maketrans("\n\r\t", "$$$"))
 
-def DoLink(From,To,File):
+def DoLink(From, To, File):
    try: 
-      posix.remove(To+File)
+      posix.remove(To + File)
    except: 
       pass
-   posix.link(From+File,To+File)
+   posix.link(From + File, To + File)
 
 def IsRetired(DnRecord):
    """
@@ -84,7 +84,7 @@ def IsRetired(DnRecord):
    match it against one of the known retired statuses
    """
 
-   status = GetAttr(DnRecord,"accountStatus", None)
+   status = GetAttr(DnRecord, "accountStatus", None)
    if status is None:
       return False
 
@@ -114,7 +114,7 @@ def IsInGroup(DnRecord):
      return 1
 
   # See if the primary group is in the list
-  if Allowed.has_key(GetAttr(DnRecord,"gidNumber")) != 0:
+  if Allowed.has_key(GetAttr(DnRecord, "gidNumber")) != 0:
      return 1
 
   # Check the host based ACL
@@ -128,13 +128,13 @@ def IsInGroup(DnRecord):
      return 0
 
   supgroups=[]
-  addGroups(supgroups, DnRecord[1]["supplementaryGid"], GetAttr(DnRecord,"uid"))
+  addGroups(supgroups, DnRecord[1]["supplementaryGid"], GetAttr(DnRecord, "uid"))
   for g in supgroups:
      if Allowed.has_key(g):
         return 1
   return 0
 
-def Die(File,F,Fdb):
+def Die(File, F, Fdb):
    if F != None:
       F.close()
    if Fdb != None:
@@ -148,19 +148,19 @@ def Die(File,F,Fdb):
    except: 
       pass
 
-def Done(File,F,Fdb):
+def Done(File, F, Fdb):
    if F != None:
       F.close()
-      os.rename(File + ".tmp",File)
+      os.rename(File + ".tmp", File)
    if Fdb != None:
       Fdb.close()
-      os.rename(File + ".tdb.tmp",File+".tdb")
+      os.rename(File + ".tdb.tmp", File + ".tdb")
 
 # Generate the password list
-def GenPasswd(l,File,HomePrefix,PwdMarker):
+def GenPasswd(l, File, HomePrefix, PwdMarker):
    F = None
    try:
-      F = open(File + ".tdb.tmp","w")
+      F = open(File + ".tdb.tmp", "w")
      
       userlist = {}
       # Fetch all the users
@@ -172,37 +172,37 @@ def GenPasswd(l,File,HomePrefix,PwdMarker):
             continue
      
          # Do not let people try to buffer overflow some busted passwd parser.
-         if len(GetAttr(x,"gecos")) > 100 or len(GetAttr(x,"loginShell")) > 50:
+         if len(GetAttr(x, "gecos")) > 100 or len(GetAttr(x, "loginShell")) > 50:
             continue
      
          userlist[GetAttr(x, "uid")] = int(GetAttr(x, "gidNumber"))
-         Line = "%s:%s:%s:%s:%s:%s%s:%s" % (GetAttr(x,"uid"),\
+         Line = "%s:%s:%s:%s:%s:%s%s:%s" % (GetAttr(x, "uid"),\
                  PwdMarker,\
-                 GetAttr(x,"uidNumber"),GetAttr(x,"gidNumber"),\
-                 GetAttr(x,"gecos"),HomePrefix,GetAttr(x,"uid"),\
-                 GetAttr(x,"loginShell"))
+                 GetAttr(x, "uidNumber"), GetAttr(x, "gidNumber"),\
+                 GetAttr(x, "gecos"), HomePrefix, GetAttr(x, "uid"),\
+                 GetAttr(x, "loginShell"))
      
          Line = Sanitize(Line) + "\n"
-         F.write("0%u %s" % (I,Line))
-         F.write(".%s %s" % (GetAttr(x,"uid"),Line))
-         F.write("=%s %s" % (GetAttr(x,"uidNumber"),Line))
+         F.write("0%u %s" % (I, Line))
+         F.write(".%s %s" % (GetAttr(x, "uid"), Line))
+         F.write("=%s %s" % (GetAttr(x, "uidNumber"), Line))
          I = I + 1
   
    # Oops, something unspeakable happened.
    except:
-      Die(File,None,F)
+      Die(File, None, F)
       raise
-   Done(File,None,F)
+   Done(File, None, F)
 
    # Return the list of users so we know which keys to export
    return userlist
 
 # Generate the shadow list
-def GenShadow(l,File):
+def GenShadow(l, File):
    F = None
    try:
       OldMask = os.umask(0077)
-      F = open(File + ".tdb.tmp","w",0600)
+      F = open(File + ".tdb.tmp", "w", 0600)
       os.umask(OldMask)
      
       # Fetch all the users
@@ -213,7 +213,7 @@ def GenShadow(l,File):
          if x[1].has_key("uidNumber") == 0 or IsInGroup(x) == 0:
             continue
      
-         Pass = GetAttr(x,"userPassword")
+         Pass = GetAttr(x, "userPassword")
          if Pass[0:7] != "{crypt}" or len(Pass) > 50:
             Pass = '*'
          else:
@@ -221,34 +221,34 @@ def GenShadow(l,File):
      
          # If the account is locked, mark it as such in shadow
          # See Debian Bug #308229 for why we set it to 1 instead of 0
-         if (GetAttr(x,"userPassword").find("*LK*") != -1) \
-             or GetAttr(x,"userPassword").startswith("!"):
+         if (GetAttr(x, "userPassword").find("*LK*") != -1) \
+             or GetAttr(x, "userPassword").startswith("!"):
             ShadowExpire = '1'
          else:
-            ShadowExpire = GetAttr(x,"shadowExpire")
+            ShadowExpire = GetAttr(x, "shadowExpire")
      
-         Line = "%s:%s:%s:%s:%s:%s:%s:%s:" % (GetAttr(x,"uid"),\
-                 Pass,GetAttr(x,"shadowLastChange"),\
-                 GetAttr(x,"shadowMin"),GetAttr(x,"shadowMax"),\
-                 GetAttr(x,"shadowWarning"),GetAttr(x,"shadowInactive"),\
+         Line = "%s:%s:%s:%s:%s:%s:%s:%s:" % (GetAttr(x, "uid"),\
+                 Pass, GetAttr(x, "shadowLastChange"),\
+                 GetAttr(x, "shadowMin"), GetAttr(x, "shadowMax"),\
+                 GetAttr(x, "shadowWarning"), GetAttr(x, "shadowInactive"),\
                  ShadowExpire)
          Line = Sanitize(Line) + "\n"
-         F.write("0%u %s" % (I,Line))
-         F.write(".%s %s" % (GetAttr(x,"uid"),Line))
+         F.write("0%u %s" % (I, Line))
+         F.write(".%s %s" % (GetAttr(x, "uid"), Line))
          I = I + 1
   
    # Oops, something unspeakable happened.
    except:
-      Die(File,None,F)
+      Die(File, None, F)
       raise
-   Done(File,None,F)
+   Done(File, None, F)
 
 # Generate the sudo passwd file
-def GenShadowSudo(l,File, untrusted):
+def GenShadowSudo(l, File, untrusted):
    F = None
    try:
       OldMask = os.umask(0077)
-      F = open(File + ".tmp","w",0600)
+      F = open(File + ".tmp", "w", 0600)
       os.umask(OldMask)
      
       # Fetch all the users
@@ -284,15 +284,15 @@ def GenShadowSudo(l,File, untrusted):
             if len(Pass) > 50:
                Pass = '*'
      
-         Line = "%s:%s" % (GetAttr(x,"uid"), Pass)
+         Line = "%s:%s" % (GetAttr(x, "uid"), Pass)
          Line = Sanitize(Line) + "\n"
          F.write("%s" % (Line))
   
    # Oops, something unspeakable happened.
    except:
-      Die(File,F,None)
+      Die(File, F, None)
       raise
-   Done(File,F,None)
+   Done(File, F, None)
 
 # Generate the shadow list
 def GenSSHShadow(l):
@@ -314,13 +314,13 @@ def GenSSHShadow(l):
          x[1].has_key("sshRSAAuthKey") == 0:
          continue
 
-      User = GetAttr(x,"uid")
+      User = GetAttr(x, "uid")
       F = None
 
       try:
          OldMask = os.umask(0077)
          File = os.path.join(GlobalDir, 'userkeys', User)
-         F = open(File + ".tmp","w",0600)
+         F = open(File + ".tmp", "w", 0600)
          os.umask(OldMask)
 
          for I in x[1]["sshRSAAuthKey"]:
@@ -328,13 +328,13 @@ def GenSSHShadow(l):
             MultipleLine = Sanitize(MultipleLine) + "\n"
             F.write(MultipleLine)
 
-         Done(File,F,None)
+         Done(File, F, None)
          userfiles.append(os.path.basename(File))
 
       # Oops, something unspeakable happened.
       except IOError:
-          Die(File,F,None)
-          Die(masterFileName,masterFile,None)
+          Die(File, F, None)
+          Die(masterFileName, masterFile, None)
           raise
 
    return userfiles
@@ -412,11 +412,11 @@ def addGroups(existingGroups, newGroups, uid):
          addGroups(existingGroups, SubGroupMap[group], uid)
 
 # Generate the group list
-def GenGroup(l,File):
+def GenGroup(l, File):
    grouprevmap = {}
    F = None
    try:
-      F = open(File + ".tdb.tmp","w")
+      F = open(File + ".tdb.tmp", "w")
      
       # Generate the GroupMap
       GroupMap = {}
@@ -428,7 +428,7 @@ def GenGroup(l,File):
      
       # Sort them into a list of groups having a set of users
       for x in PasswdAttrs:
-         uid = GetAttr(x,"uid")
+         uid = GetAttr(x, "uid")
          if x[1].has_key("uidNumber") == 0 or IsInGroup(x) == 0:
             continue
          if x[1].has_key("supplementaryGid") == 0:
@@ -445,22 +445,22 @@ def GenGroup(l,File):
          grouprevmap[GroupIDMap[x]] = x
          if GroupIDMap.has_key(x) == 0:
             continue
-         Line = "%s:x:%u:" % (x,GroupIDMap[x])
+         Line = "%s:x:%u:" % (x, GroupIDMap[x])
          Comma = ''
          for I in GroupMap[x]:
-           Line = Line + ("%s%s" % (Comma,I))
+           Line = Line + ("%s%s" % (Comma, I))
            Comma = ','
          Line = Sanitize(Line) + "\n"
-         F.write("0%u %s" % (J,Line))
-         F.write(".%s %s" % (x,Line))
-         F.write("=%u %s" % (GroupIDMap[x],Line))
+         F.write("0%u %s" % (J, Line))
+         F.write(".%s %s" % (x, Line))
+         F.write("=%u %s" % (GroupIDMap[x], Line))
          J = J + 1
   
    # Oops, something unspeakable happened.
    except:
-      Die(File,None,F)
+      Die(File, None, F)
       raise
-   Done(File,None,F)
+   Done(File, None, F)
   
    return grouprevmap
 
@@ -475,20 +475,20 @@ def CheckForward():
          continue
 
       # Do not allow people to try to buffer overflow busted parsers
-      if len(GetAttr(x,"emailForward")) > 200:
+      if len(GetAttr(x, "emailForward")) > 200:
          x[1].pop("emailForward")
          continue
 
       # Check the forwarding address
-      if EmailCheck.match(GetAttr(x,"emailForward")) == None:
+      if EmailCheck.match(GetAttr(x, "emailForward")) == None:
          x[1].pop("emailForward")
 
 # Generate the email forwarding list
-def GenForward(l,File):
+def GenForward(l, File):
    F = None
    try:
       OldMask = os.umask(0022)
-      F = open(File + ".tmp","w",0644)
+      F = open(File + ".tmp", "w", 0644)
       os.umask(OldMask)
      
       # Fetch all the users
@@ -499,21 +499,21 @@ def GenForward(l,File):
          if x[1].has_key("emailForward") == 0:
             continue
      
-         Line = "%s: %s" % (GetAttr(x,"uid"),GetAttr(x,"emailForward"))
+         Line = "%s: %s" % (GetAttr(x, "uid"), GetAttr(x, "emailForward"))
          Line = Sanitize(Line) + "\n"
          F.write(Line)
   
    # Oops, something unspeakable happened.
    except:
-      Die(File,F,None)
+      Die(File, F, None)
       raise
-   Done(File,F,None)
+   Done(File, F, None)
 
-def GenAllForward(l,File):
+def GenAllForward(l, File):
    Fdb = None
    try:
       OldMask = os.umask(0022)
-      Fdb = os.popen("cdbmake %s %s.tmp"%(File,File),"w")
+      Fdb = os.popen("cdbmake %s %s.tmp"%(File, File), "w")
       os.umask(OldMask)
      
       # Fetch all the users
@@ -525,10 +525,10 @@ def GenAllForward(l,File):
             continue
      
          # Do not allow people to try to buffer overflow busted parsers
-         Forward = GetAttr(x,"emailForward")
+         Forward = GetAttr(x, "emailForward")
      
-         User = GetAttr(x,"uid")
-         Fdb.write("+%d,%d:%s->%s\n"%(len(User),len(Forward),User,Forward))
+         User = GetAttr(x, "uid")
+         Fdb.write("+%d,%d:%s->%s\n" % (len(User), len(Forward), User, Forward))
   
       Fdb.write("\n")
    # Oops, something unspeakable happened.
@@ -539,10 +539,10 @@ def GenAllForward(l,File):
       raise "cdbmake gave an error"
 
 # Generate the anon XEarth marker file
-def GenMarkers(l,File):
+def GenMarkers(l, File):
    F = None
    try:
-      F = open(File + ".tmp","w")
+      F = open(File + ".tmp", "w")
      
       # Fetch all the users
       global PasswdAttrs
@@ -552,7 +552,7 @@ def GenMarkers(l,File):
          if x[1].has_key("latitude") == 0 or x[1].has_key("longitude") == 0:
             continue
          try:
-            Line = "%8s %8s \"\""%(DecDegree(GetAttr(x,"latitude"),1),DecDegree(GetAttr(x,"longitude"),1))
+            Line = "%8s %8s \"\""%(DecDegree(GetAttr(x, "latitude"), 1), DecDegree(GetAttr(x, "longitude"), 1))
             Line = Sanitize(Line) + "\n"
             F.write(Line)
          except:
@@ -560,15 +560,15 @@ def GenMarkers(l,File):
   
    # Oops, something unspeakable happened.
    except:
-      Die(File,F,None)
+      Die(File, F, None)
       raise
-   Done(File,F,None)
+   Done(File, F, None)
 
 # Generate the debian-private subscription list
-def GenPrivate(l,File):
+def GenPrivate(l, File):
    F = None
    try:
-      F = open(File + ".tmp","w")
+      F = open(File + ".tmp", "w")
      
       # Fetch all the users
       global PasswdAttrs
@@ -583,11 +583,11 @@ def GenPrivate(l,File):
             continue
      
          # Must be in the Debian group (yuk, hard coded for now)
-         if GetAttr(x,"gidNumber") != "800":
+         if GetAttr(x, "gidNumber") != "800":
             continue
      
          try:
-            Line = "%s"%(GetAttr(x,"privateSub"))
+            Line = "%s"%(GetAttr(x, "privateSub"))
             Line = Sanitize(Line) + "\n"
             F.write(Line)
          except:
@@ -595,15 +595,15 @@ def GenPrivate(l,File):
   
    # Oops, something unspeakable happened.
    except:
-      Die(File,F,None)
+      Die(File, F, None)
       raise
-   Done(File,F,None)
+   Done(File, F, None)
 
 # Generate a list of locked accounts
-def GenDisabledAccounts(l,File):
+def GenDisabledAccounts(l, File):
    F = None
    try:
-      F = open(File + ".tmp","w")
+      F = open(File + ".tmp", "w")
      
       # Fetch all the users
       global PasswdAttrs
@@ -614,13 +614,13 @@ def GenDisabledAccounts(l,File):
          if x[1].has_key("uidNumber") == 0:
             continue
      
-         Pass = GetAttr(x,"userPassword")
+         Pass = GetAttr(x, "userPassword")
          Line = ""
          # *LK* is the reference value for a locked account
          # password starting with ! is also a locked account
          if Pass.find("*LK*") != -1 or Pass.startswith("!"):
             # Format is <login>:<reason>
-            Line = "%s:%s" % (GetAttr(x,"uid"), "Account is locked")
+            Line = "%s:%s" % (GetAttr(x, "uid"), "Account is locked")
      
          if Line != "":
             F.write(Sanitize(Line) + "\n")
@@ -629,15 +629,15 @@ def GenDisabledAccounts(l,File):
    
    # Oops, something unspeakable happened.
    except:
-      Die(File,F,None)
+      Die(File, F, None)
       raise
-   Done(File,F,None)
+   Done(File, F, None)
 
 # Generate the list of local addresses that refuse all mail
-def GenMailDisable(l,File):
+def GenMailDisable(l, File):
    F = None
    try:
-      F = open(File + ".tmp","w")
+      F = open(File + ".tmp", "w")
      
       # Fetch all the users
       global PasswdAttrs
@@ -646,16 +646,16 @@ def GenMailDisable(l,File):
          Reason = None
      
          if x[1].has_key("mailDisableMessage"):
-            Reason = GetAttr(x,"mailDisableMessage")
+            Reason = GetAttr(x, "mailDisableMessage")
          else:
             continue
      
          # Must be in the Debian group (yuk, hard coded for now)
-         if GetAttr(x,"gidNumber") != "800":
+         if GetAttr(x, "gidNumber") != "800":
             continue
      
          try:
-            Line = "%s: %s"%(GetAttr(x,"uid"),Reason)
+            Line = "%s: %s"%(GetAttr(x, "uid"), Reason)
             Line = Sanitize(Line) + "\n"
             F.write(Line)
          except:
@@ -663,15 +663,15 @@ def GenMailDisable(l,File):
   
    # Oops, something unspeakable happened.
    except:
-      Die(File,F,None)
+      Die(File, F, None)
       raise
-   Done(File,F,None)
+   Done(File, F, None)
 
 # Generate a list of uids that should have boolean affects applied
-def GenMailBool(l,File,Key):
+def GenMailBool(l, File, Key):
    F = None
    try:
-      F = open(File + ".tmp","w")
+      F = open(File + ".tmp", "w")
      
       # Fetch all the users
       global PasswdAttrs
@@ -683,14 +683,14 @@ def GenMailBool(l,File,Key):
             continue
      
          # Must be in the Debian group (yuk, hard coded for now)
-         if GetAttr(x,"gidNumber") != "800":
+         if GetAttr(x, "gidNumber") != "800":
             continue
      
-         if GetAttr(x,Key) != "TRUE":
+         if GetAttr(x, Key) != "TRUE":
             continue
      
          try:
-            Line = "%s"%(GetAttr(x,"uid"))
+            Line = "%s"%(GetAttr(x, "uid"))
             Line = Sanitize(Line) + "\n"
             F.write(Line)
          except:
@@ -698,15 +698,15 @@ def GenMailBool(l,File,Key):
   
    # Oops, something unspeakable happened.
    except:
-      Die(File,F,None)
+      Die(File, F, None)
       raise
-   Done(File,F,None)
+   Done(File, F, None)
 
 # Generate a list of hosts for RBL or whitelist purposes.
-def GenMailList(l,File,Key):
+def GenMailList(l, File, Key):
    F = None
    try:
-      F = open(File + ".tmp","w")
+      F = open(File + ".tmp", "w")
      
       # Fetch all the users
       global PasswdAttrs
@@ -718,7 +718,7 @@ def GenMailList(l,File,Key):
             continue
      
          # Must be in the Debian group (yuk, hard coded for now)
-         if GetAttr(x,"gidNumber") != "800":
+         if GetAttr(x, "gidNumber") != "800":
             continue
      
          try:
@@ -726,14 +726,14 @@ def GenMailList(l,File,Key):
             Line = None
             for z in x[1][Key]:
                 if Key == "mailWhitelist":
-                    if re.match('^[-\w.]+(/[\d]+)?$',z) == None:
+                    if re.match('^[-\w.]+(/[\d]+)?$', z) == None:
                         continue
                 else:
-                    if re.match('^[-\w.]+$',z) == None:
+                    if re.match('^[-\w.]+$', z) == None:
                         continue
                 if found == 0:
                     found = 1
-                    Line = GetAttr(x,"uid")
+                    Line = GetAttr(x, "uid")
                 else:
                     Line += " "
                 Line += ": " + z
@@ -748,9 +748,9 @@ def GenMailList(l,File,Key):
   
    # Oops, something unspeakable happened.
    except:
-      Die(File,F,None)
+      Die(File, F, None)
       raise
-   Done(File,F,None)
+   Done(File, F, None)
 
 def isRoleAccount(pwEntry):
    if not pwEntry.has_key("objectClass"):
@@ -763,10 +763,10 @@ def isRoleAccount(pwEntry):
       return False
 
 # Generate the DNS Zone file
-def GenDNS(l,File,HomePrefix):
+def GenDNS(l, File, HomePrefix):
    F = None
    try:
-      F = open(File + ".tmp","w")
+      F = open(File + ".tmp", "w")
      
       # Fetch all the users
       global PasswdAttrs
@@ -784,7 +784,7 @@ def GenDNS(l,File,HomePrefix):
             for z in x[1]["dnsZoneEntry"]:
                Split = z.lower().split()
                if Split[1].lower() == 'in':
-                  for y in range(0,len(Split)):
+                  for y in range(0, len(Split)):
                      if Split[y] == "$":
                         Split[y] = "\n\t"
                   Line = " ".join(Split) + "\n"
@@ -796,9 +796,9 @@ def GenDNS(l,File,HomePrefix):
      
                   # Write some identification information
                   if Split[2].lower() == "a":
-                     Line = "%s IN TXT \"%s\"\n"%(Split[0],EmailAddress(x))
+                     Line = "%s IN TXT \"%s\"\n"%(Split[0], EmailAddress(x))
                      for y in x[1]["keyFingerPrint"]:
-                        Line = Line + "%s IN TXT \"PGP %s\"\n"%(Split[0],FormatPGPKey(y))
+                        Line = Line + "%s IN TXT \"PGP %s\"\n"%(Split[0], FormatPGPKey(y))
                      F.write(Line)
                else:
                   Line = "; Err %s"%(str(Split))
@@ -811,15 +811,15 @@ def GenDNS(l,File,HomePrefix):
   
    # Oops, something unspeakable happened.
    except:
-      Die(File,F,None)
+      Die(File, F, None)
       raise
-   Done(File,F,None)
+   Done(File, F, None)
 
 # Generate the DNS SSHFP records
-def GenSSHFP(l,File,HomePrefix):
+def GenSSHFP(l, File, HomePrefix):
    F = None
    try:
-      F = open(File + ".tmp","w")
+      F = open(File + ".tmp", "w")
      
       # Fetch all the hosts
       global HostAttrs
@@ -830,7 +830,7 @@ def GenSSHFP(l,File,HomePrefix):
          if x[1].has_key("hostname") == 0 or \
             x[1].has_key("sshRSAHostKey") == 0:
             continue
-         Host = GetAttr(x,"hostname")
+         Host = GetAttr(x, "hostname")
          Algorithm = None
          for I in x[1]["sshRSAHostKey"]:
             Split = I.split()
@@ -841,20 +841,20 @@ def GenSSHFP(l,File,HomePrefix):
             if Algorithm == None:
                continue
             Fingerprint = sha.new(base64.decodestring(Split[1])).hexdigest()
-            Line = "%s. IN SSHFP %u 1 %s" % (Host,Algorithm,Fingerprint)
+            Line = "%s. IN SSHFP %u 1 %s" % (Host, Algorithm, Fingerprint)
             Line = Sanitize(Line) + "\n"
             F.write(Line)
    # Oops, something unspeakable happened.
    except:
-      Die(File,F,None)
+      Die(File, F, None)
       raise
-   Done(File,F,None)
+   Done(File, F, None)
 
 # Generate the BSMTP file
-def GenBSMTP(l,File,HomePrefix):
+def GenBSMTP(l, File, HomePrefix):
    F = None
    try:
-      F = open(File + ".tmp","w")
+      F = open(File + ".tmp", "w")
      
       # Fetch all the users
       global PasswdAttrs
@@ -871,7 +871,7 @@ def GenBSMTP(l,File,HomePrefix):
             for z in x[1]["dnsZoneEntry"]:
                Split = z.lower().split()
                if Split[1].lower() == 'in':
-                  for y in range(0,len(Split)):
+                  for y in range(0, len(Split)):
                      if Split[y] == "$":
                         Split[y] = "\n\t"
                   Line = " ".join(Split) + "\n"
@@ -879,7 +879,7 @@ def GenBSMTP(l,File,HomePrefix):
                   Host = Split[0] + DNSZone
                   if BSMTPCheck.match(Line) != None:
                       F.write("%s: user=%s group=Debian file=%s%s/bsmtp/%s\n"%(Host,
-                                  GetAttr(x,"uid"),HomePrefix,GetAttr(x,"uid"),Host))
+                                  GetAttr(x, "uid"), HomePrefix, GetAttr(x, "uid"), Host))
      
          except:
             F.write("; Errors\n")
@@ -887,9 +887,9 @@ def GenBSMTP(l,File,HomePrefix):
   
    # Oops, something unspeakable happened.
    except:
-      Die(File,F,None)
+      Die(File, F, None)
       raise
-   Done(File,F,None)
+   Done(File, F, None)
   
 #  cache IP adresses
 HostToIPCache = {}
@@ -898,7 +898,7 @@ def HostToIP(Host):
    if not Host in HostToIPCache:
       IPAdressesT = None
       try:
-         IPAdressesT = list(set([ (a[0],a[4][0]) for a in socket.getaddrinfo(Host, None)]))
+         IPAdressesT = list(set([ (a[0], a[4][0]) for a in socket.getaddrinfo(Host, None)]))
       except socket.gaierror, (code):
          if code[0] != -2:
             raise
@@ -913,11 +913,11 @@ def HostToIP(Host):
    return HostToIPCache[Host]
 
 # Generate the ssh known hosts file
-def GenSSHKnown(l,File,mode=None):
+def GenSSHKnown(l, File, mode=None):
    F = None
    try:
       OldMask = os.umask(0022)
-      F = open(File + ".tmp","w",0644)
+      F = open(File + ".tmp", "w", 0644)
       os.umask(OldMask)
      
       global HostAttrs
@@ -928,17 +928,17 @@ def GenSSHKnown(l,File,mode=None):
          if x[1].has_key("hostname") == 0 or \
             x[1].has_key("sshRSAHostKey") == 0:
             continue
-         Host = GetAttr(x,"hostname")
+         Host = GetAttr(x, "hostname")
          HostNames = [ Host ]
          if Host.endswith(HostDomain):
-            HostNames.append(Host[:-(len(HostDomain)+1)])
+            HostNames.append(Host[:-(len(HostDomain) + 1)])
      
          # in the purpose field [[host|some other text]] (where some other text is optional)
          # makes a hyperlink on the web thing. we now also add these hosts to the ssh known_hosts
          # file.  But so that we don't have to add everything we link we can add an asterisk
          # and say [[*... to ignore it.  In order to be able to add stuff to ssh without
          # http linking it we also support [[-hostname]] entries.
-         for i in x[1].get("purpose",[]):
+         for i in x[1].get("purpose", []):
             m = PurposeHostField.match(i)
             if m:
                m = m.group(1)
@@ -950,7 +950,7 @@ def GenSSHKnown(l,File,mode=None):
                if m:
                   HostNames.append(m)
                   if m.endswith(HostDomain):
-                     HostNames.append(m[:-(len(HostDomain)+1)])
+                     HostNames.append(m[:-(len(HostDomain) + 1)])
      
          for I in x[1]["sshRSAHostKey"]:
             if mode and mode == 'authorized_keys':
@@ -962,16 +962,16 @@ def GenSSHKnown(l,File,mode=None):
             F.write(Line)
    # Oops, something unspeakable happened.
    except:
-      Die(File,F,None)
+      Die(File, F, None)
       raise
-   Done(File,F,None)
+   Done(File, F, None)
 
 # Generate the debianhosts file (list of all IP addresses)
-def GenHosts(l,File):
+def GenHosts(l, File):
    F = None
    try:
       OldMask = os.umask(0022)
-      F = open(File + ".tmp","w",0644)
+      F = open(File + ".tmp", "w", 0644)
       os.umask(OldMask)
      
       # Fetch all the hosts
@@ -983,7 +983,7 @@ def GenHosts(l,File):
      
       seen = set()
       for x in hostnames:
-         host = GetAttr(x,"hostname", None)
+         host = GetAttr(x, "hostname", None)
          if host:
             addrs = []
             try:
@@ -1003,26 +1003,26 @@ def GenHosts(l,File):
                      seen.add(addr)
    # Oops, something unspeakable happened.
    except:
-     Die(File,F,None)
+     Die(File, F, None)
      raise
-   Done(File,F,None)
+   Done(File, F, None)
 
-def GenKeyrings(l,OutDir):
+def GenKeyrings(l, OutDir):
    for k in Keyrings:
       shutil.copy(k, OutDir)
 
 
 # Connect to the ldap server
 l = connectLDAP()
-F = open(PassDir+"/pass-"+pwd.getpwuid(os.getuid())[0],"r")
+F = open(PassDir + "/pass-" + pwd.getpwuid(os.getuid())[0], "r")
 Pass = F.readline().strip().split(" ")
 F.close()
-l.simple_bind_s("uid="+Pass[0]+","+BaseDn,Pass[1])
+l.simple_bind_s("uid=" + Pass[0] + "," + BaseDn, Pass[1])
 
 # Fetch all the groups
 GroupIDMap = {}
-Attrs = l.search_s(BaseDn,ldap.SCOPE_ONELEVEL,"gid=*",\
-                  ["gid","gidNumber","subGroup"])
+Attrs = l.search_s(BaseDn, ldap.SCOPE_ONELEVEL, "gid=*",\
+                  ["gid", "gidNumber", "subGroup"])
 
 # Generate the SubGroupMap and GroupIDMap
 for x in Attrs:
@@ -1033,32 +1033,32 @@ for x in Attrs:
       SubGroupMap.setdefault(x[1]["gid"][0], []).extend(x[1]["subGroup"])
 
 # Fetch all the users
-PasswdAttrs = l.search_s(BaseDn,ldap.SCOPE_ONELEVEL,"uid=*",\
-                ["uid","uidNumber","gidNumber","supplementaryGid",\
-                 "gecos","loginShell","userPassword","shadowLastChange",\
-                 "shadowMin","shadowMax","shadowWarning","shadowInactive",
-                 "shadowExpire","emailForward","latitude","longitude",\
-                 "allowedHost","sshRSAAuthKey","dnsZoneEntry","cn","sn",\
-                 "keyFingerPrint","privateSub","mailDisableMessage",\
-                 "mailGreylisting","mailCallout","mailRBL","mailRHSBL",\
+PasswdAttrs = l.search_s(BaseDn, ldap.SCOPE_ONELEVEL, "uid=*",\
+                ["uid", "uidNumber", "gidNumber", "supplementaryGid",\
+                 "gecos", "loginShell", "userPassword", "shadowLastChange",\
+                 "shadowMin", "shadowMax", "shadowWarning", "shadowInactive",
+                 "shadowExpire", "emailForward", "latitude", "longitude",\
+                 "allowedHost", "sshRSAAuthKey", "dnsZoneEntry", "cn", "sn",\
+                 "keyFingerPrint", "privateSub", "mailDisableMessage",\
+                 "mailGreylisting", "mailCallout", "mailRBL", "mailRHSBL",\
                  "mailWhitelist", "sudoPassword", "objectClass", "accountStatus"])
 
 if PasswdAttrs is None:
    raise UDEmptyList, "No Users"
 
 # Fetch all the hosts
-HostAttrs    = l.search_s(HostBaseDn,ldap.SCOPE_ONELEVEL,"sshRSAHostKey=*",\
-                ["hostname","sshRSAHostKey","purpose"])
+HostAttrs    = l.search_s(HostBaseDn, ldap.SCOPE_ONELEVEL, "sshRSAHostKey=*",\
+                ["hostname", "sshRSAHostKey", "purpose"])
 
 # Open the control file
 if len(sys.argv) == 1:
-   F = open(GenerateConf,"r")
+   F = open(GenerateConf, "r")
 else:
-   F = open(sys.argv[1],"r")
+   F = open(sys.argv[1], "r")
 
 # Generate global things
-GlobalDir = GenerateDir+"/"
-GenMailDisable(l,GlobalDir+"mail-disable")
+GlobalDir = GenerateDir + "/"
+GenMailDisable(l, GlobalDir + "mail-disable")
 
 for x in PasswdAttrs:
    if IsRetired(x):
@@ -1069,22 +1069,22 @@ PasswdAttrs = filter(lambda x: not x in RetiredUsers, PasswdAttrs)
 CheckForward()
 
 SSHFiles = GenSSHShadow(l)
-GenAllForward(l,GlobalDir+"mail-forward.cdb")
-GenMarkers(l,GlobalDir+"markers")
-GenPrivate(l,GlobalDir+"debian-private")
-GenDisabledAccounts(l,GlobalDir+"disabled-accounts")
-GenSSHKnown(l,GlobalDir+"ssh_known_hosts")
+GenAllForward(l, GlobalDir + "mail-forward.cdb")
+GenMarkers(l, GlobalDir + "markers")
+GenPrivate(l, GlobalDir + "debian-private")
+GenDisabledAccounts(l, GlobalDir + "disabled-accounts")
+GenSSHKnown(l, GlobalDir + "ssh_known_hosts")
 #GenSSHKnown(l,GlobalDir+"authorized_keys", 'authorized_keys')
-GenHosts(l,GlobalDir+"debianhosts")
-GenMailBool(l,GlobalDir+"mail-greylist","mailGreylisting")
-GenMailBool(l,GlobalDir+"mail-callout","mailCallout")
-GenMailList(l,GlobalDir+"mail-rbl","mailRBL")
-GenMailList(l,GlobalDir+"mail-rhsbl","mailRHSBL")
-GenMailList(l,GlobalDir+"mail-whitelist","mailWhitelist")
-GenKeyrings(l,GlobalDir)
+GenHosts(l, GlobalDir + "debianhosts")
+GenMailBool(l, GlobalDir + "mail-greylist", "mailGreylisting")
+GenMailBool(l, GlobalDir + "mail-callout", "mailCallout")
+GenMailList(l, GlobalDir + "mail-rbl", "mailRBL")
+GenMailList(l, GlobalDir + "mail-rhsbl", "mailRHSBL")
+GenMailList(l, GlobalDir + "mail-whitelist", "mailWhitelist")
+GenKeyrings(l, GlobalDir)
 
 # Compatibility.
-GenForward(l,GlobalDir+"forward-alias")
+GenForward(l, GlobalDir + "forward-alias")
 
 PasswdAttrs = filter(lambda x: not x in DisabledUsers, PasswdAttrs)
 
@@ -1121,18 +1121,18 @@ while(1):
      Allowed = None
    CurrentHost = Split[0]
 
-   DoLink(GlobalDir,OutDir,"debianhosts")
-   DoLink(GlobalDir,OutDir,"ssh_known_hosts")
-   DoLink(GlobalDir,OutDir,"disabled-accounts")
+   DoLink(GlobalDir, OutDir, "debianhosts")
+   DoLink(GlobalDir, OutDir, "ssh_known_hosts")
+   DoLink(GlobalDir, OutDir, "disabled-accounts")
 
    sys.stdout.flush()
    if ExtraList.has_key("[NOPASSWD]"):
-      userlist = GenPasswd(l,OutDir+"passwd",Split[1], "*")
+      userlist = GenPasswd(l, OutDir + "passwd", Split[1], "*")
    else:
-      userlist = GenPasswd(l,OutDir+"passwd",Split[1], "x")
+      userlist = GenPasswd(l, OutDir + "passwd", Split[1], "x")
    sys.stdout.flush()
-   grouprevmap = GenGroup(l,OutDir+"group")
-   GenShadowSudo(l, OutDir+"sudo-passwd", ExtraList.has_key("[UNTRUSTED]") or ExtraList.has_key("[NOPASSWD]"))
+   grouprevmap = GenGroup(l, OutDir + "group")
+   GenShadowSudo(l, OutDir + "sudo-passwd", ExtraList.has_key("[UNTRUSTED]") or ExtraList.has_key("[NOPASSWD]"))
 
    # Now we know who we're allowing on the machine, export
    # the relevant ssh keys
@@ -1142,39 +1142,39 @@ while(1):
       print "[UNTRUSTED] tag is obsolete and may be removed in the future."
       continue
    if not ExtraList.has_key("[NOPASSWD]"):
-      GenShadow(l,OutDir+"shadow")
+      GenShadow(l, OutDir + "shadow")
 
    # Link in global things
    if not ExtraList.has_key("[NOMARKERS]"):
-      DoLink(GlobalDir,OutDir,"markers")
-   DoLink(GlobalDir,OutDir,"mail-forward.cdb")
-   DoLink(GlobalDir,OutDir,"mail-disable")
-   DoLink(GlobalDir,OutDir,"mail-greylist")
-   DoLink(GlobalDir,OutDir,"mail-callout")
-   DoLink(GlobalDir,OutDir,"mail-rbl")
-   DoLink(GlobalDir,OutDir,"mail-rhsbl")
-   DoLink(GlobalDir,OutDir,"mail-whitelist")
+      DoLink(GlobalDir, OutDir, "markers")
+   DoLink(GlobalDir, OutDir, "mail-forward.cdb")
+   DoLink(GlobalDir, OutDir, "mail-disable")
+   DoLink(GlobalDir, OutDir, "mail-greylist")
+   DoLink(GlobalDir, OutDir, "mail-callout")
+   DoLink(GlobalDir, OutDir, "mail-rbl")
+   DoLink(GlobalDir, OutDir, "mail-rhsbl")
+   DoLink(GlobalDir, OutDir, "mail-whitelist")
 
    # Compatibility.
-   DoLink(GlobalDir,OutDir,"forward-alias")
+   DoLink(GlobalDir, OutDir, "forward-alias")
 
    if ExtraList.has_key("[DNS]"):
-      GenDNS(l,OutDir+"dns-zone",Split[1])
-      GenSSHFP(l,OutDir+"dns-sshfp",Split[1])
+      GenDNS(l, OutDir + "dns-zone", Split[1])
+      GenSSHFP(l, OutDir + "dns-sshfp", Split[1])
 
    if ExtraList.has_key("[BSMTP]"):
-      GenBSMTP(l,OutDir+"bsmtp",Split[1])
+      GenBSMTP(l, OutDir + "bsmtp", Split[1])
 
    if ExtraList.has_key("[PRIVATE]"):
-      DoLink(GlobalDir,OutDir,"debian-private")
+      DoLink(GlobalDir, OutDir, "debian-private")
 
    if ExtraList.has_key("[KEYRING]"):
       for k in Keyrings:
-        DoLink(GlobalDir,OutDir,os.path.basename(k))
+        DoLink(GlobalDir, OutDir, os.path.basename(k))
    else:
       for k in Keyrings:
          try: 
-            posix.remove(OutDir+os.path.basename(k))
+            posix.remove(OutDir + os.path.basename(k))
          except:
             pass
 
