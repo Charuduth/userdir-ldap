@@ -101,9 +101,10 @@ def IsRetired(DnRecord):
       # We'll give them a few extra days over what we said
       age = 6 * 31 * 24 * 60 * 60
       try:
-         if (time.time() - time.mktime(time.strptime(line[1], "%Y-%m-%d"))) > age:
-            return True
+         return (time.time() - time.mktime(time.strptime(line[1], "%Y-%m-%d"))) > age
       except IndexError:
+         return False
+      except ValueError:
          return False
 
    return False
