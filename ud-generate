@@ -295,9 +295,8 @@ def GenShadowSudo(l, File, untrusted):
    Done(File, F, None)
 
 # Generate the shadow list
-def GenSSHShadow(l):
+def GenSSHShadow():
    # Fetch all the users
-   singlefile = None
    userfiles = []
 
    global PasswdAttrs
@@ -306,9 +305,6 @@ def GenSSHShadow(l):
    safe_makedirs(os.path.join(GlobalDir, 'userkeys'))
 
    for x in PasswdAttrs:
-
-      if x in DisabledUsers:
-         continue
 
       if x[1].has_key("uidNumber") == 0 or \
          x[1].has_key("sshRSAAuthKey") == 0:
@@ -1058,7 +1054,7 @@ else:
 
 # Generate global things
 GlobalDir = GenerateDir + "/"
-GenMailDisable(l, GlobalDir + "mail-disable")
+GenDisabledAccounts(l, GlobalDir + "disabled-accounts")
 
 for x in PasswdAttrs:
    if IsRetired(x):
@@ -1068,14 +1064,10 @@ PasswdAttrs = filter(lambda x: not x in RetiredUsers, PasswdAttrs)
 
 CheckForward()
 
-SSHFiles = GenSSHShadow(l)
+GenMailDisable(l, GlobalDir + "mail-disable")
 GenAllForward(l, GlobalDir + "mail-forward.cdb")
-GenMarkers(l, GlobalDir + "markers")
 GenPrivate(l, GlobalDir + "debian-private")
-GenDisabledAccounts(l, GlobalDir + "disabled-accounts")
-GenSSHKnown(l, GlobalDir + "ssh_known_hosts")
 #GenSSHKnown(l,GlobalDir+"authorized_keys", 'authorized_keys')
-GenHosts(l, GlobalDir + "debianhosts")
 GenMailBool(l, GlobalDir + "mail-greylist", "mailGreylisting")
 GenMailBool(l, GlobalDir + "mail-callout", "mailCallout")
 GenMailList(l, GlobalDir + "mail-rbl", "mailRBL")
@@ -1087,6 +1079,11 @@ GenKeyrings(l, GlobalDir)
 GenForward(l, GlobalDir + "forward-alias")
 
 PasswdAttrs = filter(lambda x: not x in DisabledUsers, PasswdAttrs)
+
+SSHFiles = GenSSHShadow()
+GenMarkers(l, GlobalDir + "markers")
+GenSSHKnown(l, GlobalDir + "ssh_known_hosts")
+GenHosts(l, GlobalDir + "debianhosts")
 
 while(1):
    Line = F.readline()
