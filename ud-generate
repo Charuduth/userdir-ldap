@@ -117,29 +117,28 @@ def IsGidDebian(x):
 
 # See if this user is in the group list
 def IsInGroup(DnRecord):
-  if Allowed == None:
-     return 1
+  if Allowed is None:
+     return True
 
   # See if the primary group is in the list
   if Allowed.has_key(GetAttr(DnRecord, "gidNumber")) != 0:
-     return 1
+     return True
 
   # Check the host based ACL
   if DnRecord[1].has_key("allowedHost") != 0:
-     for I in DnRecord[1]["allowedHost"]:
-        if CurrentHost == I:
-           return 1
+     if CurrentHost in DnRecord[1]["allowedHost"]:
+        return True
 
   # See if there are supplementary groups
   if DnRecord[1].has_key("supplementaryGid") == 0:
-     return 0
+     return False
 
   supgroups=[]
   addGroups(supgroups, DnRecord[1]["supplementaryGid"], GetAttr(DnRecord, "uid"))
   for g in supgroups:
      if Allowed.has_key(g):
-        return 1
-  return 0
+        return True
+  return False
 
 def Die(File, F, Fdb):
    if F != None:
@@ -175,7 +174,7 @@ def GenPasswd(File, HomePrefix, PwdMarker):
      
       I = 0
       for x in PasswdAttrs:
-         if x[1].has_key("uidNumber") == 0 or IsInGroup(x) == 0:
+         if x[1].has_key("uidNumber") == 0 or not IsInGroup(x):
             continue
      
          # Do not let people try to buffer overflow some busted passwd parser.
@@ -217,7 +216,7 @@ def GenShadow(File):
      
       I = 0
       for x in PasswdAttrs:
-         if x[1].has_key("uidNumber") == 0 or IsInGroup(x) == 0:
+         if x[1].has_key("uidNumber") == 0 or not IsInGroup(x):
             continue
      
          Pass = GetAttr(x, "userPassword")
@@ -263,7 +262,7 @@ def GenShadowSudo(File, untrusted):
      
       for x in PasswdAttrs:
          Pass = '*'
-         if x[1].has_key("uidNumber") == 0 or IsInGroup(x) == 0:
+         if x[1].has_key("uidNumber") == 0 or not IsInGroup(x):
             continue
      
          if x[1].has_key('sudoPassword'):
@@ -287,7 +286,7 @@ def GenShadowSudo(File, untrusted):
                   continue
                Pass = cryptedpass
                if for_this_host: # this makes sure we take a per-host entry over the for-all entry
-                 break
+                  break
             if len(Pass) > 50:
                Pass = '*'
      
@@ -336,9 +335,9 @@ def GenSSHShadow():
 
       # Oops, something unspeakable happened.
       except IOError:
-          Die(File, F, None)
-          Die(masterFileName, masterFile, None)
-          raise
+         Die(File, F, None)
+         Die(masterFileName, masterFile, None)
+         raise
 
    return userfiles
 
@@ -403,7 +402,7 @@ def addGroups(existingGroups, newGroups, uid):
 
       # let's see if we handled this group already
       if group in existingGroups:
-        continue
+         continue
 
       if not GroupIDMap.has_key(group):
          print "Group", group, "does not exist but", uid, "is in it"
@@ -432,7 +431,7 @@ def GenGroup(File):
       # Sort them into a list of groups having a set of users
       for x in PasswdAttrs:
          uid = GetAttr(x, "uid")
-         if x[1].has_key("uidNumber") == 0 or IsInGroup(x) == 0:
+         if x[1].has_key("uidNumber") == 0 or not IsInGroup(x):
             continue
          if x[1].has_key("supplementaryGid") == 0:
             continue
@@ -451,8 +450,8 @@ def GenGroup(File):
          Line = "%s:x:%u:" % (x, GroupIDMap[x])
          Comma = ''
          for I in GroupMap[x]:
-           Line = Line + ("%s%s" % (Comma, I))
-           Comma = ','
+            Line = Line + ("%s%s" % (Comma, I))
+            Comma = ','
          Line = Sanitize(Line) + "\n"
          F.write("0%u %s" % (J, Line))
          F.write(".%s %s" % (x, Line))
@@ -473,7 +472,7 @@ def CheckForward():
       if x[1].has_key("emailForward") == 0:
          continue
    
-      if IsInGroup(x) == 0:
+      if not IsInGroup(x):
          x[1].pop("emailForward")
          continue
 
@@ -713,23 +712,23 @@ def GenMailList(File, Key):
             Line = None
             for z in x[1][Key]:
                 if Key == "mailWhitelist":
-                    if re.match('^[-\w.]+(/[\d]+)?$', z) == None:
-                        continue
+                   if re.match('^[-\w.]+(/[\d]+)?$', z) == None:
+                      continue
                 else:
-                    if re.match('^[-\w.]+$', z) == None:
-                        continue
+                   if re.match('^[-\w.]+$', z) == None:
+                      continue
                 if found == 0:
-                    found = 1
-                    Line = GetAttr(x, "uid")
+                   found = 1
+                   Line = GetAttr(x, "uid")
                 else:
                     Line += " "
                 Line += ": " + z
                 if Key == "mailRHSBL":
-                    Line += "/$sender_address_domain"
+                   Line += "/$sender_address_domain"
      
             if Line != None:
-                Line = Sanitize(Line) + "\n"
-                F.write(Line)
+               Line = Sanitize(Line) + "\n"
+               F.write(Line)
          except:
             pass
   
@@ -779,7 +778,7 @@ def GenDNS(File, HomePrefix):
      
                   Host = Split[0] + DNSZone
                   if BSMTPCheck.match(Line) != None:
-                      F.write("; Has BSMTP\n")
+                     F.write("; Has BSMTP\n")
      
                   # Write some identification information
                   if Split[2].lower() == "a":
@@ -908,7 +907,7 @@ def GenSSHKnown(File, mode=None):
       os.umask(OldMask)
      
       global HostAttrs
-      if HostAttrs == None:
+      if HostAttrs is None:
          raise UDEmptyList, "No Hosts"
      
       for x in HostAttrs:
@@ -965,7 +964,7 @@ def GenHosts(l, File):
       hostnames = l.search_s(HostBaseDn, ldap.SCOPE_ONELEVEL, "hostname=*",
                              ["hostname"])
      
-      if hostnames == None:
+      if hostnames is None:
          raise UDEmptyList, "No Hosts"
      
       seen = set()
@@ -990,14 +989,13 @@ def GenHosts(l, File):
                      seen.add(addr)
    # Oops, something unspeakable happened.
    except:
-     Die(File, F, None)
-     raise
+      Die(File, F, None)
+      raise
    Done(File, F, None)
 
 def GenKeyrings(OutDir):
    for k in Keyrings:
       shutil.copy(k, OutDir)
-
 
 # Connect to the ldap server
 l = connectLDAP()
@@ -1103,7 +1101,7 @@ while(1):
 
    Allowed = GroupList
    if Allowed == {}:
-     Allowed = None
+      Allowed = None
    CurrentHost = Split[0]
 
    DoLink(GlobalDir, OutDir, "debianhosts")
