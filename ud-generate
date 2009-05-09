@@ -11,6 +11,7 @@
 #   Copyright (c) 2008 Mark Hymers <mhy@debian.org>
 #   Copyright (c) 2008 Luk Claes <luk@debian.org>
 #   Copyright (c) 2008 Thomas Viehmann <tv@beamnet.de>
+#   Copyright (c) 2009 Stephen Gran <steve@lobefin.net>
 #
 #   This program is free software; you can redistribute it and/or modify
 #   it under the terms of the GNU General Public License as published by
@@ -463,6 +464,25 @@ def GenGroup(l,File):
   
    return grouprevmap
 
+def CheckForward():
+   global PasswdAttrs
+   for x in PasswdAttrs:
+      if x[1].has_key("emailForward") == 0:
+         continue
+   
+      if IsInGroup(x) == 0:
+         x[1].pop("emailForward")
+         continue
+
+      # Do not allow people to try to buffer overflow busted parsers
+      if len(GetAttr(x,"emailForward")) > 200:
+         x[1].pop("emailForward")
+         continue
+
+      # Check the forwarding address
+      if EmailCheck.match(GetAttr(x,"emailForward")) == None:
+         x[1].pop("emailForward")
+
 # Generate the email forwarding list
 def GenForward(l,File):
    F = None
@@ -476,16 +496,9 @@ def GenForward(l,File):
      
       # Write out the email address for each user
       for x in PasswdAttrs:
-         if x[1].has_key("emailForward") == 0 or IsInGroup(x) == 0:
+         if x[1].has_key("emailForward") == 0:
             continue
      
-         # Do not allow people to try to buffer overflow busted parsers
-         if len(GetAttr(x,"emailForward")) > 200:
-            continue
-     
-         # Check the forwarding address
-         if EmailCheck.match(GetAttr(x,"emailForward")) == None:
-            continue
          Line = "%s: %s" % (GetAttr(x,"uid"),GetAttr(x,"emailForward"))
          Line = Sanitize(Line) + "\n"
          F.write(Line)
@@ -513,12 +526,6 @@ def GenAllForward(l,File):
      
          # Do not allow people to try to buffer overflow busted parsers
          Forward = GetAttr(x,"emailForward")
-         if len(Forward) > 200:
-            continue
-     
-         # Check the forwarding address
-         if EmailCheck.match(Forward) == None:
-            continue
      
          User = GetAttr(x,"uid")
          Fdb.write("+%d,%d:%s->%s\n"%(len(User),len(Forward),User,Forward))
@@ -1058,6 +1065,8 @@ for x in PasswdAttrs:
       RetiredUsers.append(x)
 
 PasswdAttrs = filter(lambda x: not x in RetiredUsers, PasswdAttrs)
+
+CheckForward()
 
 SSHFiles = GenSSHShadow(l)
 GenAllForward(l,GlobalDir+"mail-forward.cdb")
