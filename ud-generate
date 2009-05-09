@@ -33,7 +33,8 @@ global Allowed;
 global CurrentHost;
 
 PasswdAttrs = None;
-disabledusers = []
+DisabledUsers = []
+RetiredUsers = []
 GroupIDMap = {};
 SubGroupMap = {};
 Allowed = None;
@@ -83,18 +84,23 @@ def IsRetired(DnRecord):
    if status is None:
       return False
 
-   if status.find("inactive") != -1:
+   line = status.split()
+   status = line[0]
+   
+   if status == "inactive":
       return True
 
-   if status.find("memorial") != -1:
+   elif status == "memorial":
       return True
 
-   if status.find("retiring") != -1:
-      line = status.split()
+   elif status == "retiring":
       # We'll give them a few extra days over what we said
       age = 6 * 31 * 24 * 60 * 60
-      if (time.time() - time.mktime(time.strptime(line[1], "%Y-%m-%d")) > (age):
+      try:
+         if (time.time() - time.mktime(time.strptime(line[1], "%Y-%m-%d"))) > age:
             return True
+      except IndexError:
+         return False
 
    return False
 
@@ -151,14 +157,9 @@ def GenPasswd(l,File,HomePrefix,PwdMarker):
    userlist = {}
    # Fetch all the users
    global PasswdAttrs;
-   if PasswdAttrs == None:
-      raise "No Users";
 
    I = 0;
    for x in PasswdAttrs:
-      if IsRetired(x):
-         continue
-
       if x[1].has_key("uidNumber") == 0 or IsInGroup(x) == 0:
          continue;
 
@@ -198,14 +199,9 @@ def GenShadow(l,File):
 
    # Fetch all the users
    global PasswdAttrs;
-   if PasswdAttrs == None:
-      raise "No Users";
 
    I = 0;
    for x in PasswdAttrs:
-      if IsRetired(x):
-         continue
-
       if x[1].has_key("uidNumber") == 0 or IsInGroup(x) == 0:
          continue;
 
@@ -249,13 +245,8 @@ def GenShadowSudo(l,File, untrusted):
 
    # Fetch all the users
    global PasswdAttrs;
-   if PasswdAttrs == None:
-      raise "No Users";
 
    for x in PasswdAttrs:
-      if IsRetired(x):
-         continue
-
       Pass = '*'
       if x[1].has_key("uidNumber") == 0 or IsInGroup(x) == 0:
          continue;
@@ -302,26 +293,19 @@ def GenSSHShadow(l):
    userfiles = []
 
    global PasswdAttrs;
-   if PasswdAttrs == None:
-      raise "No Users";
 
    safe_rmtree(os.path.join(GlobalDir, 'userkeys'))
    safe_makedirs(os.path.join(GlobalDir, 'userkeys'))
 
    for x in PasswdAttrs:
-      if IsRetired(x):
-         continue
 
-      # If the account is locked, do not write it.
-      # This is a partial stop-gap. The ssh also needs to change this
-      # to ignore ~/.ssh/authorized* files.
-      if (GetAttr(x,"userPassword").find("*LK*") != -1) \
-             or GetAttr(x,"userPassword").startswith("!"):
-         continue;
+      if x in DisabledUsers:
+         continue
 
       if x[1].has_key("uidNumber") == 0 or \
          x[1].has_key("sshRSAAuthKey") == 0:
          continue;
+
       User = GetAttr(x,"uid");
       F = None;
 
@@ -433,8 +417,6 @@ def GenGroup(l,File):
 
    # Fetch all the users
    global PasswdAttrs;
-   if PasswdAttrs == None:
-      raise "No Users";
 
    # Sort them into a list of groups having a set of users
    for x in PasswdAttrs:
@@ -484,14 +466,9 @@ def GenForward(l,File):
 
    # Fetch all the users
    global PasswdAttrs;
-   if PasswdAttrs == None:
-      raise "No Users";
 
    # Write out the email address for each user
    for x in PasswdAttrs:
-      if IsRetired(x):
-         continue
-
       if x[1].has_key("emailForward") == 0 or IsInGroup(x) == 0:
          continue;
 
@@ -521,14 +498,9 @@ def GenAllForward(l,File):
 
    # Fetch all the users
    global PasswdAttrs;
-   if PasswdAttrs == None:
-      raise "No Users";
 
    # Write out the email address for each user
    for x in PasswdAttrs:
-      if IsRetired(x):
-         continue
-
       if x[1].has_key("emailForward") == 0:
          continue;
 
@@ -559,14 +531,9 @@ def GenMarkers(l,File):
 
    # Fetch all the users
    global PasswdAttrs;
-   if PasswdAttrs == None:
-      raise "No Users";
 
    # Write out the position for each user
    for x in PasswdAttrs:
-      if IsRetired(x):
-         continue
-
       if x[1].has_key("latitude") == 0 or x[1].has_key("longitude") == 0:
          continue;
       try:
@@ -590,20 +557,10 @@ def GenPrivate(l,File):
 
    # Fetch all the users
    global PasswdAttrs;
-   if PasswdAttrs == None:
-      raise "No Users";
 
    # Write out the position for each user
    for x in PasswdAttrs:
-      if IsRetired(x):
-         continue
-
       if x[1].has_key("privateSub") == 0:
-         continue;
-
-      # If the account is locked, do not write it
-      if (GetAttr(x,"userPassword").find("*LK*") != -1) \
-             or GetAttr(x,"userPassword").startswith("!"):
          continue;
 
       # If the account has no PGP key, do not write it
@@ -635,9 +592,7 @@ def GenDisabledAccounts(l,File):
 
    # Fetch all the users
    global PasswdAttrs;
-   global disabledusers
-   if PasswdAttrs == None:
-      raise "No Users";
+   global DisabledUsers
 
    I = 0;
    for x in PasswdAttrs:
@@ -655,7 +610,7 @@ def GenDisabledAccounts(l,File):
       if Line != "":
          F.write(Sanitize(Line) + "\n")
 
-      disabledusers.append(x)
+      DisabledUsers.append(x)
 
   # Oops, something unspeakable happened.
   except:
@@ -671,13 +626,8 @@ def GenMailDisable(l,File):
 
    # Fetch all the users
    global PasswdAttrs;
-   if PasswdAttrs == None:
-      raise "No Users";
 
    for x in PasswdAttrs:
-      if IsRetired(x):
-         continue
-
       Reason = None
 
       if x[1].has_key("mailDisableMessage"):
@@ -710,13 +660,8 @@ def GenMailBool(l,File,Key):
 
    # Fetch all the users
    global PasswdAttrs;
-   if PasswdAttrs == None:
-      raise "No Users";
 
    for x in PasswdAttrs:
-      if IsRetired(x):
-         continue
-
       Reason = None
 
       if x[1].has_key(Key) == 0:
@@ -750,13 +695,8 @@ def GenMailList(l,File,Key):
 
    # Fetch all the users
    global PasswdAttrs;
-   if PasswdAttrs == None:
-      raise "No Users";
 
    for x in PasswdAttrs:
-      if IsRetired(x):
-         continue
-
       Reason = None
 
       if x[1].has_key(Key) == 0:
@@ -815,8 +755,6 @@ def GenDNS(l,File,HomePrefix):
 
    # Fetch all the users
    global PasswdAttrs;
-   if PasswdAttrs == None:
-      raise "No Users";
 
    # Write out the zone file entry for each user
    for x in PasswdAttrs:
@@ -905,8 +843,6 @@ def GenBSMTP(l,File,HomePrefix):
 
    # Fetch all the users
    global PasswdAttrs;
-   if PasswdAttrs == None:
-      raise "No Users";
 
    # Write out the zone file entry for each user
    for x in PasswdAttrs:
@@ -1088,7 +1024,11 @@ PasswdAttrs = l.search_s(BaseDn,ldap.SCOPE_ONELEVEL,"uid=*",\
                  "allowedHost","sshRSAAuthKey","dnsZoneEntry","cn","sn",\
                  "keyFingerPrint","privateSub","mailDisableMessage",\
                  "mailGreylisting","mailCallout","mailRBL","mailRHSBL",\
-                 "mailWhitelist", "sudoPassword", "objectClass", "accountStatus"]);
+                 "mailWhitelist", "sudoPassword", "objectClass", "accountStatus"])
+
+if PasswdAttrs is None:
+   raise "No Users"
+
 # Fetch all the hosts
 HostAttrs    = l.search_s(HostBaseDn,ldap.SCOPE_ONELEVEL,"sshRSAHostKey=*",\
                 ["hostname","sshRSAHostKey","purpose"]);
@@ -1101,6 +1041,14 @@ else:
 
 # Generate global things
 GlobalDir = GenerateDir+"/";
+GenMailDisable(l,GlobalDir+"mail-disable")
+
+for x in PasswdAttrs:
+   if IsRetired(x):
+      RetiredUsers.append(x)
+
+PasswdAttrs = filter(lambda x: not x in RetiredUsers, PasswdAttrs)
+
 SSHFiles = GenSSHShadow(l);
 GenAllForward(l,GlobalDir+"mail-forward.cdb");
 GenMarkers(l,GlobalDir+"markers");
@@ -1109,7 +1057,6 @@ GenDisabledAccounts(l,GlobalDir+"disabled-accounts");
 GenSSHKnown(l,GlobalDir+"ssh_known_hosts");
 #GenSSHKnown(l,GlobalDir+"authorized_keys", 'authorized_keys');
 GenHosts(l,GlobalDir+"debianhosts");
-GenMailDisable(l,GlobalDir+"mail-disable");
 GenMailBool(l,GlobalDir+"mail-greylist","mailGreylisting");
 GenMailBool(l,GlobalDir+"mail-callout","mailCallout");
 GenMailList(l,GlobalDir+"mail-rbl","mailRBL");
@@ -1120,7 +1067,7 @@ GenKeyrings(l,GlobalDir);
 # Compatibility.
 GenForward(l,GlobalDir+"forward-alias");
 
-PasswdAttrs = filter(lambda x: not x in disabledusers, PasswdAttrs)
+PasswdAttrs = filter(lambda x: not x in DisabledUsers, PasswdAttrs)
 
 while(1):
    Line = F.readline();
