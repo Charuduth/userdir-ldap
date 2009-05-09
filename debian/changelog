@@ -1,8 +1,15 @@
 userdir-ldap (0.3.66+XX) unstable; urgency=low
 
   * ud-replicate no longer uses localsyncon=*samosa*.
+  * ud-generate cleanup:
+    - general code tidy (whitespace, semi-colons, python idioms)
+    - loop cleanup, so that fewer redundant checks are done
+    - split groups up so mail is only handled for gid Debian
+    - Stop exporting information about retired developers
+    - Stop exporting locked accounts
+    - begin cleanup of use of string exceptions
 
- -- Peter Palfrader <weasel@debian.org>  Thu, 07 May 2009 23:41:35 +0200
+ -- Stephen Gran <sgran@debian.org>  Sat, 09 May 2009 16:41:36 +0100
 
 userdir-ldap (0.3.66) unstable; urgency=low
 
