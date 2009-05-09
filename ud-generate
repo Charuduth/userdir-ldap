@@ -35,6 +35,7 @@ global Allowed
 global CurrentHost
 
 PasswdAttrs = None
+DebianUsers = None
 DisabledUsers = []
 GroupIDMap = {}
 SubGroupMap = {}
