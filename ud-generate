@@ -28,6 +28,7 @@
 
 import string, re, time, ldap, getopt, sys, os, pwd, posix, socket, base64, sha, shutil, errno, tarfile, grp
 from userdir_ldap import *;
+from userdir_exceptions import *
 
 global Allowed;
 global CurrentHost;
@@ -809,7 +810,7 @@ def GenSSHFP(l,File,HomePrefix):
    # Fetch all the hosts
    global HostAttrs
    if HostAttrs == None:
-      raise "No Hosts"
+      raise UDEmptyList, "No Hosts"
 
    for x in HostAttrs:
       if x[1].has_key("hostname") == 0 or \
@@ -905,7 +906,7 @@ def GenSSHKnown(l,File,mode=None):
 
    global HostAttrs
    if HostAttrs == None:
-      raise "No Hosts";
+      raise UDEmptyList, "No Hosts"
 
    for x in HostAttrs:
       if x[1].has_key("hostname") == 0 or \
@@ -962,7 +963,7 @@ def GenHosts(l,File):
                            ["hostname"])
 
     if hostnames == None:
-       raise "No Hosts"
+       raise UDEmptyList, "No Hosts"
 
     seen = set()
     for x in hostnames:
@@ -1027,7 +1028,7 @@ PasswdAttrs = l.search_s(BaseDn,ldap.SCOPE_ONELEVEL,"uid=*",\
                  "mailWhitelist", "sudoPassword", "objectClass", "accountStatus"])
 
 if PasswdAttrs is None:
-   raise "No Users"
+   raise UDEmptyList, "No Users"
 
 # Fetch all the hosts
 HostAttrs    = l.search_s(HostBaseDn,ldap.SCOPE_ONELEVEL,"sshRSAHostKey=*",\

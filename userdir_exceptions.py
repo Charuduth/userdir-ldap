@@ -25,6 +25,7 @@ UDERRORS = {
     "UDFormatError": """Exception raised for data format errors.""",
     "UDExecuteError": """Exception raised for subprocess execution errors.""",
     "UDNotAllowedError": """Exception raised for attempts to modify off-limits or disabled entries.""",
+    "UDEmptyList": """Exception raised for empty list objects.""",
 }
 
 def construct_udld_exception(name, description):
