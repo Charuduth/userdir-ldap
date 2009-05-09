@@ -1,3 +1,15 @@
+userdir-ldap (0.3.66) unstable; urgency=low
+
+  * ud-generate cleanup:
+    - general code tidy (whitespace, semi-colons, python idioms)
+    - loop cleanup, so that fewer redundant checks are done
+    - split groups up so mail is only handled for gid Debian
+    - Stop exporting information about retired developers
+    - Stop exporting locked accounts
+    - begin cleanup of use of string exceptions
+
+ -- Stephen Gran <sgran@debian.org>  Sat, 09 May 2009 16:41:36 +0100
+
 userdir-ldap (0.3.65) unstable; urgency=low
 
   * userdir-ldap.conf: remove from default keyrings:
