@@ -16,7 +16,7 @@ class UDError(Exception):
         self.message = message
     
     def __str__(self):
-        return "UDError: %s" % self.message
+        return "%s: %s" % (self._name_, self.message)
 
 __all__ = ['UDError']
 
@@ -26,6 +26,7 @@ UDERRORS = {
     "UDExecuteError": """Exception raised for subprocess execution errors.""",
     "UDNotAllowedError": """Exception raised for attempts to modify off-limits or disabled entries.""",
     "UDEmptyList": """Exception raised for empty list objects.""",
+    "UDLoadFail": """Exception raised for LDAP lookup failures.""",
 }
 
 def construct_udld_exception(name, description):
@@ -36,6 +37,7 @@ def construct_udld_exception(name, description):
         __doc__ = description
 
     setattr(Error, "__name__", name)
+    setattr(Error, "_name_", name)
     return Error
 
 for key in UDERRORS.keys():
