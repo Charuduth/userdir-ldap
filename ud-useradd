@@ -20,6 +20,10 @@
 #   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
 import re, time, ldap, getopt, sys, os, pwd;
+import email
+import email.base64mime
+import email.quoprimime
+
 from userdir_ldap import *;
 from userdir_gpg import *;
 
@@ -97,10 +101,10 @@ while (1):
 # first/middle/last name
 Addr = SplitEmail(Keys[0][2]);
 (cn,mn,sn) = NameSplit(re.sub('["]','',Addr[0]))
-email = Addr[1] + '@' + Addr[2];
+emailaddr = Addr[1] + '@' + Addr[2];
 account = Addr[1];
 
-privsub = email;
+privsub = emailaddr
 gidNumber = 0;
 uidNumber = 0;
 
@@ -138,7 +142,7 @@ while 1:
       privsub = GetAttr(Attrs[0],"privateSub");
       gidNumber = GetAttr(Attrs[0],"gidNumber");
       uidNumber = GetAttr(Attrs[0],"uidNumber");
-      email = GetAttr(Attrs[0],"emailForward");
+      emailaddr = GetAttr(Attrs[0],"emailForward");
       cn = GetAttr(Attrs[0],"cn");
       sn = GetAttr(Attrs[0],"sn");
       mn = GetAttr(Attrs[0],"mn");
@@ -158,9 +162,9 @@ if Res != "":
 Res = raw_input("Last name [" + sn + "]? ");
 if Res != "":
    sn = Res;
-Res = raw_input("Email forwarding address [" + email + "]? ");
+Res = raw_input("Email forwarding address [" + emailaddr + "]? ");
 if Res != "":
-   email = Res;
+   emailaddr = Res;
 
 # Debian-Private subscription
 Res = raw_input("Subscribe to debian-private (space is none) [" + privsub + "]? ");
@@ -221,7 +225,7 @@ print "------------";
 print "Final information collected:"
 print " %s <%s@%s>:" % (FullName,account,EmailAppend);
 print "   Assigned UID:",uidNumber," GID:", gidNumber;
-print "   Email forwarded to:",email;
+print "   Email forwarded to:",emailaddr
 print "   Private Subscription:",privsub;
 print "   GECOS Field: \"%s,,,,\"" % (FullName);
 print "   Login Shell: /bin/bash";
@@ -232,12 +236,35 @@ if Res != "yes":
 
 # Initialize the substitution Map
 Subst = {}
+
+emailstring = FullName + " " + emailaddr
+encto = ''
+try:
+  encto = emailstring.encode('us-ascii')
+except UnicodeDecodeError:
+  if email.base64mime.base64_len(emailstring) < email.quoprimime.header_quopri_len(emailstring):
+    encto = email.base64mime.header_encode(emailstring, 'us-ascii')
+  else:
+    encto = email.quoprimime.header_encode(emailstring, 'us-ascii')
+
+subjstring = "New Debian Maintainer " + FullName
+encsubj = ''
+try:
+  encsubj = subjstring.encode('us-ascii')
+except UnicodeDecodeError:
+  if email.base64mime.base64_len(subjstring) < email.quoprimime.header_quopri_len(subjstring):
+    encsubj = email.base64mime.header_encode(subjstring, 'us-ascii')
+  else:
+    encsubj = email.quoprimime.header_encode(subjstring, 'us-ascii')
+
+Subst["__HEADER_SUBJ__"] = encsubj
+Subst["__HEADER_EMAIL"] = encto
 Subst["__REALNAME__"] = FullName;
 Subst["__WHOAMI__"] = pwd.getpwuid(os.getuid())[0];
 Subst["__DATE__"] = time.strftime("%a, %d %b %Y %H:%M:%S +0000",time.gmtime(time.time()));
 Subst["__LOGIN__"] = account;
 Subst["__PRIVATE__"] = privsub;
-Subst["__EMAIL__"] = email;
+Subst["__EMAIL__"] = emailaddr
 Subst["__PASSWORD__"] = CryptedPass;
 
 # Submit the modification request
@@ -256,7 +283,7 @@ if Update == 0:
               ("keyFingerPrint",Keys[0][1]),
               ("cn",cn),
               ("sn",sn),
-              ("emailForward",email),
+              ("emailForward",emailaddr),
               ("shadowLastChange",str(int(time.time()/24/60/60))),
               ("shadowMin","0"),
               ("shadowMax","99999"),
@@ -283,7 +310,7 @@ else:
           (ldap.MOD_REPLACE,"cn",cn),
           (ldap.MOD_REPLACE,"mn",mn),
           (ldap.MOD_REPLACE,"sn",sn),
-          (ldap.MOD_REPLACE,"emailForward",email),
+          (ldap.MOD_REPLACE,"emailForward",emailaddr),
           (ldap.MOD_REPLACE,"shadowLastChange",str(int(time.time()/24/60/60))),
           (ldap.MOD_REPLACE,"shadowMin","0"),
           (ldap.MOD_REPLACE,"shadowMax","99999"),
