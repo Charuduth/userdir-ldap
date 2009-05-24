@@ -237,15 +237,14 @@ if Res != "yes":
 # Initialize the substitution Map
 Subst = {}
 
-emailstring = FullName + " " + emailaddr
 encto = ''
 try:
-  encto = emailstring.encode('us-ascii')
+  encto = FullName.encode('us-ascii')
 except UnicodeDecodeError:
-  if email.base64mime.base64_len(emailstring) < email.quoprimime.header_quopri_len(emailstring):
-    encto = email.base64mime.header_encode(emailstring, 'us-ascii')
+  if email.base64mime.base64_len(FullName) < email.quoprimime.header_quopri_len(FullName):
+    encto = email.base64mime.header_encode(FullName, 'utf-8') + " " + emailaddr
   else:
-    encto = email.quoprimime.header_encode(emailstring, 'us-ascii')
+    encto = email.quoprimime.header_encode(FullName, 'utf-8') + " " + emailaddr
 
 subjstring = "New Debian Maintainer " + FullName
 encsubj = ''
@@ -253,9 +252,9 @@ try:
   encsubj = subjstring.encode('us-ascii')
 except UnicodeDecodeError:
   if email.base64mime.base64_len(subjstring) < email.quoprimime.header_quopri_len(subjstring):
-    encsubj = email.base64mime.header_encode(subjstring, 'us-ascii')
+    encsubj = email.base64mime.header_encode(subjstring, 'utf-8')
   else:
-    encsubj = email.quoprimime.header_encode(subjstring, 'us-ascii')
+    encsubj = email.quoprimime.header_encode(subjstring, 'utf-8')
 
 Subst["__HEADER_SUBJ__"] = encsubj
 Subst["__HEADER_EMAIL"] = encto
