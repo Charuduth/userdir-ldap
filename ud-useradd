@@ -20,9 +20,7 @@
 #   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
 import re, time, ldap, getopt, sys, os, pwd;
-import email
-import email.base64mime
-import email.quoprimime
+import email.Header
 
 from userdir_ldap import *;
 from userdir_gpg import *;
@@ -239,22 +237,16 @@ Subst = {}
 
 encto = ''
 try:
-  encto = FullName.encode('us-ascii')
-except UnicodeDecodeError:
-  if email.base64mime.base64_len(FullName) < email.quoprimime.header_quopri_len(FullName):
-    encto = email.base64mime.header_encode(FullName, 'utf-8') + " " + emailaddr
-  else:
-    encto = email.quoprimime.header_encode(FullName, 'utf-8') + " " + emailaddr
+  encto = FullName.decode('us-ascii')
+except UnicodeError:
+  encto = email.Header.Header(FullName, 'utf-8', 200) + " " + emailaddr
 
 subjstring = "New Debian Maintainer " + FullName
 encsubj = ''
 try:
-  encsubj = subjstring.encode('us-ascii')
-except UnicodeDecodeError:
-  if email.base64mime.base64_len(subjstring) < email.quoprimime.header_quopri_len(subjstring):
-    encsubj = email.base64mime.header_encode(subjstring, 'utf-8')
-  else:
-    encsubj = email.quoprimime.header_encode(subjstring, 'utf-8')
+  encsubj = subjstring.decode('us-ascii')
+except UnicodeError:
+  encsubj = email.Header.Header(subjstring, 'utf-8', 200)
 
 Subst["__HEADER_SUBJ__"] = encsubj
 Subst["__HEADER_EMAIL"] = encto
