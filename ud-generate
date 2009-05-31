@@ -619,11 +619,11 @@ def GenDisabledAccounts(File):
          if Pass.find("*LK*") != -1 or Pass.startswith("!"):
             # Format is <login>:<reason>
             Line = "%s:%s" % (GetAttr(x, "uid"), "Account is locked")
+            DisabledUsers.append(x)
      
          if Line != "":
             F.write(Sanitize(Line) + "\n")
      
-         DisabledUsers.append(x)
    
    # Oops, something unspeakable happened.
    except:
@@ -1045,8 +1045,9 @@ else:
 GlobalDir = GenerateDir + "/"
 GenDisabledAccounts(GlobalDir + "disabled-accounts")
 
-PasswdAttrs = filter(not IsRetired, PasswdAttrs)
-DebianUsers = filter(IsGidDebian, PasswdAttrs)
+PasswdAttrs = filter(lambda x: not IsRetired(x), PasswdAttrs)
+#DebianUsers = filter(lambda x: IsGidDebian(x), PasswdAttrs)
+DebianUsers = PasswdAttrs
 
 CheckForward()
 
