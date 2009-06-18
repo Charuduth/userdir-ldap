@@ -8,7 +8,7 @@ suffix          "@@DN@@"
 directory       "/var/lib/ldap"
 
 # Indexing options
-index gecos,cn,sn,uid,ircNick,hostname,emailForward pres,eq,sub
+index gecos,cn,sn,uid,ircNick,hostname,emailForward pres,eq,sub,approx
 index keyfingerprint,homeDirectory,objectClass,loginShell pres,eq
 index c,gender,dnsZoneEntry,birthDate,gidNumber,uidNumber pres,eq
 
