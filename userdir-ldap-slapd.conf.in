@@ -8,16 +8,9 @@ suffix          "@@DN@@"
 directory       "/var/lib/ldap"
 
 # Indexing options
-index uid eq
-index keyfingerprint eq
-index cn,sn sub,eq
-index dnsZoneEntry eq
-index uidNumber eq
-index gidNumber eq
-index ircNick sub,eq
-index c eq
-index gender eq
-index birthDate eq
+index gecos,cn,sn,uid,ircNick,hostname,emailForward pres,eq,sub
+index keyfingerprint,homeDirectory,objectClass,loginShell pres,eq
+index c,gender,dnsZoneEntry,birthDate,gidNumber,uidNumber pres,eq
 
 # Don't limit queries to the default of 500
 sizelimit 10000
