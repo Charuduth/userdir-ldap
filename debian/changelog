@@ -1,5 +1,6 @@
 userdir-ldap (0.3.66+XX) unstable; urgency=low
 
+  [ Stephen Gran ]
   * ud-replicate no longer uses localsyncon=*samosa*.
   * ud-generate cleanup:
     - general code tidy (whitespace, semi-colons, python idioms)
@@ -9,7 +10,10 @@ userdir-ldap (0.3.66+XX) unstable; urgency=low
     - Stop exporting locked accounts
     - begin cleanup of use of string exceptions
 
- -- Stephen Gran <sgran@debian.org>  Sat, 09 May 2009 16:41:36 +0100
+  [ Peter Palfrader ]
+  * .debian.net DNS creates BSMTP maps for MX 0 master in addition to gluck.
+
+ -- Peter Palfrader <weasel@debian.org>  Mon, 29 Jun 2009 13:49:25 +0200
 
 userdir-ldap (0.3.66) unstable; urgency=low
 
