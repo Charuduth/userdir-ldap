@@ -1,7 +1,9 @@
 # Revision history:
 #
-# XXX
+#   - [PP] Now version controlled in db.d.o git repository, also see debian/changelog - 2009
 #   - [PP] Now version controlled in db.d.o bzr repository - 2007-12-25
+#
+# long time ago:
 #   - [HE] Add 'purpose', 'physicalHost' to debianServer - 2007-12-25
 #   - [zobel] Add 'VoIP' - 2008-05-10
 #   - [luk] Add 'subGroup' to group - 2008-11-22
