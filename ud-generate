@@ -511,26 +511,24 @@ def GenForward(File):
       raise
    Done(File, F, None)
 
-def GenAllForward(File):
+def GenCDB(File, Key):
    Fdb = None
    try:
       OldMask = os.umask(0022)
       Fdb = os.popen("cdbmake %s %s.tmp"%(File, File), "w")
       os.umask(OldMask)
-     
+
       # Fetch all the users
       global DebianUsers
-     
+
       # Write out the email address for each user
       for x in DebianUsers:
-         if x[1].has_key("emailForward") == 0:
+         if not Key in x[1]:
             continue
-     
-         Forward = GetAttr(x, "emailForward")
-     
+         Value = GetAttr(x, Key)
          User = GetAttr(x, "uid")
-         Fdb.write("+%d,%d:%s->%s\n" % (len(User), len(Forward), User, Forward))
-  
+         Fdb.write("+%d,%d:%s->%s\n" % (len(User), len(Value), User, Value))
+
       Fdb.write("\n")
    # Oops, something unspeakable happened.
    except:
@@ -1025,7 +1023,8 @@ PasswdAttrs = l.search_s(BaseDn, ldap.SCOPE_ONELEVEL, "uid=*",\
                  "allowedHost", "sshRSAAuthKey", "dnsZoneEntry", "cn", "sn",\
                  "keyFingerPrint", "privateSub", "mailDisableMessage",\
                  "mailGreylisting", "mailCallout", "mailRBL", "mailRHSBL",\
-                 "mailWhitelist", "sudoPassword", "objectClass", "accountStatus"])
+                 "mailWhitelist", "sudoPassword", "objectClass", "accountStatus",\
+                 "mailContentInspectionAction"])
 
 if PasswdAttrs is None:
    raise UDEmptyList, "No Users"
@@ -1051,7 +1050,8 @@ DebianUsers = PasswdAttrs
 CheckForward()
 
 GenMailDisable(GlobalDir + "mail-disable")
-GenAllForward(GlobalDir + "mail-forward.cdb")
+GenCDB(GlobalDir + "mail-forward.cdb", 'emailForward')
+GenCDB(GlobalDir + "mail-contentinspectionaction.cdb", 'mailContentInspectionAction')
 GenPrivate(GlobalDir + "debian-private")
 #GenSSHKnown(l,GlobalDir+"authorized_keys", 'authorized_keys')
 GenMailBool(GlobalDir + "mail-greylist", "mailGreylisting")
@@ -1131,6 +1131,7 @@ while(1):
    if not ExtraList.has_key("[NOMARKERS]"):
       DoLink(GlobalDir, OutDir, "markers")
    DoLink(GlobalDir, OutDir, "mail-forward.cdb")
+   DoLink(GlobalDir, OutDir, "mail-contentinspectionaction.cdb")
    DoLink(GlobalDir, OutDir, "mail-disable")
    DoLink(GlobalDir, OutDir, "mail-greylist")
    DoLink(GlobalDir, OutDir, "mail-callout")
