@@ -76,7 +76,6 @@ AttrInfo = {"cn": ["First Name", 101],
             "mailRBL": ["Mail RBLs",22],
             "mailRHSBL": ["Mail RHSBLs",23],
             "mailWhitelist": ["Mail Whitelist",24],
-	    "mailSpamOptOut": ["Mail Spam Filtering",25],
 	    "VoIP": ["VoIP Address",26],
 	    "comment": ["Comment",116],
 	    "userPassword": ["Crypted Password",117],
@@ -111,7 +110,6 @@ AttrPrompt = {"cn": ["Common name or first name"],
               "mailRBL": ["SMTP time RBL lists"],
               "mailRHSBL": ["SMTP time RHSBL lists"],
               "mailWhitelist": ["SMTP time whitelist from other checks"],
-              "mailSpamOptOut": ["Mail Spam Filtering"],
               "member": ["LDAP Group Member for slapd ACLs"],
 	      "latitude": ["XEarth latitude in ISO 6709 format - see /usr/share/zoneinfo/zone.tab or etak.com"],
 	      "longitude": ["XEarth latitude in ISO 6709 format - see /usr/share/zoneinfo/zone.tab or etak.com"],
@@ -252,7 +250,7 @@ def ChangeAttr(Attrs,Attr):
       Attrs[1][Attr] = [""];
       return;
 
-   if (Attr == "mailSpamOptOut" or Attr == "mailGreylisting" or Attr == "mailCallout"):
+   if (Attr == "mailGreylisting" or Attr == "mailCallout"):
       if (NewValue.lower() != "true" and NewValue.lower() != "false"):
          if (NewValue == "1"): NewValue = "true"
          else:

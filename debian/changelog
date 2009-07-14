@@ -12,8 +12,9 @@ userdir-ldap (0.3.66+XX) unstable; urgency=low
 
   [ Peter Palfrader ]
   * .debian.net DNS creates BSMTP maps for MX 0 master in addition to gluck.
+  * Remove mailSpamOptOut ldap attribute - it isn't used anywhere.
 
- -- Peter Palfrader <weasel@debian.org>  Mon, 29 Jun 2009 13:49:25 +0200
+ -- Peter Palfrader <weasel@debian.org>  Tue, 14 Jul 2009 09:32:25 +0200
 
 userdir-ldap (0.3.66) unstable; urgency=low
 
