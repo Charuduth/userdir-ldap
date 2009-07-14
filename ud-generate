@@ -526,7 +526,6 @@ def GenAllForward(File):
          if x[1].has_key("emailForward") == 0:
             continue
      
-         # Do not allow people to try to buffer overflow busted parsers
          Forward = GetAttr(x, "emailForward")
      
          User = GetAttr(x, "uid")
