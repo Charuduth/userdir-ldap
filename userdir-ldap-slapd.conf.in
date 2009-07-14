@@ -1,5 +1,5 @@
 # The backend type, ldbm, is the default standard
-database bdb
+database hdb
 
 # The base of your directory
 suffix          "@@DN@@"
