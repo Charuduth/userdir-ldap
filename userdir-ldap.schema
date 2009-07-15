@@ -486,7 +486,7 @@ attributetype ( 1.3.6.1.4.1.9586.100.4.2.38
 	DESC 'what to do on content inspection hits'
 	EQUALITY caseIgnoreIA5Match
 	SUBSTR caseIgnoreIA5SubstringsMatch
-	SYNTAX 1.3.6.1.4.1.1466.115.121.1.26{256} )
+	SYNTAX 1.3.6.1.4.1.1466.115.121.1.26{256} SINGLE-VALUE )
 
 
 # Experimental objectclasses:
