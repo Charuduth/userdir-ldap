@@ -15,6 +15,12 @@ overlay unique
 unique_uri ldap:///ou=users,dc=debian,dc=org?uidNumber,uid,keyFingerPrint?sub
 unique_uri ldap:///ou=groups,dc=debian,dc=org?gidNumber,cn?sub
 
+# Constraints are useful
+moduleload /usr/lib/ldap/constraint.so
+overlay constraint
+constraint_attribute mailContentInspectionAction regex ^([mM][aA][rR][kK][uU][pP]|[bB][lL][aA][cC][kK][hH][oO][lL][eE]|[rR][eE][jJ][eE][cC][tT])$
+constraint_attribute gender regex ^(1|2|9|[mM][aA][lL][eE]|[fF][eE][mM][aA][lL][eE]|[uU][nN][sS][pP][eE][cC][iI][fF][iI][eE][dD])$
+
 # End----------
 
 Note that in more modern versions of slapd, the "by addr" and "by domain"
