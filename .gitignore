@@ -1,2 +1,17 @@
 *.pyc
 *.swp
+build
+debian/files
+debian/userdir-ldap.debhelper.log
+debian/userdir-ldap.postinst.debhelper
+debian/userdir-ldap.prerm.debhelper
+debian/userdir-ldap.substvars
+debian/userdir-ldap/
+doc/ud-generate.8
+doc/ud-gpgimport.8
+doc/ud-info.1
+doc/ud-mailgate.8
+doc/ud-useradd.8
+doc/ud-userimport.8
+doc/ud-xearth.1
+userdir-ldap-slapd.conf
