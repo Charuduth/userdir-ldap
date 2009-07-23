@@ -104,6 +104,8 @@
 #   .36 - sudoPassword
 #   .37 - subGroup
 #   .38 - mailContentInspectionAction
+#   .39 - allowedGroups
+#   .40 - exportOptions
 #
 # .3 - experimental LDAP objectClasses
 #   .1 - debianDeveloper
@@ -378,6 +380,20 @@ attributetype ( 1.3.6.1.4.1.9586.100.4.2.37
 	SUBSTR caseIgnoreIA5SubstringsMatch
 	SYNTAX 1.3.6.1.4.1.1466.115.121.1.26 )
 
+# more attributes below
+attributetype ( 1.3.6.1.4.1.9586.100.4.2.39
+	NAME 'allowedGroups'
+	DESC 'Groups that have access to a host'
+	EQUALITY caseExactIA5Match
+	SUBSTR caseExactIA5SubstringsMatch
+	SYNTAX 1.3.6.1.4.1.1466.115.121.1.26 )
+
+attributetype ( 1.3.6.1.4.1.9586.100.4.2.40
+	NAME 'exportOptions'
+	DESC 'export options for servers'
+	EQUALITY caseIgnoreIA5Match
+	SUBSTR caseIgnoreIA5SubstringsMatch
+	SYNTAX 1.3.6.1.4.1.1466.115.121.1.26 )
 
 # Public object classes
 
@@ -512,7 +528,8 @@ objectclass ( 1.3.6.1.4.1.9586.100.4.3.2
 	MUST ( host $ hostname )
 	MAY ( c $ access $ admin $ architecture $ bandwidth $ description $ disk $
 	      distribution $ l $ machine $ memory $ sponsor $
-	      sponsor-admin $ sshRSAHostKey $ status $ purpose $ physicalHost
+	      sponsor-admin $ status $ physicalHost $
+	      sshRSAHostKey $ purpose $ allowedGroups $ exportOptions
 	) )
 
 objectclass ( 1.3.6.1.4.1.9586.100.4.3.3
