@@ -1,10 +1,12 @@
-userdir-ldap (0.3.67+XY) unstable; urgency=low
+userdir-ldap (0.3.68) unstable; urgency=low
 
   * userdir-ldap.conf: localsyncon = "*draghi*"
   * userdir-ldap-slapd.conf.in: database hdb
   * schema: allowedGroups, exportOptions attribute for servers
+  * Move away from generate.conf and use the information provided in
+    the ldap.
 
- -- Peter Palfrader <weasel@debian.org>  Thu, 23 Jul 2009 18:16:35 +0200
+ -- Peter Palfrader <weasel@debian.org>  Thu, 23 Jul 2009 22:32:44 +0200
 
 userdir-ldap (0.3.67) unstable; urgency=low
 

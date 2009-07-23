@@ -746,7 +746,7 @@ def isRoleAccount(pwEntry):
       return False
 
 # Generate the DNS Zone file
-def GenDNS(File, HomePrefix):
+def GenDNS(File):
    F = None
    try:
       F = open(File + ".tmp", "w")
@@ -799,7 +799,7 @@ def GenDNS(File, HomePrefix):
    Done(File, F, None)
 
 # Generate the DNS SSHFP records
-def GenSSHFP(File, HomePrefix):
+def GenSSHFP(File):
    F = None
    try:
       F = open(File + ".tmp", "w")
@@ -1030,14 +1030,8 @@ if PasswdAttrs is None:
    raise UDEmptyList, "No Users"
 
 # Fetch all the hosts
-HostAttrs    = l.search_s(HostBaseDn, ldap.SCOPE_ONELEVEL, "sshRSAHostKey=*",\
-                ["hostname", "sshRSAHostKey", "purpose"])
-
-# Open the control file
-if len(sys.argv) == 1:
-   F = open(GenerateConf, "r")
-else:
-   F = open(sys.argv[1], "r")
+HostAttrs    = l.search_s(HostBaseDn, ldap.SCOPE_ONELEVEL, "objectClass=debianServer",\
+                ["hostname", "sshRSAHostKey", "purpose", "allowedGroups", "exportOptions"])
 
 # Generate global things
 GlobalDir = GenerateDir + "/"
@@ -1071,18 +1065,12 @@ GenMarkers(GlobalDir + "markers")
 GenSSHKnown(GlobalDir + "ssh_known_hosts")
 GenHosts(l, GlobalDir + "debianhosts")
 
-while(1):
-   Line = F.readline()
-   if Line == "":
-      break
-   Line = Line.strip()
-   if Line == "":
-      continue
-   if Line[0] == '#':
+for host in HostAttrs:
+   if not "hostname" in host[1]:
       continue
 
-   Split = Line.split(" ")
-   OutDir = GenerateDir + '/' + Split[0] + '/'
+   CurrentHost = host[1]['hostname'][0]
+   OutDir = GenerateDir + '/' + CurrentHost + '/'
    try:
       os.mkdir(OutDir)
    except: 
@@ -1090,45 +1078,46 @@ while(1):
 
    # Get the group list and convert any named groups to numerics
    GroupList = {}
+   for groupname in AllowedGroupsPreload.strip().split(" "):
+      GroupList[groupname] = True
+   if 'allowedGroups' in host[1]:
+      for groupname in host[1]['allowedGroups']:
+         GroupList[groupname] = True
+   for groupname in GroupList.keys():
+      if groupname in GroupIDMap:
+         GroupList[str(GroupIDMap[groupname])] = True
+
    ExtraList = {}
-   for I in Split[2:]:
-      if I[0] == '[':
-         ExtraList[I] = None
-         continue
-      GroupList[I] = None
-      if GroupIDMap.has_key(I):
-         GroupList[str(GroupIDMap[I])] = None
+   if 'exportOptions' in host[1]:
+      for extra in host[1]['exportOptions']:
+         ExtraList[extra.upper()] = True
 
    Allowed = GroupList
    if Allowed == {}:
       Allowed = None
-   CurrentHost = Split[0]
 
    DoLink(GlobalDir, OutDir, "debianhosts")
    DoLink(GlobalDir, OutDir, "ssh_known_hosts")
    DoLink(GlobalDir, OutDir, "disabled-accounts")
 
    sys.stdout.flush()
-   if ExtraList.has_key("[NOPASSWD]"):
-      userlist = GenPasswd(OutDir + "passwd", Split[1], "*")
+   if 'NOPASSWD' in ExtraList:
+      userlist = GenPasswd(OutDir + "passwd", HomePrefix, "*")
    else:
-      userlist = GenPasswd(OutDir + "passwd", Split[1], "x")
+      userlist = GenPasswd(OutDir + "passwd", HomePrefix, "x")
    sys.stdout.flush()
    grouprevmap = GenGroup(OutDir + "group")
-   GenShadowSudo(OutDir + "sudo-passwd", ExtraList.has_key("[UNTRUSTED]") or ExtraList.has_key("[NOPASSWD]"))
+   GenShadowSudo(OutDir + "sudo-passwd", ('UNTRUSTED' in ExtraList) or ('NOPASSWD' in ExtraList))
 
    # Now we know who we're allowing on the machine, export
    # the relevant ssh keys
    GenSSHtarballs(userlist, SSHFiles, grouprevmap, os.path.join(OutDir, 'ssh-keys.tar.gz'))
 
-   if ExtraList.has_key("[UNTRUSTED]"):
-      print "[UNTRUSTED] tag is obsolete and may be removed in the future."
-      continue
-   if not ExtraList.has_key("[NOPASSWD]"):
+   if not 'NOPASSWD' in ExtraList:
       GenShadow(OutDir + "shadow")
 
    # Link in global things
-   if not ExtraList.has_key("[NOMARKERS]"):
+   if not 'NOMARKERS' in ExtraList:
       DoLink(GlobalDir, OutDir, "markers")
    DoLink(GlobalDir, OutDir, "mail-forward.cdb")
    DoLink(GlobalDir, OutDir, "mail-contentinspectionaction.cdb")
@@ -1142,17 +1131,17 @@ while(1):
    # Compatibility.
    DoLink(GlobalDir, OutDir, "forward-alias")
 
-   if ExtraList.has_key("[DNS]"):
-      GenDNS(OutDir + "dns-zone", Split[1])
-      GenSSHFP(OutDir + "dns-sshfp", Split[1])
+   if 'DNS' in ExtraList:
+      GenDNS(OutDir + "dns-zone")
+      GenSSHFP(OutDir + "dns-sshfp")
 
-   if ExtraList.has_key("[BSMTP]"):
-      GenBSMTP(OutDir + "bsmtp", Split[1])
+   if 'BSMTP' in ExtraList:
+      GenBSMTP(OutDir + "bsmtp", HomePrefix)
 
-   if ExtraList.has_key("[PRIVATE]"):
+   if 'PRIVATE' in ExtraList:
       DoLink(GlobalDir, OutDir, "debian-private")
 
-   if ExtraList.has_key("[KEYRING]"):
+   if 'KEYRING' in ExtraList:
       for k in Keyrings:
         DoLink(GlobalDir, OutDir, os.path.basename(k))
    else:
