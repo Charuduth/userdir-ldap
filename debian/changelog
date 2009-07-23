@@ -1,3 +1,9 @@
+userdir-ldap (0.3.69) unstable; urgency=low
+
+  * Make ud-host do allowedGroups, exportOptions.
+
+ -- Peter Palfrader <weasel@debian.org>  Thu, 23 Jul 2009 22:52:08 +0200
+
 userdir-ldap (0.3.68) unstable; urgency=low
 
   * userdir-ldap.conf: localsyncon = "*draghi*"
