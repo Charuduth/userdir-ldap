@@ -765,9 +765,14 @@ def GenDNS(File):
             continue
 
          DNSInfo = ExtractDNSInfo(x)
+         start = True
          for Line in DNSInfo:
-            Line = Sanitize(Line) + "\n"
-            F.write(Line)
+            if start == True:
+               Line = "%s.\t%s" % (GetAttr(x, "hostname"), Line)
+               start = False
+            else:
+               Line = "\t\t\t%s" % (Line)
+            F.write(Line + "\n")
 
       # Fetch all the users
       global PasswdAttrs
@@ -819,6 +824,14 @@ def GenDNS(File):
 def ExtractDNSInfo(x):
 
    DNSInfo = []
+
+   if x[1].has_key("ipHostNumber"):
+      for I in x[1]["ipHostNumber"]:
+         if IsV6Addr.match(I) != None:
+            DNSInfo.append("IN\tAAAA\t%s" % (I))
+         else:
+            DNSInfo.append("IN\tA\t%s" % (I))
+
    Host = GetAttr(x, "hostname")
    Arch = GetAttr(x, "architecture")
    Algorithm = None
@@ -832,23 +845,16 @@ def ExtractDNSInfo(x):
       if Algorithm == None:
          continue
       Fingerprint = sha.new(base64.decodestring(Split[1])).hexdigest()
-      DNSInfo.append("%s. IN SSHFP %u 1 %s" % (Host, Algorithm, Fingerprint))
+      DNSInfo.append("IN\tSSHFP\t%u 1 %s" % (Algorithm, Fingerprint))
 
    Mach = ""
    if x[1].has_key("machine"):
       Mach = " " + GetAttr(x, "machine")
-   DNSInfo.append("%s. IN HINFO \"%s%s\" \"%s\"" % (Host, Arch, Mach, "Debian GNU/Linux"))
-
-   if x[1].has_key("ipHostNumber"):
-      for I in x[1]["ipHostNumber"]:
-         if IsV6Addr.match(I) != None:
-            DNSInfo.append("%s. IN AAAA %s" % (Host, I))
-         else:
-            DNSInfo.append("%s. IN A %s" % (Host, I))
+   DNSInfo.append("IN\tHINFO\t\"%s%s\" \"%s\"" % (Arch, Mach, "Debian GNU/Linux"))
 
    if x[1].has_key("mXRecord"):
       for I in x[1]["mXRecord"]:
-         DNSInfo.append("%s. IN MX %s" % (Host, I))
+         DNSInfo.append("IN\tMX\t%s" % (I))
 
    return DNSInfo
 
@@ -871,9 +877,15 @@ def GenZoneRecords(File):
             continue
 
          DNSInfo = ExtractDNSInfo(x)
+         start = True
          for Line in DNSInfo:
-            Line = Sanitize(Line) + "\n"
-            F.write(Line)
+            if start == True:
+               Line = "%s.\t%s" % (GetAttr(x, "hostname"), Line)
+               start = False
+            else:
+               Line = "\t\t\t%s" % (Line)
+
+            F.write(Line + "\n")
 
    # Oops, something unspeakable happened.
    except:
