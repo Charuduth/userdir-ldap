@@ -528,7 +528,7 @@ objectclass ( 1.3.6.1.4.1.9586.100.4.3.2
 	MUST ( host $ hostname )
 	MAY ( c $ access $ admin $ architecture $ bandwidth $ description $ disk $
 	      distribution $ l $ machine $ memory $ sponsor $
-	      sponsor-admin $ status $ physicalHost $
+	      sponsor-admin $ status $ physicalHost $ ipHostNumber $
 	      sshRSAHostKey $ purpose $ allowedGroups $ exportOptions
 	) )
 
