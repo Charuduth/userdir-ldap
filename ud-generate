@@ -937,8 +937,8 @@ def GenSSHKnown(File, mode=None):
      
          for I in x[1]["sshRSAHostKey"]:
             if mode and mode == 'authorized_keys':
-               #Line = 'command="rsync --server --sender -pr . /var/cache/userdir-ldap/hosts/%s",no-port-forwarding,no-X11-forwarding,no-agent-forwarding,from="%s" %s' % (Host, ",".join(HNames + HostToIP(Host)), I)
-               Line = 'command="rsync --server --sender -pr . /var/cache/userdir-ldap/hosts/%s",no-port-forwarding,no-X11-forwarding,no-agent-forwarding %s' % (Host,I)
+               Line = 'command="rsync --server --sender -pr . /var/cache/userdir-ldap/hosts/%s",no-port-forwarding,no-X11-forwarding,no-agent-forwarding,from="%s" %s' % (Host, ",".join(HostToIP(Host)), I)
+               #Line = 'command="rsync --server --sender -pr . /var/cache/userdir-ldap/hosts/%s",no-port-forwarding,no-X11-forwarding,no-agent-forwarding %s' % (Host,I)
             else:
                Line = "%s %s" %(",".join(HostNames + HostToIP(Host)), I)
             Line = Sanitize(Line) + "\n"
@@ -1047,7 +1047,7 @@ GenMailDisable(GlobalDir + "mail-disable")
 GenCDB(GlobalDir + "mail-forward.cdb", 'emailForward')
 GenCDB(GlobalDir + "mail-contentinspectionaction.cdb", 'mailContentInspectionAction')
 GenPrivate(GlobalDir + "debian-private")
-#GenSSHKnown(l,GlobalDir+"authorized_keys", 'authorized_keys')
+GenSSHKnown(GlobalDir+"authorized_keys", 'authorized_keys')
 GenMailBool(GlobalDir + "mail-greylist", "mailGreylisting")
 GenMailBool(GlobalDir + "mail-callout", "mailCallout")
 GenMailList(GlobalDir + "mail-rbl", "mailRBL")
