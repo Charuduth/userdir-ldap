@@ -1135,6 +1135,9 @@ for host in HostAttrs:
       GenDNS(OutDir + "dns-zone")
       GenSSHFP(OutDir + "dns-sshfp")
 
+   if 'AUTHKEYS' in ExtraList:
+      DoLink(GlobalDir, OutDir, "authorized_keys")
+
    if 'BSMTP' in ExtraList:
       GenBSMTP(OutDir + "bsmtp", HomePrefix)
 
