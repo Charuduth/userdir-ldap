@@ -1083,6 +1083,8 @@ HostAttrs    = l.search_s(HostBaseDn, ldap.SCOPE_ONELEVEL, "objectClass=debianSe
 if HostAttrs == None:
    raise UDEmptyList, "No Hosts"
 
+HostAttrs.sort(lambda x, y: cmp((GetAttr(x, "hostname")).lower(), (GetAttr(y, "hostname")).lower()))
+
 # Generate global things
 GlobalDir = GenerateDir + "/"
 GenDisabledAccounts(GlobalDir + "disabled-accounts")
