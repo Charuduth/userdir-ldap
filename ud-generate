@@ -761,7 +761,6 @@ def GenDNS(File):
             x[1].has_key("sshRSAHostKey") == 0:
             continue
 
-         print "%s %s" % (GetAttr(x, "hostname"), IsDebianHost.match(GetAttr(x, "hostname")))
          if IsDebianHost.match(GetAttr(x, "hostname")) is not None:
             continue
 
