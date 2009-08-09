@@ -1003,33 +1003,22 @@ def GenHosts(l, File):
       F = open(File + ".tmp", "w", 0644)
       os.umask(OldMask)
      
-      # Fetch all the hosts
-      hostnames = l.search_s(HostBaseDn, ldap.SCOPE_ONELEVEL, "hostname=*",
-                             ["hostname"])
-     
-      if hostnames is None:
-         raise UDEmptyList, "No Hosts"
-     
       seen = set()
-      for x in hostnames:
-         host = GetAttr(x, "hostname", None)
-         if host:
-            addrs = []
-            try:
-               addrs += socket.getaddrinfo(host, None, socket.AF_INET)
-            except socket.error:
-               pass
-            try:
-               addrs += socket.getaddrinfo(host, None, socket.AF_INET6)
-            except socket.error:
-               pass
-           
-            for addrinfo in addrs:
-               if addrinfo[0] in (socket.AF_INET, socket.AF_INET6):
-                  addr = addrinfo[4][0]
-                  if addr not in seen:
-                     print >> F, addrinfo[4][0]
-                     seen.add(addr)
+
+      global HostAttrs
+
+      for x in HostAttrs:
+
+         if IsDebianHost.match(GetAttr(x, "hostname")) is None:
+            continue
+
+         addrs = x[0]["ipHostNumber"]
+         for addr in addrs:
+            if addr not in seen:
+               seen.add(addr)
+               addr = Sanitize(addr) + "\n"
+               F.write(addr)
+
    # Oops, something unspeakable happened.
    except:
       Die(File, F, None)
