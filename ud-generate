@@ -1067,6 +1067,8 @@ PasswdAttrs = l.search_s(BaseDn, ldap.SCOPE_ONELEVEL, "uid=*",\
 if PasswdAttrs is None:
    raise UDEmptyList, "No Users"
 
+HostAttrs.sort(lambda x, y: cmp((GetAttr(x, "uid")).lower(), (GetAttr(y, "uid")).lower()))
+
 # Fetch all the hosts
 HostAttrs    = l.search_s(HostBaseDn, ldap.SCOPE_ONELEVEL, "objectClass=debianServer",\
                 ["hostname", "sshRSAHostKey", "purpose", "allowedGroups", "exportOptions",\
