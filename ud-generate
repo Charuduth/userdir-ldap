@@ -48,6 +48,7 @@ EmailCheck = re.compile("^([^ <>@]+@[^ ,<>@]+)?$")
 BSMTPCheck = re.compile(".*mx 0 (master)\.debian\.org\..*",re.DOTALL)
 PurposeHostField = re.compile(r".*\[\[([\*\-]?[a-z0-9.\-]*)(?:\|.*)?\]\]")
 IsV6Addr = re.compile("^[a-fA-F0-9:]+$")
+IsDebianHost = re.compile("[a-zA-Z0-9\.]+\.debian\.org$")
 DNSZone = ".debian.net"
 Keyrings = ConfModule.sync_keyrings.split(":")
 
@@ -752,6 +753,23 @@ def GenDNS(File):
    try:
       F = open(File + ".tmp", "w")
      
+      global HostAttrs
+
+      for x in HostAttrs:
+         if x[1].has_key("hostname") == 0 or \
+            x[1].has_key("architecture") == 0 or\
+            x[1].has_key("sshRSAHostKey") == 0:
+            continue
+
+         print "%s %s" % (GetAttr(x, "hostname"), IsDebianHost.match(GetAttr(x, "hostname")))
+         if IsDebianHost.match(GetAttr(x, "hostname")) is not None:
+            continue
+
+         DNSInfo = ExtractDNSInfo(x)
+         for Line in DNSInfo:
+            Line = Sanitize(Line) + "\n"
+            F.write(Line)
+
       # Fetch all the users
       global PasswdAttrs
      
@@ -799,60 +817,64 @@ def GenDNS(File):
       raise
    Done(File, F, None)
 
+def ExtractDNSInfo(x):
+
+   DNSInfo = []
+   Host = GetAttr(x, "hostname")
+   Arch = GetAttr(x, "architecture")
+   Algorithm = None
+
+   for I in x[1]["sshRSAHostKey"]:
+      Split = I.split()
+      if Split[0] == 'ssh-rsa':
+         Algorithm = 1
+      if Split[0] == 'ssh-dss':
+         Algorithm = 2
+      if Algorithm == None:
+         continue
+      Fingerprint = sha.new(base64.decodestring(Split[1])).hexdigest()
+      DNSInfo.append("%s. IN SSHFP %u 1 %s" % (Host, Algorithm, Fingerprint))
+
+   Mach = ""
+   if x[1].has_key("machine"):
+      Mach = " " + GetAttr(x, "machine")
+   DNSInfo.append("%s. IN HINFO \"%s%s\" \"%s\"" % (Host, Arch, Mach, "Debian GNU/Linux"))
+
+   if x[1].has_key("ipHostNumber"):
+      for I in x[1]["ipHostNumber"]:
+         if IsV6Addr.match(I) != None:
+            DNSInfo.append("%s. IN AAAA %s" % (Host, I))
+         else:
+            DNSInfo.append("%s. IN A %s" % (Host, I))
+
+   if x[1].has_key("mXRecord"):
+      for I in x[1]["mXRecord"]:
+         DNSInfo.append("%s. IN MX %s" % (Host, I))
+
+   return DNSInfo
+
 # Generate the DNS SSHFP records
 def GenSSHFP(File):
    F = None
    try:
       F = open(File + ".tmp", "w")
-     
+
       # Fetch all the hosts
       global HostAttrs
-      if HostAttrs == None:
-         raise UDEmptyList, "No Hosts"
-     
+
       for x in HostAttrs:
          if x[1].has_key("hostname") == 0 or \
             x[1].has_key("architecture") == 0 or\
             x[1].has_key("sshRSAHostKey") == 0:
             continue
-         Host = GetAttr(x, "hostname")
-         Arch = GetAttr(x, "architecture")
-         Algorithm = None
 
-         for I in x[1]["sshRSAHostKey"]:
-            Split = I.split()
-            if Split[0] == 'ssh-rsa':
-               Algorithm = 1
-            if Split[0] == 'ssh-dss':
-               Algorithm = 2
-            if Algorithm == None:
-               continue
-            Fingerprint = sha.new(base64.decodestring(Split[1])).hexdigest()
-            Line = "%s. IN SSHFP %u 1 %s" % (Host, Algorithm, Fingerprint)
+         if IsDebianHost.match(GetAttr(x, "hostname")) is None:
+            continue
+
+         DNSInfo = ExtractDNSInfo(x)
+         for Line in DNSInfo:
             Line = Sanitize(Line) + "\n"
             F.write(Line)
-
-         Mach = ""
-         if x[1].has_key("machine"):
-            Mach = " " + GetAttr(x, "machine")
-         Line = "%s. IN HINFO \"%s%s\" \"%s\"" % (Host, Arch, Mach, "Debian GNU/Linux")
-         Line = Sanitize(Line) + "\n"
-         F.write(Line)
-
-         if x[1].has_key("ipHostNumber"):
-            for I in x[1]["ipHostNumber"]:
-               if IsV6Addr.match(I) != None:
-                  Line = "%s. IN AAAA %s" % (Host, I)
-               else:
-                  Line = "%s. IN A %s" % (Host, I)
-               Line = Sanitize(Line) + "\n"
-               F.write(Line)
-
-         if x[1].has_key("mXRecord"):
-            for I in x[1]["mXRecord"]:
-               Line = "%s. IN MX %s" % (Host, I)
-               Line = Sanitize(Line) + "\n"
-               F.write(Line)
 
    # Oops, something unspeakable happened.
    except:
@@ -931,8 +953,6 @@ def GenSSHKnown(File, mode=None):
       os.umask(OldMask)
      
       global HostAttrs
-      if HostAttrs is None:
-         raise UDEmptyList, "No Hosts"
      
       for x in HostAttrs:
          if x[1].has_key("hostname") == 0 or \
@@ -1060,6 +1080,9 @@ if PasswdAttrs is None:
 HostAttrs    = l.search_s(HostBaseDn, ldap.SCOPE_ONELEVEL, "objectClass=debianServer",\
                 ["hostname", "sshRSAHostKey", "purpose", "allowedGroups", "exportOptions",\
                  "mXRecord", "ipHostNumber", "machine", "architecture"])
+
+if HostAttrs == None:
+   raise UDEmptyList, "No Hosts"
 
 # Generate global things
 GlobalDir = GenerateDir + "/"
