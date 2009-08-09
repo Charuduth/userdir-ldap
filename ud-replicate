@@ -32,11 +32,15 @@ else
 fi
 
 tempdir=''
+tempfile=''
+tempfile2=''
 
 cleanup ()
 {
   rm -f lock
   rm -rf $tempdir
+  rm -f  $tempfile
+  rm -f  $tempfile2
 }
 
 PATH=/sbin:/usr/sbin:/bin:/usr/bin
@@ -58,6 +62,17 @@ $LOCALSYNCON)
     udhost="sshdist@$SYNCHOST:"
     ;;
 esac
+
+tempfile=$(mktemp)
+tempfile2=$(mktemp)
+
+if [ -e /var/lib/misc/thishost/dns-sshfp ]; then
+  cp /var/lib/misc/thishost/dns-sshfp $tempfile
+fi
+
+if [ -e /var/lib/misc/thishost/dns-zone ]; then
+  cp /var/lib/misc/thishost/dns-zone $tempfile2
+fi
 
 rsync ${verbose} --delete-after -e 'ssh -i /etc/ssh/ssh_host_rsa_key -o PreferredAuthentications=publickey' -rp "${udhost}/var/cache/userdir-ldap/hosts/$HOST" .
 
@@ -145,4 +160,28 @@ fi
 if [ -d "/etc/postfix" -a -f "$HOST/forward-alias" ]; then
 	sed -e "s/:/@$EMAILAPPEND/" $HOST/forward-alias > /etc/postfix/debian
 	/usr/sbin/postmap hash:/etc/postfix/debian < /etc/postfix/debian || true
+fi
+
+rndc_reload=0
+if [ -e /var/lib/misc/thishost/dns-sshfp ]; then
+  if cmp /var/lib/misc/thishost/dns-sshfp $tempfile; then
+    rndc_reload=1
+  fi
+fi
+
+if [ -e /var/lib/misc/thishost/dns-zone ]; then
+  if cmp /var/lib/misc/thishost/dns-zone $tempfile2; then
+    rndc_reload=1
+  fi
+fi
+
+# FIXME:
+# this needs to rebuild the zone file with a new serial so it can replicate.
+# this means splitting the functionality in the current git hook into two scripts,
+# one of which takes a file and maybe some other arguments and rebuilds the zone
+# file, the other doing the git pull and determining which files to rebuild.
+# this is just a temporary hack to have some logical flow in place.
+
+if [ "${rndc_reload}" -gt 0 ]; then
+  rndc reload
 fi
