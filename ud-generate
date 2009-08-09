@@ -853,8 +853,8 @@ def ExtractDNSInfo(x):
 
    return DNSInfo
 
-# Generate the DNS SSHFP records
-def GenSSHFP(File):
+# Generate the DNS records
+def GenZoneRecords(File):
    F = None
    try:
       F = open(File + ".tmp", "w")
@@ -1184,7 +1184,7 @@ for host in HostAttrs:
 
    if 'DNS' in ExtraList:
       GenDNS(OutDir + "dns-zone")
-      GenSSHFP(OutDir + "dns-sshfp")
+      GenZoneRecords(OutDir + "dns-sshfp")
 
    if 'AUTHKEYS' in ExtraList:
       DoLink(GlobalDir, OutDir, "authorized_keys")
