@@ -1,3 +1,9 @@
+userdir-ldap (0.3.70) unstable; urgency=low
+
+  * Enable autogeneration of sshdist's authorized_keys file
+
+ -- Stephen Gran <sgran@debian.org>  Sun, 09 Aug 2009 16:10:35 +0000
+
 userdir-ldap (0.3.69) unstable; urgency=low
 
   * Make ud-host do allowedGroups, exportOptions.
