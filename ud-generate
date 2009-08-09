@@ -47,6 +47,7 @@ UUID_FORMAT = '[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}'
 EmailCheck = re.compile("^([^ <>@]+@[^ ,<>@]+)?$")
 BSMTPCheck = re.compile(".*mx 0 (master)\.debian\.org\..*",re.DOTALL)
 PurposeHostField = re.compile(r".*\[\[([\*\-]?[a-z0-9.\-]*)(?:\|.*)?\]\]")
+IsV6Addr = re.compile("^[a-fA-F0-9:]+$")
 DNSZone = ".debian.net"
 Keyrings = ConfModule.sync_keyrings.split(":")
 
@@ -811,10 +812,13 @@ def GenSSHFP(File):
      
       for x in HostAttrs:
          if x[1].has_key("hostname") == 0 or \
+            x[1].has_key("architecture") == 0 or\
             x[1].has_key("sshRSAHostKey") == 0:
             continue
          Host = GetAttr(x, "hostname")
+         Arch = GetAttr(x, "architecture")
          Algorithm = None
+
          for I in x[1]["sshRSAHostKey"]:
             Split = I.split()
             if Split[0] == 'ssh-rsa':
@@ -827,6 +831,29 @@ def GenSSHFP(File):
             Line = "%s. IN SSHFP %u 1 %s" % (Host, Algorithm, Fingerprint)
             Line = Sanitize(Line) + "\n"
             F.write(Line)
+
+         Mach = ""
+         if x[1].has_key("machine"):
+            Mach = " " + GetAttr(x, "machine")
+         Line = "%s. IN HINFO \"%s%s\" \"%s\"" % (Host, Arch, Mach, "Debian GNU/Linux")
+         Line = Sanitize(Line) + "\n"
+         F.write(Line)
+
+         if x[1].has_key("ipHostNumber"):
+            for I in x[1]["ipHostNumber"]:
+               if IsV6Addr.match(I) != None:
+                  Line = "%s. IN AAAA %s" % (Host, I)
+               else:
+                  Line = "%s. IN A %s" % (Host, I)
+               Line = Sanitize(Line) + "\n"
+               F.write(Line)
+
+         if x[1].has_key("mXRecord"):
+            for I in x[1]["mXRecord"]:
+               Line = "%s. IN MX %s" % (Host, I)
+               Line = Sanitize(Line) + "\n"
+               F.write(Line)
+
    # Oops, something unspeakable happened.
    except:
       Die(File, F, None)
@@ -1031,7 +1058,8 @@ if PasswdAttrs is None:
 
 # Fetch all the hosts
 HostAttrs    = l.search_s(HostBaseDn, ldap.SCOPE_ONELEVEL, "objectClass=debianServer",\
-                ["hostname", "sshRSAHostKey", "purpose", "allowedGroups", "exportOptions"])
+                ["hostname", "sshRSAHostKey", "purpose", "allowedGroups", "exportOptions",\
+                 "mXRecord", "ipHostNumber", "machine", "architecture"])
 
 # Generate global things
 GlobalDir = GenerateDir + "/"
