@@ -169,11 +169,11 @@ if [ -e /var/lib/misc/thishost/dns-sshfp ]; then
   fi
 fi
 
-if [ -e /var/lib/misc/thishost/dns-zone ]; then
-  if cmp /var/lib/misc/thishost/dns-zone $tempfile2; then
-    rndc_reload=1
-  fi
-fi
+#if [ -e /var/lib/misc/thishost/dns-zone ]; then
+#  if cmp /var/lib/misc/thishost/dns-zone $tempfile2; then
+#    rndc_reload=1
+#  fi
+#fi
 
 # FIXME:
 # this needs to rebuild the zone file with a new serial so it can replicate.
