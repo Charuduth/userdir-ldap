@@ -175,13 +175,7 @@ fi
 #  fi
 #fi
 
-# FIXME:
-# this needs to rebuild the zone file with a new serial so it can replicate.
-# this means splitting the functionality in the current git hook into two scripts,
-# one of which takes a file and maybe some other arguments and rebuilds the zone
-# file, the other doing the git pull and determining which files to rebuild.
-# this is just a temporary hack to have some logical flow in place.
-
 if [ "${rndc_reload}" -gt 0 ]; then
+  /git/HOOKS/write_zonefile debian.org
   rndc reload
 fi
