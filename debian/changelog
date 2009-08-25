@@ -1,3 +1,9 @@
+userdir-ldap (0.3.72XX) Xnstable; urgency=low
+
+  * ud-useradd: Allow unsetting of middle names by entering a space.
+
+ -- Peter Palfrader <weasel@debian.org>  Tue, 25 Aug 2009 12:01:33 +0200
+
 userdir-ldap (0.3.71) unstable; urgency=low
 
   * Enable autogeneration of DNS records for .d.o hosts

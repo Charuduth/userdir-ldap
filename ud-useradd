@@ -155,7 +155,9 @@ Res = raw_input("First name [" + cn + "]? ");
 if Res != "":
    cn = Res;
 Res = raw_input("Middle name [" + mn + "]? ");
-if Res != "":
+if Res == " ":
+   mn = ""
+elif Res != "":
    mn = Res;
 Res = raw_input("Last name [" + sn + "]? ");
 if Res != "":
