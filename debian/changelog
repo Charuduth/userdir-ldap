@@ -1,8 +1,10 @@
 userdir-ldap (0.3.72XX) Xnstable; urgency=low
 
   * ud-useradd: Allow unsetting of middle names by entering a space.
+  * userdir-ldap.conf: Add debian-maintainers.gpg to keyrings and
+    sync_keyrings.
 
- -- Peter Palfrader <weasel@debian.org>  Tue, 25 Aug 2009 12:01:33 +0200
+ -- Peter Palfrader <weasel@debian.org>  Sat, 29 Aug 2009 14:45:29 +0200
 
 userdir-ldap (0.3.71) unstable; urgency=low
 
