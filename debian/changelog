@@ -1,10 +1,12 @@
 userdir-ldap (0.3.72XX) Xnstable; urgency=low
 
   * ud-useradd: Allow unsetting of middle names by entering a space.
+  * userdir-ldap.conf: Add debian-maintainers.gpg to keyrings and
+    sync_keyrings.
   * ud-useradd: force gidNumber to be an int when we open the welcome
     template (it can be different when we read it from input using -n).
 
- -- Peter Palfrader <weasel@debian.org>  Wed, 09 Sep 2009 19:19:55 +0200
+ -- Peter Palfrader <weasel@debian.org>  Wed, 09 Sep 2009 19:21:12 +0200
 
 userdir-ldap (0.3.71) unstable; urgency=low
 
