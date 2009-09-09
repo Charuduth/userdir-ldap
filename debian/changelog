@@ -5,8 +5,9 @@ userdir-ldap (0.3.72XX) Xnstable; urgency=low
     sync_keyrings.
   * ud-useradd: force gidNumber to be an int when we open the welcome
     template (it can be different when we read it from input using -n).
+  * Tweak templates/welcome-message-60000.
 
- -- Peter Palfrader <weasel@debian.org>  Wed, 09 Sep 2009 19:21:12 +0200
+ -- Peter Palfrader <weasel@debian.org>  Wed, 09 Sep 2009 19:29:38 +0200
 
 userdir-ldap (0.3.71) unstable; urgency=low
 
