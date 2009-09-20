@@ -1046,7 +1046,7 @@ Attrs = l.search_s(BaseDn, ldap.SCOPE_ONELEVEL, "gid=*",\
 
 # Generate the SubGroupMap and GroupIDMap
 for x in Attrs:
-   if x[1].has_key("status") and x[1]['status'] == "disabled":
+   if x[1].has_key("accountStatus") and x[1]['accountStatus'] == "disabled":
       continue
    if x[1].has_key("gidNumber") == 0:
       continue
