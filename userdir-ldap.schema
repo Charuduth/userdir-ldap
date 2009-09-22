@@ -395,22 +395,6 @@ attributetype ( 1.3.6.1.4.1.9586.100.4.2.40
 	SUBSTR caseIgnoreIA5SubstringsMatch
 	SYNTAX 1.3.6.1.4.1.1466.115.121.1.26 )
 
-# Public object classes
-
-objectclass ( 1.3.6.1.4.1.9586.100.4.1.1
-	NAME 'debianAccount'
-	DESC 'Abstraction of an account with POSIX attributes and UTF8 support'
-	SUP top AUXILIARY
-	MUST ( cn $ uid $ uidNumber $ gidNumber )
-	MAY ( userPassword $ loginShell $ gecos $ homeDirectory $ description $ mailDisableMessage $ sudoPassword ) )
-
-objectclass ( 1.3.6.1.4.1.9586.100.4.1.2
-	NAME 'debianGroup'
-	SUP top STRUCTURAL
-	DESC 'attributes used for Debian groups'
-	MUST ( gid $ gidNumber )
-	MAY ( description $ subGroup $ accountStatus ) )
-
 # Experimental attribute types
 
 # There are existing schemas for doing DNS in LDAP; would one of
@@ -504,6 +488,22 @@ attributetype ( 1.3.6.1.4.1.9586.100.4.2.38
 	SUBSTR caseIgnoreIA5SubstringsMatch
 	SYNTAX 1.3.6.1.4.1.1466.115.121.1.26{256} SINGLE-VALUE )
 
+
+# Public object classes
+
+objectclass ( 1.3.6.1.4.1.9586.100.4.1.1
+	NAME 'debianAccount'
+	DESC 'Abstraction of an account with POSIX attributes and UTF8 support'
+	SUP top AUXILIARY
+	MUST ( cn $ uid $ uidNumber $ gidNumber )
+	MAY ( userPassword $ loginShell $ gecos $ homeDirectory $ description $ mailDisableMessage $ sudoPassword ) )
+
+objectclass ( 1.3.6.1.4.1.9586.100.4.1.2
+	NAME 'debianGroup'
+	SUP top STRUCTURAL
+	DESC 'attributes used for Debian groups'
+	MUST ( gid $ gidNumber )
+	MAY ( description $ subGroup $ accountStatus ) )
 
 # Experimental objectclasses:
 
