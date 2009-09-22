@@ -7,8 +7,13 @@ userdir-ldap (0.3.72XX) Xnstable; urgency=low
     template (it can be different when we read it from input using -n).
   * Tweak templates/welcome-message-60000.
   * ud-generate: don't blow up when a host does not have IP-addresses.
+  * We autogenerate the authorized_keys files for sshdist on db-master.
+    It limits the hosts' ssh key to coming from their respective addresses.
+    Now we can add additional source addresses to accept for this since
+    not all hosts appear to come from their published address (or have
+    a published address for that matter).
 
- -- Peter Palfrader <weasel@debian.org>  Tue, 22 Sep 2009 21:32:39 +0200
+ -- Peter Palfrader <weasel@debian.org>  Tue, 22 Sep 2009 21:51:31 +0200
 
 userdir-ldap (0.3.71) unstable; urgency=low
 

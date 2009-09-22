@@ -58,6 +58,7 @@ AttrInfo = {"description": ["Machine Descr.", 1],
             "exportOptions": ["Export-Opts", 18],
             "ipHostNumber": ["IP Address", 19],
             "mXRecord": ["MXRecord", 20],
+            "sshdistAuthKeysHost": ["extra authkeys ip", 21],
             }
 
 AttrPrompt = {"description": ["Purpose of the machine"],
@@ -80,6 +81,7 @@ AttrPrompt = {"description": ["Purpose of the machine"],
               "exportOptions": ["additional export options"],
               "ipHostNumber": ["IP Addresses(es) of the machine"],
               "mXRecord": ["Mail Exchanger for this machine"],
+              "sshdistAuthKeysHost": ["additional hosts for sshdist's authkeys file"],
               };
 
 # Create a map of IDs to desc,value,attr
@@ -142,7 +144,7 @@ def Overview(Attrs):
 
 # Change a single attribute
 def ChangeAttr(Attrs,Attr):
-   if (Attr in ["sponsor", "sshRSAHostKey", "purpose", "allowedGroups", "exportOptions", "ipHostNumber", "mXRecord"]):
+   if (Attr in ["sponsor", "sshRSAHostKey", "purpose", "allowedGroups", "exportOptions", "ipHostNumber", "mXRecord", "sshdistAuthKeysHost"]):
       return MultiChangeAttr(Attrs,Attr);
 
    print "Old value: '%s'" % (GetAttr(Attrs,Attr,""));
