@@ -1015,6 +1015,9 @@ def GenHosts(File):
          if IsDebianHost.match(GetAttr(x, "hostname")) is None:
             continue
 
+         if not 'ipHostNumber' in x[1]:
+            continue
+
          addrs = x[1]["ipHostNumber"]
          for addr in addrs:
             if addr not in seen:
