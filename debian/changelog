@@ -1,5 +1,6 @@
-userdir-ldap (0.3.72XX) Xnstable; urgency=low
+userdir-ldap (0.3.72) unstable; urgency=low
 
+  [ Peter Palfrader ]
   * ud-useradd: Allow unsetting of middle names by entering a space.
   * userdir-ldap.conf: Add debian-maintainers.gpg to keyrings and
     sync_keyrings.
@@ -13,7 +14,10 @@ userdir-ldap (0.3.72XX) Xnstable; urgency=low
     not all hosts appear to come from their published address (or have
     a published address for that matter).
 
- -- Peter Palfrader <weasel@debian.org>  Tue, 22 Sep 2009 21:51:31 +0200
+  [ Stephen Gran ]
+  * Make zone reloads work when ud-generate updates zone files
+
+ -- Stephen Gran <sgran@debian.org>  Mon, 05 Oct 2009 00:54:43 +0100
 
 userdir-ldap (0.3.71) unstable; urgency=low
 
