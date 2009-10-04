@@ -164,18 +164,19 @@ fi
 
 rndc_reload=0
 if [ -e /var/lib/misc/thishost/dns-sshfp ]; then
-  if ! cmp -s /var/lib/misc/thishost/dns-sshfp $tempfile; then
+  if ! cmp -s /var/lib/misc/thishost/dns-sshfp $tempfile2; then
+    /git/HOOKS/write_zonefile debian.org
     rndc_reload=1
   fi
 fi
 
-#if [ -e /var/lib/misc/thishost/dns-zone ]; then
-#  if cmp /var/lib/misc/thishost/dns-zone $tempfile2; then
-#    rndc_reload=1
-#  fi
-#fi
+if [ -e /var/lib/misc/thishost/dns-zone ]; then
+  if ! cmp -s /var/lib/misc/thishost/dns-zone $tempfile2; then
+    /git/HOOKS/write_zonefile debian.net
+    rndc_reload=1
+  fi
+fi
 
 if [ "${rndc_reload}" -gt 0 ]; then
-  /git/HOOKS/write_zonefile debian.org
   rndc reload
 fi
