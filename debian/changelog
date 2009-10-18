@@ -1,3 +1,10 @@
+userdir-ldap (0.3.73) unstable; urgency=low
+
+  * Add dnsTTL host attribute to override the zone default TTL
+    for A and AAAA records.  Also for MX, HINFO and SSHFP.
+
+ -- Peter Palfrader <weasel@debian.org>  Sun, 18 Oct 2009 12:38:51 +0200
+
 userdir-ldap (0.3.72) unstable; urgency=low
 
   [ Peter Palfrader ]

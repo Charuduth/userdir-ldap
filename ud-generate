@@ -823,14 +823,17 @@ def GenDNS(File):
 
 def ExtractDNSInfo(x):
 
-   DNSInfo = []
+   TTLprefix="\t"
+   if 'dnsTTL' in x[1]:
+      TTLprefix="%s\t"%(x[1]["dnsTTL"][0])
 
+   DNSInfo = []
    if x[1].has_key("ipHostNumber"):
       for I in x[1]["ipHostNumber"]:
          if IsV6Addr.match(I) != None:
-            DNSInfo.append("IN\tAAAA\t%s" % (I))
+            DNSInfo.append("%sIN\tAAAA\t%s" % (TTLprefix, I))
          else:
-            DNSInfo.append("IN\tA\t%s" % (I))
+            DNSInfo.append("%sIN\tA\t%s" % (TTLprefix, I))
 
    Host = GetAttr(x, "hostname")
    Arch = GetAttr(x, "architecture")
@@ -845,16 +848,16 @@ def ExtractDNSInfo(x):
       if Algorithm == None:
          continue
       Fingerprint = sha.new(base64.decodestring(Split[1])).hexdigest()
-      DNSInfo.append("IN\tSSHFP\t%u 1 %s" % (Algorithm, Fingerprint))
+      DNSInfo.append("%sIN\tSSHFP\t%u 1 %s" % (TTLprefix, Algorithm, Fingerprint))
 
    Mach = ""
    if x[1].has_key("machine"):
       Mach = " " + GetAttr(x, "machine")
-   DNSInfo.append("IN\tHINFO\t\"%s%s\" \"%s\"" % (Arch, Mach, "Debian GNU/Linux"))
+   DNSInfo.append("%sIN\tHINFO\t\"%s%s\" \"%s\"" % (TTLprefix, Arch, Mach, "Debian GNU/Linux"))
 
    if x[1].has_key("mXRecord"):
       for I in x[1]["mXRecord"]:
-         DNSInfo.append("IN\tMX\t%s" % (I))
+         DNSInfo.append("%sIN\tMX\t%s" % (TTLprefix, I))
 
    return DNSInfo
 
@@ -1080,7 +1083,7 @@ PasswdAttrs.sort(lambda x, y: cmp((GetAttr(x, "uid")).lower(), (GetAttr(y, "uid"
 # Fetch all the hosts
 HostAttrs    = l.search_s(HostBaseDn, ldap.SCOPE_ONELEVEL, "objectClass=debianServer",\
                 ["hostname", "sshRSAHostKey", "purpose", "allowedGroups", "exportOptions",\
-                 "mXRecord", "ipHostNumber", "machine", "architecture"])
+                 "mXRecord", "ipHostNumber", "dnsTTL", "machine", "architecture"])
 
 if HostAttrs == None:
    raise UDEmptyList, "No Hosts"
