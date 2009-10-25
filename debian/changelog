@@ -1,12 +1,14 @@
-userdir-ldap (0.3.74) unstable; urgency=low
+userdir-ldap (0.3.XX) Xnstable; urgency=low
 
   * ud-generate: Make sure we only add people in gid 800 to debian-private.
     (DebianUsers was just a copy of PasswdAttrs.  So use PasswdAttrs in
      all the places that currently use DebianUsers.  Make a filtered list
      DebianDDUsers (accounts in gid 800), and use that for building the
      debian-private subscription list.)
+  * welcome-message-60000: improve wording of a sentence.  Sometimes less
+    is more.
 
- -- Peter Palfrader <weasel@debian.org>  Sun, 25 Oct 2009 16:38:04 +0100
+ -- Peter Palfrader <weasel@debian.org>  Sun, 25 Oct 2009 16:58:08 +0100
 
 userdir-ldap (0.3.73) unstable; urgency=low
 

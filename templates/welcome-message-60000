@@ -25,10 +25,11 @@ available on all architectures.  The chroot environments can be
 entered with the 'dchroot' command.
 
 You should use ssh to log into the machines. See the host details on
-db.debian.org already mentioned above for the ssh hostkey fingerprints for the
-servers you access. Our LDAP directory is able to share ssh RSA keys among
-machines, please see <URL:http://db.debian.org/doc-mail.html>. Please be aware
-of the security implications of using RSA authentication and ssh agents.
+db.debian.org for the ssh hostkey fingerprints for the servers you
+access.  Our LDAP directory is able to share ssh RSA keys among
+machines, please see <URL:http://db.debian.org/doc-mail.html>. Please be
+aware of the security implications of using RSA authentication and ssh
+agents.
 
 After a short while of inactivity this account will be expired. This account
 is only to be used to help porting/improving free software.
