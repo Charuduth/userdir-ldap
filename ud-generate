@@ -513,18 +513,15 @@ def GenForward(File):
       raise
    Done(File, F, None)
 
-def GenCDB(File, Key):
+def GenCDB(File, Users, Key):
    Fdb = None
    try:
       OldMask = os.umask(0022)
       Fdb = os.popen("cdbmake %s %s.tmp"%(File, File), "w")
       os.umask(OldMask)
 
-      # Fetch all the users
-      global PasswdAttrs
-
       # Write out the email address for each user
-      for x in PasswdAttrs:
+      for x in Users:
          if not Key in x[1]:
             continue
          Value = GetAttr(x, Key)
@@ -1100,8 +1097,8 @@ DebianDDUsers = filter(lambda x: IsGidDebian(x), PasswdAttrs)
 CheckForward()
 
 GenMailDisable(GlobalDir + "mail-disable")
-GenCDB(GlobalDir + "mail-forward.cdb", 'emailForward')
-GenCDB(GlobalDir + "mail-contentinspectionaction.cdb", 'mailContentInspectionAction')
+GenCDB(GlobalDir + "mail-forward.cdb", PasswdAttrs, 'emailForward')
+GenCDB(GlobalDir + "mail-contentinspectionaction.cdb", PasswdAttrs, 'mailContentInspectionAction')
 GenPrivate(GlobalDir + "debian-private")
 GenSSHKnown(GlobalDir+"authorized_keys", 'authorized_keys')
 GenMailBool(GlobalDir + "mail-greylist", "mailGreylisting")
