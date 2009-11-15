@@ -74,7 +74,7 @@ DelItems = {"c": None,
             "facsimileTelephoneNumber": None,
             "telephoneNumber": None,
             "postalAddress": None,
-            "bATVToken": None
+            "bATVToken": None,
             "postalCode": None,
             "emailForward": None,
             "ircNick": None,
