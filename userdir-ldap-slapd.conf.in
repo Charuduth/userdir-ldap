@@ -19,7 +19,7 @@ sizelimit 10000
 lastmod on
 
 # owner writeable
-access to attrs=userPassword,sudoPassword
+access to attrs=userPassword,sudoPassword,bATVToken
 	by group="cn=LDAP Administrator,ou=users,@@DN@@" write
 	by dn="uid=sshdist,ou=users,@@DN@@"  write
 	by self write

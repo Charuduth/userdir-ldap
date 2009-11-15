@@ -536,7 +536,7 @@ objectclass ( 1.3.6.1.4.1.9586.100.4.3.1
 	      jabberJID $ keyFingerPrint $ latitude $ longitude $ mn $
 	      onVacation $ privateSub $ sshRSAAuthKey $ supplementaryGid $
 	      access $ gender $ birthDate $ mailCallout $ mailGreylisting $
-              mailRBL $ mailRHSBL $ mailWhitelist $ VoIP $ mailContentInspectionAction
+              mailRBL $ mailRHSBL $ mailWhitelist $ VoIP $ mailContentInspectionAction $ bATVToken
 	) )
 
 objectclass ( 1.3.6.1.4.1.9586.100.4.3.2
@@ -557,5 +557,5 @@ objectclass ( 1.3.6.1.4.1.9586.100.4.3.3
 	SUP account STRUCTURAL
 	MAY ( emailForward $ supplementaryGid $ allowedHost $ labeledURI $
 	      mailCallout $ mailGreylisting $ mailRBL $ mailRHSBL $
-	      mailWhitelist $ dnsZoneEntry $ mailContentInspectionAction
+	      mailWhitelist $ dnsZoneEntry $ mailContentInspectionAction $ bATVToken
 	) )
