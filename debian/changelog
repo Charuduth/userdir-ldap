@@ -11,8 +11,9 @@ userdir-ldap (0.3.XX) Xnstable; urgency=low
 
   [ Stephen Gran ]
   * Initial support for BATV token storage.
+  * generate a new file for mail forwards for users present on this machine
 
- -- Stephen Gran <sgran@debian.org>  Sun, 15 Nov 2009 11:54:02 +0000
+ -- Stephen Gran <sgran@debian.org>  Sun, 15 Nov 2009 11:54:41 +0000
 
 userdir-ldap (0.3.73) unstable; urgency=low
 
