@@ -42,7 +42,7 @@ access to attrs=activity-pgp,activity-from,dnsZoneEntry
 	by * none
 
 # owner writeable, debian readable, authenticated user readable
-access to attrs=c,l,loginShell,ircNick,labeledURI,icqUIN,jabberJID,onVacation,birthDate,mailDisableMessage,gender,emailforward,mailCallout,mailGreylisting,mailRBL,mailRHSBL,mailWhitelist,mailContentInspectionAction
+access to attrs=c,l,loginShell,ircNick,labeledURI,icqUIN,jabberJID,onVacation,birthDate,mailDisableMessage,gender,emailforward,mailCallout,mailGreylisting,mailRBL,mailRHSBL,mailWhitelist,mailContentInspectionAction,mailDefaultOptions
 	by group="cn=LDAP Administrator,ou=users,@@DN@@" write
 	by dn="uid=sshdist,ou=users,@@DN@@" write
 	by self write

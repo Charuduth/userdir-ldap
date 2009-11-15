@@ -1182,6 +1182,7 @@ for host in HostAttrs:
    DoLink(GlobalDir, OutDir, "mail-whitelist")
    GenCDB(OutDir + "user-forward.cdb", filter(lambda x: IsInGroup(x), PasswdAttrs), 'emailForward')
    GenCDB(OutDir + "batv-tokens.cdb", filter(lambda x: IsInGroup(x), PasswdAttrs), 'bATVToken')
+   GenCDB(OutDir + "default-mail-options.cdb", filter(lambda x: IsInGroup(x), PasswdAttrs), 'mailDefaultOptions')
 
    # Compatibility.
    DoLink(GlobalDir, OutDir, "forward-alias")
