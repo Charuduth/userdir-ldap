@@ -1,8 +1,8 @@
-userdir-ldap (0.3.XX) Xnstable; urgency=low
+userdir-ldap (0.3.75) unstable; urgency=low
 
   * Enable support for mailDefaultOptions
 
- -- Stephen Gran <sgran@debian.org>  Mon, 16 Nov 2009 00:19:15 +0000
+ -- Stephen Gran <sgran@debian.org>  Mon, 16 Nov 2009 21:36:53 +0000
 
 userdir-ldap (0.3.74) unstable; urgency=low
 

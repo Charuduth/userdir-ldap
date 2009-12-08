@@ -446,9 +446,15 @@ def GenGroup(File):
       # Output the group file.
       J = 0
       for x in GroupMap.keys():
-         grouprevmap[GroupIDMap[x]] = x
+
+         if len(GroupMap[x]) == 0:
+            continue
+
          if GroupIDMap.has_key(x) == 0:
             continue
+
+         grouprevmap[GroupIDMap[x]] = x
+
          Line = "%s:x:%u:" % (x, GroupIDMap[x])
          Comma = ''
          for I in GroupMap[x]:
