@@ -8,8 +8,11 @@ userdir-ldap (0.3.76xXx) unstable; urgency=low
   * ud-useradd: Fix usergroup support:
     - Move ldap call to actually add the user to the right place,
     - Properly compare strings and numbers.
+  * ud-useradd: Only ask for private subscription if this installation
+    has a debian-private like mailinglist whose membership is configured
+    by ud-ldap.  (defaults to true.)
 
- -- Peter Palfrader <weasel@debian.org>  Sat, 09 Jan 2010 00:19:44 +0100
+ -- Peter Palfrader <weasel@debian.org>  Sat, 09 Jan 2010 00:27:02 +0100
 
 userdir-ldap (0.3.75) unstable; urgency=low
 

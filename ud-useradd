@@ -25,6 +25,8 @@ import email.Header
 from userdir_ldap import *;
 from userdir_gpg import *;
 
+HavePrivateList = getattr(ConfModule, "haveprivatelist", True)
+
 # This tries to search for a free UID. There are two possible ways to do
 # this, one is to fetch all the entires and pick the highest, the other
 # is to randomly guess uids until one is free. This uses the former.
@@ -167,9 +169,12 @@ if Res != "":
    emailaddr = Res;
 
 # Debian-Private subscription
-Res = raw_input("Subscribe to debian-private (space is none) [" + privsub + "]? ");
-if Res != "":
-   privsub = Res;
+if HavePrivateList:
+   Res = raw_input("Subscribe to debian-private (space is none) [" + privsub + "]? ");
+   if Res != "":
+      privsub = Res;
+else:
+   privsub = " "
 
 (uidNumber, generatedGID) = GetFreeID(l)
 if not gidNumber:
@@ -226,7 +231,8 @@ print "Final information collected:"
 print " %s <%s@%s>:" % (FullName,account,EmailAppend);
 print "   Assigned UID:",uidNumber," GID:", gidNumber;
 print "   Email forwarded to:",emailaddr
-print "   Private Subscription:",privsub;
+if HavePrivateList:
+   print "   Private Subscription:",privsub;
 print "   GECOS Field: \"%s,,,,\"" % (FullName);
 print "   Login Shell: /bin/bash";
 print "   Key Fingerprint:",Keys[0][1];
