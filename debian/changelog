@@ -1,6 +1,14 @@
+userdir-ldap (0.3.76xXx) unstable; urgency=low
+
+  * Export groups even if nobody has that group as a supplementary group,
+    as long as there are users that have it as a primary group.
+
+ -- Peter Palfrader <weasel@debian.org>  Fri, 08 Jan 2010 23:25:32 +0100
+
 userdir-ldap (0.3.75) unstable; urgency=low
 
   * Enable support for mailDefaultOptions
+  * Make a stab at really not exporting empty groups.
 
  -- Stephen Gran <sgran@debian.org>  Mon, 16 Nov 2009 21:36:53 +0000
 

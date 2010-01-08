@@ -426,6 +426,7 @@ def GenGroup(File):
       GroupMap = {}
       for x in GroupIDMap.keys():
          GroupMap[x] = []
+      GroupHasPrimaryMembers = {}
      
       # Fetch all the users
       global PasswdAttrs
@@ -433,6 +434,8 @@ def GenGroup(File):
       # Sort them into a list of groups having a set of users
       for x in PasswdAttrs:
          uid = GetAttr(x, "uid")
+         if 'gidNumber' in x[1]:
+            GroupHasPrimaryMembers[ int(x[1]["gidNumber"][0]) ] = True
          if x[1].has_key("uidNumber") == 0 or not IsInGroup(x):
             continue
          if x[1].has_key("supplementaryGid") == 0:
@@ -446,11 +449,10 @@ def GenGroup(File):
       # Output the group file.
       J = 0
       for x in GroupMap.keys():
-
-         if len(GroupMap[x]) == 0:
+         if GroupIDMap.has_key(x) == 0:
             continue
 
-         if GroupIDMap.has_key(x) == 0:
+         if len(GroupMap[x]) == 0 and GroupIDMap[x] not in GroupHasPrimaryMembers:
             continue
 
          grouprevmap[GroupIDMap[x]] = x
