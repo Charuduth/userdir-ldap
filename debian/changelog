@@ -1,9 +1,10 @@
 userdir-ldap (0.3.76xXx) unstable; urgency=low
 
-  * Export groups even if nobody has that group as a supplementary group,
-    as long as there are users that have it as a primary group.
+  * ud-generate: Export groups even if nobody has that group as a
+    supplementary group, as long as there are users that have it as a primary
+    group.
 
- -- Peter Palfrader <weasel@debian.org>  Fri, 08 Jan 2010 23:25:32 +0100
+ -- Peter Palfrader <weasel@debian.org>  Sat, 09 Jan 2010 00:15:34 +0100
 
 userdir-ldap (0.3.75) unstable; urgency=low
 
