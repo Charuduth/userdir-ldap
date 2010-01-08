@@ -5,8 +5,11 @@ userdir-ldap (0.3.76xXx) unstable; urgency=low
     group.
   * ud-useradd: If we do not have a template for a specific group, use the
     general purpose template file (welcome-message).
+  * ud-useradd: Fix usergroup support:
+    - Move ldap call to actually add the user to the right place,
+    - Properly compare strings and numbers.
 
- -- Peter Palfrader <weasel@debian.org>  Sat, 09 Jan 2010 00:16:26 +0100
+ -- Peter Palfrader <weasel@debian.org>  Sat, 09 Jan 2010 00:19:44 +0100
 
 userdir-ldap (0.3.75) unstable; urgency=low
 

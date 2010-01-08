@@ -187,7 +187,7 @@ if NoAutomaticIDs:
    Res = raw_input("Group ID Number (default group is %s, new usergroup %s) [%s]" % (DefaultGID, generatedGID, gidNumber));
    if Res != "":
       if Res.isdigit():
-         gidNumber = Res;
+         gidNumber = int(Res);
       else:
          gidNumber = Group2GID(l, Res);
    
@@ -286,13 +286,12 @@ if Update == 0:
       Details.append(("mn",mn));
    if privsub != " ":
       Details.append(("privateSub",privsub))
+   l.add_s(Dn,Details);
 
    #Add user group if needed, then the actual user:
    if UserGroup == 1:
       Dn = "gid=" + account + "," + BaseDn;
       l.add_s(Dn,[("gid",account), ("gidNumber",str(gidNumber)), ("objectClass", GroupObjectClasses)])
-
-   l.add_s(Dn,Details);
 else:
    # Modification
    Rec = [(ldap.MOD_REPLACE,"uidNumber",str(uidNumber)),
