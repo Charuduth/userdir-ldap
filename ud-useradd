@@ -243,21 +243,13 @@ if Res != "yes":
 # Initialize the substitution Map
 Subst = {}
 
-encto = ''
+encrealname = ''
 try:
-  encto = FullName.decode('us-ascii')
+  encrealname = FullName.decode('us-ascii')
 except UnicodeError:
-  encto = str(email.Header.Header(FullName, 'utf-8', 200)) + " " + emailaddr
+  encrealname = str(email.Header.Header(FullName, 'utf-8', 200))
 
-subjstring = "New Debian Maintainer " + FullName
-encsubj = ''
-try:
-  encsubj = subjstring.decode('us-ascii')
-except UnicodeError:
-  encsubj = str(email.Header.Header(subjstring, 'utf-8', 200))
-
-Subst["__HEADER_SUBJ__"] = encsubj
-Subst["__HEADER_EMAIL"] = encto
+Subst["__ENCODED_REALNAME__"] = encrealname
 Subst["__REALNAME__"] = FullName;
 Subst["__WHOAMI__"] = pwd.getpwuid(os.getuid())[0];
 Subst["__DATE__"] = time.strftime("%a, %d %b %Y %H:%M:%S +0000",time.gmtime(time.time()));

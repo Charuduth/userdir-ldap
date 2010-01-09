@@ -1,9 +1,9 @@
-To: "__REALNAME__" <__EMAIL__>
+To: "__ENCODED_REALNAME__" <__EMAIL__>
 From: __WHOAMI__
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 8bit
-Subject: New Debian developer __REALNAME__
+Subject: New Debian developer __ENCODED_REALNAME__
 Cc: da-manager@debian.org, debian-admin@debian.org
 Reply-To: da-manager@debian.org
 Date: __DATE__

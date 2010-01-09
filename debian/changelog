@@ -13,8 +13,10 @@ userdir-ldap (0.3.76xXx) unstable; urgency=low
     by ud-ldap.  (defaults to true.)
   * Fix welcome-message to be like welcome-message-800 and 60000 wrt
     email headers
+  * ud-useradd: Properly encode realname in subjects and to header lines
+    regardless of which template is being used.
 
- -- Peter Palfrader <weasel@debian.org>  Sat, 09 Jan 2010 02:10:02 +0100
+ -- Peter Palfrader <weasel@debian.org>  Sat, 09 Jan 2010 11:58:30 +0100
 
 userdir-ldap (0.3.75) unstable; urgency=low
 
