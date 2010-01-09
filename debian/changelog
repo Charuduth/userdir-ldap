@@ -15,8 +15,11 @@ userdir-ldap (0.3.76xXx) unstable; urgency=low
     email headers
   * ud-useradd: Properly encode realname in subjects and to header lines
     regardless of which template is being used.
+  * ud-generate: move the regex that determines whether or not to include
+    a host in the dns-sshfp zone snippet (for SSHFP and A, AAAA and MX
+    records) to the config file.
 
- -- Peter Palfrader <weasel@debian.org>  Sat, 09 Jan 2010 11:58:30 +0100
+ -- Peter Palfrader <weasel@debian.org>  Sat, 09 Jan 2010 16:50:24 +0100
 
 userdir-ldap (0.3.75) unstable; urgency=low
 
