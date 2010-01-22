@@ -18,8 +18,10 @@ userdir-ldap (0.3.76xXx) unstable; urgency=low
   * ud-generate: move the regex that determines whether or not to include
     a host in the dns-sshfp zone snippet (for SSHFP and A, AAAA and MX
     records) to the config file.
+  * Include a host in DNS even if we do not have both ssh keys and an
+    arch for that host configured.
 
- -- Peter Palfrader <weasel@debian.org>  Sat, 09 Jan 2010 16:50:24 +0100
+ -- Peter Palfrader <weasel@debian.org>  Fri, 22 Jan 2010 20:13:18 +0100
 
 userdir-ldap (0.3.75) unstable; urgency=low
 

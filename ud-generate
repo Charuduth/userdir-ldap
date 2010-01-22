@@ -840,25 +840,26 @@ def ExtractDNSInfo(x):
          else:
             DNSInfo.append("%sIN\tA\t%s" % (TTLprefix, I))
 
-   Host = GetAttr(x, "hostname")
-   Arch = GetAttr(x, "architecture")
    Algorithm = None
 
-   for I in x[1]["sshRSAHostKey"]:
-      Split = I.split()
-      if Split[0] == 'ssh-rsa':
-         Algorithm = 1
-      if Split[0] == 'ssh-dss':
-         Algorithm = 2
-      if Algorithm == None:
-         continue
-      Fingerprint = sha.new(base64.decodestring(Split[1])).hexdigest()
-      DNSInfo.append("%sIN\tSSHFP\t%u 1 %s" % (TTLprefix, Algorithm, Fingerprint))
+   if 'sshRSAHostKey' in x[1]:
+      for I in x[1]["sshRSAHostKey"]:
+         Split = I.split()
+         if Split[0] == 'ssh-rsa':
+            Algorithm = 1
+         if Split[0] == 'ssh-dss':
+            Algorithm = 2
+         if Algorithm == None:
+            continue
+         Fingerprint = sha.new(base64.decodestring(Split[1])).hexdigest()
+         DNSInfo.append("%sIN\tSSHFP\t%u 1 %s" % (TTLprefix, Algorithm, Fingerprint))
 
-   Mach = ""
-   if x[1].has_key("machine"):
-      Mach = " " + GetAttr(x, "machine")
-   DNSInfo.append("%sIN\tHINFO\t\"%s%s\" \"%s\"" % (TTLprefix, Arch, Mach, "Debian GNU/Linux"))
+   if 'architecture' in x[1]:
+      Arch = GetAttr(x, "architecture")
+      Mach = ""
+      if x[1].has_key("machine"):
+         Mach = " " + GetAttr(x, "machine")
+      DNSInfo.append("%sIN\tHINFO\t\"%s%s\" \"%s\"" % (TTLprefix, Arch, Mach, "Debian GNU/Linux"))
 
    if x[1].has_key("mXRecord"):
       for I in x[1]["mXRecord"]:
@@ -876,9 +877,7 @@ def GenZoneRecords(File):
       global HostAttrs
 
       for x in HostAttrs:
-         if x[1].has_key("hostname") == 0 or \
-            x[1].has_key("architecture") == 0 or\
-            x[1].has_key("sshRSAHostKey") == 0:
+         if x[1].has_key("hostname") == 0:
             continue
 
          if IsDebianHost.match(GetAttr(x, "hostname")) is None:
