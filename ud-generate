@@ -343,6 +343,8 @@ def GenSSHShadow():
       # Oops, something unspeakable happened.
       except IOError:
          Die(File, F, None)
+         # As neither masterFileName nor masterFile are defined at any point
+         # this will raise a NameError.
          Die(masterFileName, masterFile, None)
          raise
 
