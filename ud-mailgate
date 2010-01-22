@@ -281,6 +281,7 @@ def DoSSH(Str, Attrs, badkeys, uid):
       return None;
 
    # lines can now be prepended with "allowed_hosts=machine1,machine2 "
+   machines = []
    if Str.startswith("allowed_hosts="):
       Str = Str.split("=", 1)[1]
       if ' ' not in Str:
@@ -302,6 +303,10 @@ def DoSSH(Str, Attrs, badkeys, uid):
    os.remove(path)
    if (result != 0):
       raise UDExecuteError, "ssh-keygen -l invocation failed!\n%s\n" % (output)
+
+   # format the string again for ldap:
+   if machines:
+      Str = "allowed_hosts=%s %s" % (",".join(machines), Str)
 
 
    # Head
