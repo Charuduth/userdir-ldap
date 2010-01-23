@@ -12,6 +12,7 @@
 #   Copyright (c) 2008 Luk Claes <luk@debian.org>
 #   Copyright (c) 2008 Thomas Viehmann <tv@beamnet.de>
 #   Copyright (c) 2009 Stephen Gran <steve@lobefin.net>
+#   Copyright (c) 2010 Helmut Grohne <helmut@subdivi.de>
 #
 #   This program is free software; you can redistribute it and/or modify
 #   it under the terms of the GNU General Public License as published by
@@ -30,6 +31,10 @@
 import string, re, time, ldap, getopt, sys, os, pwd, posix, socket, base64, sha, shutil, errno, tarfile, grp
 from userdir_ldap import *
 from userdir_exceptions import *
+try:
+   from cStringIO import StringIO
+except ImportError:
+   from StringIO import StringIO
 
 global Allowed
 global CurrentHost
@@ -385,7 +390,20 @@ def GenSSHtarballs(userlist, SSHFiles, grouprevmap, target):
       to.uname = f
       to.gname = grname
       to.mode  = 0400
-      tf.addfile(to, file(os.path.join(GlobalDir, 'userkeys', f)))
+
+      contents = file(os.path.join(GlobalDir, 'userkeys', f)).read()
+      lines = []
+      for line in contents.splitlines():
+         if line.startswith("allowed_hosts=") and ' ' in line:
+            machines, line = line.split('=', 1)[1].split(' ', 1)
+            if CurrentHost not in machines.split(','):
+               continue # skip this key
+         lines.append(line)
+      if not lines:
+         continue # no keys for this host
+      contents = "\n".join(lines)
+      to.size = len(contents)
+      tf.addfile(to, StringIO(contents))
 
    tf.close()
    os.rename(os.path.join(GlobalDir, 'ssh-keys-%s.tar.gz' % CurrentHost), target)
