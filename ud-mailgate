@@ -35,6 +35,7 @@ mailWhitelist = {}
 SeenList = {}
 DNS = {}
 SudoPasswd = {}
+ValidHostNames = [] # will be initialized in later
 
 SSHFingerprint = re.compile('^(\d+) ([0-9a-f\:]{47}) (.+)$')
 SSHRSA1Match = re.compile('^^(.* )?\d+ \d+ \d+')
@@ -293,6 +294,8 @@ def DoSSH(Str, Attrs, badkeys, uid):
             return "empty machine specification for ssh key"
          if not machine_regex.match(m):
             return "machine specification for ssh key contains invalid characters"
+         if m not in ValidHostNames:
+            return "unknown machine used in allowed_hosts stanza for ssh keys"
 
    (fd, path) = tempfile.mkstemp(".pub", "sshkeytry", "/tmp")
    f = open(path, "w")
@@ -771,6 +774,14 @@ try:
    # Formulate a reply
    Date = time.strftime("%a, %d %b %Y %H:%M:%S +0000",time.gmtime(time.time()));
    Reply = "To: %s\nReply-To: %s\nDate: %s\n" % (Sender,ReplyTo,Date);
+
+   global ValidHostNames
+   Res = l.search_s(HostBaseDn, ldap.SCOPE_SUBTREE, '(objectClass=debianServer)', ['hostname'] )
+   # Res is a list of tuples.
+   # The tuples contain a dn (str) and a dictionary.
+   # The dictionaries map the key "hostname" to a list.
+   # These lists contain a single hostname (str).
+   ValidHostNames = reduce(lambda a,b: a+b, [value.get("hostname", []) for (dn, value) in Res], [])
 
    # Dispatch
    if sys.argv[1] == "ping":
