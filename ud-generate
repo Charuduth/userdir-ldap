@@ -403,7 +403,7 @@ def GenSSHtarballs(userlist, SSHFiles, grouprevmap, target):
          lines.append(line)
       if not lines:
          continue # no keys for this host
-      contents = "\n".join(lines)
+      contents = "\n".join(lines) + "\n"
       to.size = len(contents)
       tf.addfile(to, StringIO(contents))
 
