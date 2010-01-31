@@ -1,9 +1,14 @@
-userdir-ldap (0.3.77) unstable; urgency=low
+userdir-ldap (0.3.7X) Xnstable; urgency=low
 
   * ud-mailgate: Remove a global declaration after a variable has
     already been assigned globally.
+  * ud-mailgate: We use the result of the pgp check for quite a long
+    time in the main program.  Give it its own variable instead of
+    using Res which was overwritten a bit later.  Also make a new
+    gpgcheck2 class that allows us to access the values of the gpg
+    signature check in a saner way.
 
- -- Peter Palfrader <weasel@debian.org>  Sun, 31 Jan 2010 10:11:48 +0100
+ -- Peter Palfrader <weasel@debian.org>  Sun, 31 Jan 2010 10:12:35 +0100
 
 userdir-ldap (0.3.76) unstable; urgency=low
 

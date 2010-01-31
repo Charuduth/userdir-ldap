@@ -442,6 +442,26 @@ def GPGCheckSig(Message):
          Res[1].close();
          Res[2].close();
 
+class GPGCheckSig2:
+	def __init__(self, msg):
+		res = GPGCheckSig(msg)
+		self.why = res[0]
+		self.sig_info = res[1]
+		self.key_info = res[2]
+		self.text = res[3]
+
+		self.ok = self.why is None
+
+		self.sig_id = self.sig_info[0]
+		self.sig_date = self.sig_info[1]
+		self.sig_fpr = self.sig_info[2]
+
+		self.key_id = self.key_info[0]
+		self.key_fpr = self.key_info[1]
+		self.key_owner = self.key_info[2]
+
+		self.is_pgp2 = self.key_info[4]
+
 # Search for keys given a search pattern. The pattern is passed directly
 # to GPG for processing. The result is a list of tuples of the form:
 #   (KeyID,KeyFinger,Owner,Length)
@@ -568,3 +588,6 @@ class ReplayCache:
       else:
          self.DB[Key] = str(int(Sig[1]));
 	 
+# vim:set et:
+# vim:set ts=3:
+# vim:set shiftwidth=3:

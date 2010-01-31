@@ -715,25 +715,25 @@ try:
    
    # Check the signature
    ErrMsg = "Unable to check the signature or the signature was invalid:";
-   Res = GPGCheckSig(Msg[0]);
+   pgp = GPGCheckSig2(Msg[0])
 
-   if Res[0] != None:
-      raise UDFormatError, Res[0];
+   if not pgp.ok:
+      raise UDFormatError, pgp.why
       
-   if Res[3] == None:
-      raise UDFormatError, "Null signature text";
+   if pgp.text is None:
+      raise UDFormatError, "Null signature text"
 
    # Extract the plain message text in the event of mime encoding
    global PlainText;
    ErrMsg = "Problem stripping MIME headers from the decoded message"
    if Msg[1] == 1:
       try:
-         Index = Res[3].index("\n\n") + 2;
+         Index = pgp.text.index("\n\n") + 2
       except ValueError:
-         Index = Res[3].index("\n\r\n") + 3;
-      PlainText = Res[3][Index:];
+         Index = pgp.text.index("\n\r\n") + 3
+      PlainText = pgp.text[Index:]
    else:
-      PlainText = Res[3];   
+      PlainText = pgp.text
 
    # Connect to the ldap server
    ErrType = EX_TEMPFAIL;
@@ -743,7 +743,7 @@ try:
    l.simple_bind_s("","");
 
    # Search for the matching key fingerprint
-   Attrs = l.search_s(BaseDn,ldap.SCOPE_ONELEVEL,"keyFingerPrint=" + Res[2][1]);
+   Attrs = l.search_s(BaseDn,ldap.SCOPE_ONELEVEL,"keyFingerPrint=" + pgp.key_fpr)
 
    ErrType = EX_PERMFAIL;
    if len(Attrs) == 0:
@@ -756,11 +756,11 @@ try:
    RC = ReplayCache(ReplayCacheFile);
    RC.Clean();
    ErrMsg = "The replay cache rejected your message. Check your clock!";
-   Rply = RC.Check(Res[1]);
+   Rply = RC.Check(pgp.sig_info);
    if Rply != None:
       RC.close()
       raise UDNotAllowedError, Rply;
-   RC.Add(Res[1]);
+   RC.Add(pgp.sig_info);
    RC.close()
 
    # Determine the sender address
@@ -784,13 +784,13 @@ try:
 
    # Dispatch
    if sys.argv[1] == "ping":
-      Reply = HandlePing(Reply,Attrs[0],Res[2]);
+      Reply = HandlePing(Reply,Attrs[0],pgp.key_info);
    elif sys.argv[1] == "chpass":
       if PlainText.strip().find("Please change my Debian password") != 0:
          raise UDFormatError,"Please send a signed message where the first line of text is the string 'Please change my Debian password'";
-      Reply = HandleChPass(Reply,Attrs[0],Res[2]);
+      Reply = HandleChPass(Reply,Attrs[0],pgp.key_info);
    elif sys.argv[1] == "change":
-      Reply = HandleChange(Reply,Attrs[0],Res[2]);
+      Reply = HandleChange(Reply,Attrs[0],pgp.key_info);
    else:
       print sys.argv;
       raise UDFormatError, "Incorrect Invokation";
