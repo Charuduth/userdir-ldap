@@ -23,7 +23,10 @@ userdir-ldap (0.3.76) unstable; urgency=low
     arch for that host configured.
 
   [ Stephen Gran ]
-  * Add patches from Helmut Grohne <helmut@subdivi.de>
+  * Add patches from Helmut Grohne <helmut@subdivi.de>:
+    Allow ssh keys to be exported only to specific hosts by prefixing them
+    with allowed_hosts=[host1[,host2 ...]]] when adding them using
+    ud-mailgate.
 
  -- Stephen Gran <sgran@debian.org>  Sat, 30 Jan 2010 13:33:40 +0000
 
