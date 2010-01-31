@@ -1,3 +1,10 @@
+userdir-ldap (0.3.77) unstable; urgency=low
+
+  * ud-mailgate: Remove a global declaration after a variable has
+    already been assigned globally.
+
+ -- Peter Palfrader <weasel@debian.org>  Sun, 31 Jan 2010 10:11:48 +0100
+
 userdir-ldap (0.3.76) unstable; urgency=low
 
   [ Peter Palfrader ]
