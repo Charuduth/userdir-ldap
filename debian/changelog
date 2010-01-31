@@ -7,8 +7,9 @@ userdir-ldap (0.3.7X) Xnstable; urgency=low
     using Res which was overwritten a bit later.  Also make a new
     gpgcheck2 class that allows us to access the values of the gpg
     signature check in a saner way.
+  * ud-gpgimport: Get rid of "0x" when printing keyids/fingerprints.
 
- -- Peter Palfrader <weasel@debian.org>  Sun, 31 Jan 2010 10:12:35 +0100
+ -- Peter Palfrader <weasel@debian.org>  Sun, 31 Jan 2010 13:56:51 +0100
 
 userdir-ldap (0.3.76) unstable; urgency=low
 

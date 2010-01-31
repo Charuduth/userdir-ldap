@@ -3,7 +3,7 @@
 
 #   Copyright (c) 1999-2000  Jason Gunthorpe <jgg@debian.org>
 #   Copyright (c) 2004       Joey Schulze <joey@debian.org>
-#   Copyright (c) 2008, 2009 Peter Palfrader <peter@palfrader.org>
+#   Copyright (c) 2008, 2009, 2010 Peter Palfrader <peter@palfrader.org>
 #
 #   This program is free software; you can redistribute it and/or modify
 #   it under the terms of the GNU General Public License as published by
@@ -141,7 +141,7 @@ while(1):
       break;
 
    if SeenKeys.has_key(Split2[9]):
-      print "Dup key 0x",Split2[9],"belonging to",KeyMap[Split2[9]][0];
+      print "Dup key ",Split2[9],"belonging to",KeyMap[Split2[9]][0];
       continue;
    SeenKeys[Split2[9]] = None;
 
@@ -156,13 +156,13 @@ while(1):
       print "None for",SplitEmail(Split[9]),"'%s'"%(Split[9]);
       if UID[1] != None: 
          for x in UID[1]: print x;
-      print "MISSING 0x" + Split2[9];
+      print "MISSING " + Split2[9];
       continue;
 
    UID = UID[0]
    Rec = [(ldap.MOD_ADD,"keyFingerPrint",Split2[9])];
    Dn = "uid=" + UID + "," + BaseDn;
-   print "Adding key 0x"+Split2[9],"to",UID;
+   print "Adding key "+Split2[9],"to",UID;
    if KeyCount.has_key(UID):
       KeyCount[UID] = KeyCount[UID] + 1;
    else:
@@ -188,7 +188,7 @@ print Ignored,"keys already in the directory (ignored)";
 # Look for unmatched keys
 for x in KeyMap.keys():
    if KeyMap[x][1] == 0:
-      print "key 0x%s belonging to %s removed"%(x,KeyMap[x][0]);
+      print "key %s belonging to %s removed"%(x,KeyMap[x][0]);
       if KeyCount.has_key(KeyMap[x][0]) :
          KeyCount[KeyMap[x][0]] = KeyCount[KeyMap[x][0]] - 1
          if KeyCount[KeyMap[x][0]] <= 0:
