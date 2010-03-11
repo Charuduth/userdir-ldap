@@ -122,9 +122,9 @@ def do_one_user(lc, user, ticket):
         print '  %s: %s'%(key, set[key])
         rec.append( (ldap.MOD_REPLACE, key, set[key]) )
 
-    print '  %s: deleting keyFingerPrint'%(user)
-    rec.append( (ldap.MOD_DELETE, 'keyFingerPrint', None) )
-
+    if u.numkeys() > 0:
+        print '  %s: deleting keyFingerPrint'%(user)
+        rec.append( (ldap.MOD_DELETE, 'keyFingerPrint', None) )
 
     if dry_run:
         print '(not committing)'
