@@ -1,0 +1,160 @@
+#!/usr/bin/python
+
+# Copyright (c) 2010 Peter Palfrader <peter@palfrader.org>
+
+# This script, non-interactively, sets a great many accounts to
+# 'retiring', locking their password, removing keys, setting shadow
+# information to expired and setting accountstatus appropriatly.
+
+
+#   This program is free software; you can redistribute it and/or modify
+#   it under the terms of the GNU General Public License as published by
+#   the Free Software Foundation; either version 2 of the License, or
+#   (at your option) any later version.
+#
+#   This program is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU General Public License for more details.
+#
+#   You should have received a copy of the GNU General Public License
+#   along with this program; if not, write to the Free Software
+#   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+
+import sys
+import optparse
+import os
+import pwd
+import time
+from userdir_ldap import *;
+
+dry_run = False
+
+def connect(user):
+    l = connectLDAP()
+    binddn = "uid=%s,%s"%(user, BaseDn)
+    bindpw = None
+    if 'LDAP_PASSWORD' in os.environ:
+        bindpw = os.environ['LDAP_PASSWORD']
+    else:
+        bindpw = getpass.getpass(user + "'s password: ")
+
+    try:
+       l.simple_bind_s(binddn, bindpw)
+    except ldap.LDAPError, e:
+       sys.stderr.write("LDAP error: %s\n"%(e.args[0]['desc']))
+       sys.exit(1)
+    return l
+
+
+class Account:
+    def __init__(self, user):
+        searchresult = lc.search_s(BaseDn,ldap.SCOPE_SUBTREE, 'uid=%s'%(user))
+        if len(searchresult) < 1:
+            sys.stderr.write("No such user: %s\n"%(user))
+            return
+        elif len(searchresult) > 1:
+            sys.stderr.write("More than one hit when getting %s\n"%(user))
+            return
+
+        self.dn, self.attributes = searchresult[0]
+
+
+    def has_mail(self):
+        if 'mailDisableMessage' in self.attributes:
+            return False
+        return True
+
+    # not locked locked,  just reset to something invalid like {crypt}*SSLRESET* is still active
+    def pw_active(self):
+        if self.attributes['userPassword'][0] == '{crypt}*LK*':
+            return False
+        return True
+
+    # not expired
+    def shadow_active(self):
+        if 'shadowExpire' in self.attributes and \
+            int(self.attributes['shadowExpire'][0]) < (time.time() / 3600 / 24):
+            return False
+        return True
+
+    def numkeys(self):
+        if 'keyFingerPrint' in self.attributes:
+            return len(self.attributes['keyFingerPrint'])
+        return 0
+
+    def account_status(self):
+        if 'accountStatus' in self.attributes:
+            return self.attributes['accountStatus'][0]
+        return 'active'
+
+
+    def verbose_status(self):
+        status = []
+        status.append('mail: %s'  %(['disabled', 'active'][ self.has_mail() ]))
+        status.append('pw: %s'    %(['locked', 'active'][ self.pw_active() ]))
+        status.append('shadow: %s'%(['expired', 'active'][ self.shadow_active() ]))
+        status.append('keys: %d'  %( self.numkeys() ))
+        status.append('status: %s'%( self.account_status() ))
+
+        return '(%s)'%(', '.join(status))
+
+    def get_dn(self):
+        return self.dn
+
+def do_one_user(lc, user, ticket):
+    u = Account(user)
+    if not u.account_status() == 'active':
+        sys.stderr.write('%s: Account is not active, skipping.  (details: %s)\n'%(user, u.verbose_status()))
+        return
+
+    print '%s: Setting to retiring:'%(user)
+    set = {}
+    set['userPassword'] = '{crypt}*LK*'
+    set['shadowLastChange'] = str(int(time.time()/24/60/60))
+    set['shadowExpire'] = '1'
+    set['accountStatus'] = 'retiring %s'%(time.strftime('%Y-%m-%d'))
+    if not ticket is None:
+        set['accountComment'] = "RT#%s"%(ticket)
+
+    rec = []
+    for key in set:
+        print '  %s: %s'%(key, set[key])
+        rec.append( (ldap.MOD_REPLACE, key, set[key]) )
+
+    print '  %s: deleting keyFingerPrint'%(user)
+    rec.append( (ldap.MOD_DELETE, 'keyFingerPrint', None) )
+
+
+    if dry_run:
+        print '(not committing)'
+    else:
+        lc.modify_s(u.get_dn(), rec)
+        print '%s: done.'%(user)
+
+    sys.stdout.flush()
+
+
+parser = optparse.OptionParser()
+parser.set_usage("%prog [--admin-user <binduser>] [--no-do] <account> [<account> ...]")
+parser.add_option("-a", "--admin-user", dest="admin", metavar="admin",
+  help="User to bind as.",
+  default=pwd.getpwuid(os.getuid()).pw_name)
+parser.add_option("-n", "--no-do", action="store_true",
+  help="Do not actually change anything.")
+parser.add_option("-r", "--rt-ticket", dest="ticket", metavar="ticket#",
+  help="Ticket number for accountComment.")
+
+(options, args) = parser.parse_args()
+
+if options.no_do:
+    dry_run = True
+
+lc = connect(options.admin)
+for user in args:
+    do_one_user(lc, user, options.ticket)
+
+
+# vim:set et:
+# vim:set ts=4:
+# vim:set shiftwidth=4:

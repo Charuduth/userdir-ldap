@@ -6,6 +6,7 @@ ud-config usr/bin
 ud-forwardlist usr/bin
 ud-gpgimport usr/bin
 ud-info usr/bin
+ud-lock usr/bin
 ud-ldapshow usr/bin
 ud-userimport usr/bin
 ud-mailgate usr/bin
