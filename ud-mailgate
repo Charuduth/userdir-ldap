@@ -380,16 +380,16 @@ def DoDNS(Str,Attrs,DnRecord):
    #aaaarecord  = re.match('^[-\w]+\s+IN\s+AAAA\s+((?:[0-9a-f]{1,4})(?::[0-9a-f]{1,4})*(?::(?:(?::[0-9a-f]{1,4})*|:))?)$',Str,re.IGNORECASE)
    aaaarecord  = re.match('^[-\w]+\s+IN\s+AAAA\s+([A-F0-9:]{2,39})$',Str,re.IGNORECASE)
 
-   if cnamerecord == None and\
-      arecord == None and\
-      mxrecord == None and\
-      txtrecord == None and
-      aaaarecord == None:
+   if cnamerecord is None and\
+      arecord is None and\
+      mxrecord is None and\
+      txtrecord is None and
+      aaaarecord is None:
      return None;
 
    # Check if the name is already taken
    G = re.match('^([-\w+]+)\s',Str)
-   if G == None:
+   if G is None:
      raise UDFormatError, "Hostname not found although we already passed record syntax checks"
    hostname = G.group(1)
 
@@ -419,21 +419,21 @@ def DoDNS(Str,Attrs,DnRecord):
      else:
        DNS[hostname] = 1
 
-   if cnamerecord != None:
+   if cnamerecord is not None:
      sanitized = "%s IN CNAME %s" % (hostname, cnamerecord.group(1))
-   elif txtrecord != None:
+   elif txtrecord is not None:
       sanitized = "%s IN TXT %s" % (hostname, txtrecord.group(1))
-   elif arecord != None:
+   elif arecord is not None:
      ipaddress = arecord.group(1)
      for quad in ipaddress.split('.'):
        if not (int(quad) >=0 and int(quad) <= 255):
          return "Invalid quad %s in IP address %s in line %s" %(quad, ipaddress, Str)
      sanitized = "%s IN A %s"% (hostname, ipaddress)
-   elif mxrecord != None:
+   elif mxrecord is not None:
      priority = mxrecord.group(1)
      mx = mxrecord.group(2)
      sanitized = "%s IN MX %s %s" % (hostname, priority, mx)
-   elif aaaarecord != None:
+   elif aaaarecord is not None:
      ipv6address = aaaarecord.group(1)
      parts = ipv6address.split(':')
      if len(parts) > 8:
