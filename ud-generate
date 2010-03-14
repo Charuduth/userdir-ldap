@@ -778,27 +778,6 @@ def GenDNS(File):
    try:
       F = open(File + ".tmp", "w")
      
-#      global HostAttrs
-#
-#      for x in HostAttrs:
-#         if x[1].has_key("hostname") == 0 or \
-#            x[1].has_key("architecture") == 0 or\
-#            x[1].has_key("sshRSAHostKey") == 0:
-#            continue
-#
-#         if IsDebianHost.match(GetAttr(x, "hostname")) is not None:
-#            continue
-#
-#         DNSInfo = ExtractDNSInfo(x)
-#         start = True
-#         for Line in DNSInfo:
-#            if start == True:
-#               Line = "%s.\t%s" % (GetAttr(x, "hostname"), Line)
-#               start = False
-#            else:
-#               Line = "\t\t\t%s" % (Line)
-#            F.write(Line + "\n")
-
       # Fetch all the users
       global PasswdAttrs
      
@@ -1017,7 +996,6 @@ def GenSSHKnown(File, mode=None):
                if 'sshdistAuthKeysHost' in x[1]:
                   hosts += x[1]['sshdistAuthKeysHost']
                Line = 'command="rsync --server --sender -pr . /var/cache/userdir-ldap/hosts/%s",no-port-forwarding,no-X11-forwarding,no-agent-forwarding,from="%s" %s' % (Host, ",".join(hosts), I)
-               #Line = 'command="rsync --server --sender -pr . /var/cache/userdir-ldap/hosts/%s",no-port-forwarding,no-X11-forwarding,no-agent-forwarding %s' % (Host,I)
             else:
                Line = "%s %s" %(",".join(HostNames + HostToIP(x, False)), I)
             Line = Sanitize(Line) + "\n"
