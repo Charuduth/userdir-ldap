@@ -780,6 +780,7 @@ def GenDNS(File):
      
       # Fetch all the users
       global PasswdAttrs
+      RRs = {}
      
       # Write out the zone file entry for each user
       for x in PasswdAttrs:
@@ -805,11 +806,13 @@ def GenDNS(File):
                      F.write("; Has BSMTP\n")
      
                   # Write some identification information
-                  if Split[2].lower() == "a":
-                     Line = "%s IN TXT \"%s\"\n"%(Split[0], EmailAddress(x))
-                     for y in x[1]["keyFingerPrint"]:
-                        Line = Line + "%s IN TXT \"PGP %s\"\n"%(Split[0], FormatPGPKey(y))
-                     F.write(Line)
+                  if not RRs.has_key(Host):
+                     if Split[2].lower() in ["a", "aaaa"]:
+                        Line = "%s IN TXT \"%s\"\n"%(Split[0], EmailAddress(x))
+                        for y in x[1]["keyFingerPrint"]:
+                           Line = Line + "%s IN TXT \"PGP %s\"\n"%(Split[0], FormatPGPKey(y))
+                           F.write(Line)
+                        RRs[Host] = 1
                else:
                   Line = "; Err %s"%(str(Split))
                   F.write(Line)
