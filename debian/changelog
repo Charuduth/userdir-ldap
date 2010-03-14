@@ -1,5 +1,6 @@
 userdir-ldap (0.3.7X) Xnstable; urgency=low
 
+  [ Peter Palfrader ]
   * ud-mailgate: Remove a global declaration after a variable has
     already been assigned globally.
   * ud-mailgate: We use the result of the pgp check for quite a long
@@ -10,7 +11,11 @@ userdir-ldap (0.3.7X) Xnstable; urgency=low
   * ud-gpgimport: Get rid of "0x" when printing keyids/fingerprints.
   * Add ud-lock.
 
- -- Peter Palfrader <weasel@debian.org>  Thu, 11 Mar 2010 22:18:51 +0100
+  [ Stephen Gran ]
+  * Add txt record support to ud-mailgate
+  * Clean up addition of identifying txt records to debian.net slightly
+
+ -- Stephen Gran <sgran@debian.org>  Sun, 14 Mar 2010 14:00:22 +0000
 
 userdir-ldap (0.3.76) unstable; urgency=low
 
