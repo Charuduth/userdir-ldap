@@ -383,7 +383,7 @@ def DoDNS(Str,Attrs,DnRecord):
    if cnamerecord is None and\
       arecord is None and\
       mxrecord is None and\
-      txtrecord is None and
+      txtrecord is None and\
       aaaarecord is None:
      return None;
 
