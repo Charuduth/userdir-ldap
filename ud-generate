@@ -54,6 +54,7 @@ BSMTPCheck = re.compile(".*mx 0 (master)\.debian\.org\..*",re.DOTALL)
 PurposeHostField = re.compile(r".*\[\[([\*\-]?[a-z0-9.\-]*)(?:\|.*)?\]\]")
 IsV6Addr = re.compile("^[a-fA-F0-9:]+$")
 IsDebianHost = re.compile(ConfModule.dns_hostmatch)
+isSSHFP = re.compile("^\s*IN\s+SSHFP")
 DNSZone = ".debian.net"
 Keyrings = ConfModule.sync_keyrings.split(":")
 
@@ -895,6 +896,29 @@ def GenZoneRecords(File):
                Line = "\t\t\t%s" % (Line)
 
             F.write(Line + "\n")
+
+        # this would write sshfp lines for services on machines
+        # but we can't yet, since some are cnames and we'll make
+        # an invalid zonefile
+        #
+        # for i in x[1].get("purpose", []):
+        #    m = PurposeHostField.match(i)
+        #    if m:
+        #       m = m.group(1)
+        #       # we ignore [[*..]] entries
+        #       if m.startswith('*'):
+        #          continue
+        #       if m.startswith('-'):
+        #          m = m[1:]
+        #       if m:
+        #          if not m.endswith(HostDomain):
+        #             continue
+        #          if not m.endswith('.'):
+        #             m = m + "."
+        #          for Line in DNSInfo:
+        #             if isSSHFP.match(Line):
+        #                Line = "%s\t%s" % (m, Line)
+        #                F.write(Line + "\n")
 
    # Oops, something unspeakable happened.
    except:
