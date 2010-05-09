@@ -10,12 +10,13 @@ userdir-ldap (0.3.7X) Xnstable; urgency=low
     signature check in a saner way.
   * ud-gpgimport: Get rid of "0x" when printing keyids/fingerprints.
   * Add ud-lock.
+  * Fix a typo in welcome-message-800 noticed by Tommi Vainikainen.
 
   [ Stephen Gran ]
   * Add txt record support to ud-mailgate
   * Clean up addition of identifying txt records to debian.net slightly
 
- -- Stephen Gran <sgran@debian.org>  Sun, 14 Mar 2010 14:00:22 +0000
+ -- Peter Palfrader <weasel@debian.org>  Sun, 09 May 2010 18:03:13 +0200
 
 userdir-ldap (0.3.76) unstable; urgency=low
 

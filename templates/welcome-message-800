@@ -23,7 +23,7 @@ encrypted with your GPG key.
 
 Email sent to <__LOGIN__@debian.org> will be forwarded to <__EMAIL__>,
 to change this visit <URL:http://db.debian.org/forward.html>.
-The Debian mail setup allows verious per-user settings, like enabling
+The Debian mail setup allows various per-user settings, like enabling
 greylisting and sender-verify-callouts and per-user dns blocklists.
 Please refer to <URL:http://db.debian.org/doc-mail.html> on how to change
 these settings.  Some may also be exposed via the web interface behind
