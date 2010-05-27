@@ -18,23 +18,23 @@ sizelimit 10000
 # Save the time that the entry gets modified
 lastmod on
 
+# LDAP admins have full access
+access to *
+	by group="cn=LDAP Administrator,ou=users,@@DN@@" write
+	by dn="uid=sshdist,ou=users,@@DN@@" write
+	by * break
+
 # owner writeable
 access to attrs=userPassword,sudoPassword,bATVToken
-	by group="cn=LDAP Administrator,ou=users,@@DN@@" write
-	by dn="uid=sshdist,ou=users,@@DN@@"  write
 	by self write
 	by * compare
 
 access to attrs=sshrsaauthkey
-	by group="cn=LDAP Administrator,ou=users,@@DN@@" write
-	by dn="uid=sshdist,ou=users,@@DN@@"  write
 	by self read
 	by * compare
 
 # debian readable
 access to attrs=activity-pgp,activity-from,dnsZoneEntry
-	by group="cn=LDAP Administrator,ou=users,@@DN@@" write
-	by dn="uid=sshdist,ou=users,@@DN@@" write
 	by peername.ip=127.0.0.1 read
 	by domain=alioth.debian.org none
 	by domain.subtree=@@DOMAIN@@ read
@@ -43,8 +43,6 @@ access to attrs=activity-pgp,activity-from,dnsZoneEntry
 
 # owner writeable, debian readable, authenticated user readable
 access to attrs=c,l,loginShell,ircNick,labeledURI,icqUIN,jabberJID,onVacation,birthDate,mailDisableMessage,gender,emailforward,mailCallout,mailGreylisting,mailRBL,mailRHSBL,mailWhitelist,mailContentInspectionAction,mailDefaultOptions
-	by group="cn=LDAP Administrator,ou=users,@@DN@@" write
-	by dn="uid=sshdist,ou=users,@@DN@@" write
 	by self write
 	by dn.regex="uid=.*,ou=users,@@DN@@" read
 	by peername.ip=127.0.0.1 read
@@ -54,14 +52,10 @@ access to attrs=c,l,loginShell,ircNick,labeledURI,icqUIN,jabberJID,onVacation,bi
 
 # owner writeable, authenticated user readable
 access to attrs=facsimileTelephoneNumber,telephoneNumber,postalAddress,postalCode,loginShell,onVacation,privateSub,latitude,longitude,VoIP
-	by group="cn=LDAP Administrator,ou=users,@@DN@@" write
-	by dn="uid=sshdist,ou=users,@@DN@@" write
 	by self write
 	by dn.regex="uid=.*,ou=users,@@DN@@" read
 	by * none
 
 # globally readable
 access to *
-	by group="cn=LDAP Administrator,ou=users,@@DN@@" write
-	by dn="uid=sshdist,ou=users,@@DN@@" write
 	by * read
