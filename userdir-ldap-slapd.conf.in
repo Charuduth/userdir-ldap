@@ -33,9 +33,12 @@ access to attrs=c,l,loginShell,ircNick,labeledURI,icqUIN,jabberJID,onVacation,bi
 access to attrs=userPassword,sudoPassword,bATVToken
 	by * compare
 
+
+
+# readable only by self
 access to attrs=sshrsaauthkey
 	by self read
-	by * compare
+	by * none
 
 # debian.org readable, authenticated user readable
 access to attrs=activity-pgp,activity-from,dnsZoneEntry,c,l,loginShell,ircNick,labeledURI,icqUIN,jabberJID,onVacation,birthDate,mailDisableMessage,gender,emailforward,mailCallout,mailGreylisting,mailRBL,mailRHSBL,mailWhitelist,mailContentInspectionAction,mailDefaultOptions
@@ -49,6 +52,7 @@ access to attrs=activity-pgp,activity-from,dnsZoneEntry,c,l,loginShell,ircNick,l
 access to attrs=facsimileTelephoneNumber,telephoneNumber,postalAddress,postalCode,loginShell,onVacation,privateSub,latitude,longitude,VoIP
 	by dn.regex="uid=.*,ou=users,@@DN@@" read
 	by * none
+
 
 # globally readable
 access to *
