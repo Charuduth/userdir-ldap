@@ -29,7 +29,7 @@ access to attrs=c,l,loginShell,ircNick,labeledURI,icqUIN,jabberJID,onVacation,bi
 	by self write
 	by * break
 
-# owner writeable
+# allow authn/z by anyone
 access to attrs=userPassword,sudoPassword,bATVToken
 	by * compare
 
@@ -45,7 +45,7 @@ access to attrs=activity-pgp,activity-from,dnsZoneEntry,c,l,loginShell,ircNick,l
 	by dn.regex="uid=.*,ou=users,@@DN@@" read
 	by * none
 
-# owner writeable, authenticated user readable
+# authenticated user readable
 access to attrs=facsimileTelephoneNumber,telephoneNumber,postalAddress,postalCode,loginShell,onVacation,privateSub,latitude,longitude,VoIP
 	by dn.regex="uid=.*,ou=users,@@DN@@" read
 	by * none
