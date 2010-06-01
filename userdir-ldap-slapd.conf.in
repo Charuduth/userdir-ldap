@@ -18,6 +18,12 @@ sizelimit 10000
 # Save the time that the entry gets modified
 lastmod on
 
+
+##
+## prefix some rules that only apply to certain clients
+## and grant them more privileges
+##
+
 # LDAP admins have full access, so has sshdist
 access to *
 	by group="cn=LDAP Administrator,ou=users,@@DN@@" write
@@ -29,11 +35,14 @@ access to attrs=c,l,loginShell,ircNick,labeledURI,icqUIN,jabberJID,onVacation,bi
 	by self write
 	by * break
 
+
+##
+## All ACLs from here on result in a decision.  no fall through to later.
+##
+
 # allow authn/z by anyone
 access to attrs=userPassword,sudoPassword,bATVToken
 	by * compare
-
-
 
 # readable only by self
 access to attrs=sshrsaauthkey
@@ -54,6 +63,6 @@ access to attrs=facsimileTelephoneNumber,telephoneNumber,postalAddress,postalCod
 	by * none
 
 
-# globally readable
+# rest is globally readable
 access to *
 	by * read
