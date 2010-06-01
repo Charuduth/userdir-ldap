@@ -18,7 +18,7 @@ sizelimit 10000
 # Save the time that the entry gets modified
 lastmod on
 
-# LDAP admins have full access
+# LDAP admins have full access, so has sshdist
 access to *
 	by group="cn=LDAP Administrator,ou=users,@@DN@@" write
 	by dn="uid=sshdist,ou=users,@@DN@@" write
