@@ -58,7 +58,7 @@ access to attrs=activity-pgp,activity-from,dnsZoneEntry,c,l,loginShell,ircNick,l
 	by * none
 
 # authenticated user readable
-access to attrs=facsimileTelephoneNumber,telephoneNumber,postalAddress,postalCode,loginShell,onVacation,privateSub,latitude,longitude,VoIP
+access to attrs=facsimileTelephoneNumber,telephoneNumber,postalAddress,postalCode,privateSub,latitude,longitude,VoIP
 	by dn.regex="uid=.*,ou=users,@@DN@@" read
 	by * none
 
