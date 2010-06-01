@@ -37,20 +37,12 @@ access to attrs=sshrsaauthkey
 	by self read
 	by * compare
 
-# debian readable
-access to attrs=activity-pgp,activity-from,dnsZoneEntry
+# debian.org readable, authenticated user readable
+access to attrs=activity-pgp,activity-from,dnsZoneEntry,c,l,loginShell,ircNick,labeledURI,icqUIN,jabberJID,onVacation,birthDate,mailDisableMessage,gender,emailforward,mailCallout,mailGreylisting,mailRBL,mailRHSBL,mailWhitelist,mailContentInspectionAction,mailDefaultOptions
 	by peername.ip=127.0.0.1 read
 	by domain=alioth.debian.org none
 	by domain.subtree=@@DOMAIN@@ read
 	by dn.regex="uid=.*,ou=users,@@DN@@" read
-	by * none
-
-# owner writeable, debian readable, authenticated user readable
-access to attrs=c,l,loginShell,ircNick,labeledURI,icqUIN,jabberJID,onVacation,birthDate,mailDisableMessage,gender,emailforward,mailCallout,mailGreylisting,mailRBL,mailRHSBL,mailWhitelist,mailContentInspectionAction,mailDefaultOptions
-	by dn.regex="uid=.*,ou=users,@@DN@@" read
-	by peername.ip=127.0.0.1 read
-	by domain=alioth.debian.org none
-	by domain.subtree=@@DOMAIN@@ read
 	by * none
 
 # owner writeable, authenticated user readable
