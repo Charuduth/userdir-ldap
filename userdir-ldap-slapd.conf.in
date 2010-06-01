@@ -24,9 +24,13 @@ access to *
 	by dn="uid=sshdist,ou=users,@@DN@@" write
 	by * break
 
+# allow users write access to an explicit subset of their fields
+access to attrs=c,l,loginShell,ircNick,labeledURI,icqUIN,jabberJID,onVacation,birthDate,mailDisableMessage,gender,emailforward,mailCallout,mailGreylisting,mailRBL,mailRHSBL,mailWhitelist,mailContentInspectionAction,mailDefaultOptions,facsimileTelephoneNumber,telephoneNumber,postalAddress,postalCode,loginShell,onVacation,privateSub,latitude,longitude,VoIP,userPassword,sudoPassword,bATVToken
+	by self write
+	by * break
+
 # owner writeable
 access to attrs=userPassword,sudoPassword,bATVToken
-	by self write
 	by * compare
 
 access to attrs=sshrsaauthkey
@@ -43,7 +47,6 @@ access to attrs=activity-pgp,activity-from,dnsZoneEntry
 
 # owner writeable, debian readable, authenticated user readable
 access to attrs=c,l,loginShell,ircNick,labeledURI,icqUIN,jabberJID,onVacation,birthDate,mailDisableMessage,gender,emailforward,mailCallout,mailGreylisting,mailRBL,mailRHSBL,mailWhitelist,mailContentInspectionAction,mailDefaultOptions
-	by self write
 	by dn.regex="uid=.*,ou=users,@@DN@@" read
 	by peername.ip=127.0.0.1 read
 	by domain=alioth.debian.org none
@@ -52,7 +55,6 @@ access to attrs=c,l,loginShell,ircNick,labeledURI,icqUIN,jabberJID,onVacation,bi
 
 # owner writeable, authenticated user readable
 access to attrs=facsimileTelephoneNumber,telephoneNumber,postalAddress,postalCode,loginShell,onVacation,privateSub,latitude,longitude,VoIP
-	by self write
 	by dn.regex="uid=.*,ou=users,@@DN@@" read
 	by * none
 
