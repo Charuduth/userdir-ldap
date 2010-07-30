@@ -16,12 +16,13 @@ userdir-ldap (0.3.7X) Xnstable; urgency=low
     - Keyring Maintainers ldap group gets to write to the keyFingerPrint
       attribute.
     - sshrsaauthkey is no longer compareable by *.
+  * ud-generate: refuse to run as root.
 
   [ Stephen Gran ]
   * Add txt record support to ud-mailgate
   * Clean up addition of identifying txt records to debian.net slightly
 
- -- Peter Palfrader <weasel@debian.org>  Tue, 01 Jun 2010 17:22:13 +0200
+ -- Peter Palfrader <weasel@debian.org>  Fri, 30 Jul 2010 19:46:48 +0200
 
 userdir-ldap (0.3.76) unstable; urgency=low
 

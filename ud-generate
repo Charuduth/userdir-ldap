@@ -39,6 +39,10 @@ except ImportError:
 global Allowed
 global CurrentHost
 
+if os.getuid() == 0:
+   sys.stderr.write("You should probably not run ud-generate as root.\n")
+   sys.exit(1)
+
 PasswdAttrs = None
 DebianUsers = None
 DisabledUsers = []
