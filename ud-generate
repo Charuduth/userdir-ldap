@@ -585,7 +585,7 @@ def GenMarkers(File):
          if not ('latitude' in a and 'longitude' in a):
             continue
          try:
-            Line = "%8s %8s \"\""%(DecDegree(a['latitude'], 1), DecDegree(a['longitude'], 1))
+            Line = "%8s %8s \"\""%(a.latitude_dec(True), a.longitude_dec(True))
             Line = Sanitize(Line) + "\n"
             F.write(Line)
          except:

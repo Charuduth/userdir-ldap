@@ -1,5 +1,6 @@
 import ldap
 import time
+import userdir_ldap
 
 class Account:
     array_values = ['keyFingerPrint']
@@ -61,6 +62,11 @@ class Account:
 
     def numkeys(self):
         return len(self['keyFingerPrint'])
+
+    def latitude_dec(self, anonymized=False):
+        return userdir_ldap.DecDegree(self['latitude'], anonymized)
+    def longitude_dec(self, anonymized=False):
+        return userdir_ldap.DecDegree(self['longitude'], anonymized)
 
     def verbose_status(self):
         status = []
