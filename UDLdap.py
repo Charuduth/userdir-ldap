@@ -4,7 +4,7 @@ import userdir_ldap
 
 class Account:
     array_values = ['keyFingerPrint', 'mailWhitelist', 'mailRBL', 'mailRHSBL', 'supplementaryGid', 'sshRSAAuthKey', 'sudoPassword']
-    int_values = ['shadowExpire', 'gidNumber']
+    int_values = ['shadowExpire', 'gidNumber', 'uidNumber']
     defaults = {
                  'accountStatus': 'active',
                  'keyFingerPrint': []

@@ -184,29 +184,30 @@ def GenPasswd(File, HomePrefix, PwdMarker):
       userlist = {}
       # Fetch all the users
       global PasswdAttrs
-     
-      I = 0
+
+      i = 0
       for x in PasswdAttrs:
-         if x[1].has_key("uidNumber") == 0 or not IsInGroup(x):
-            continue
-     
+         a = UDLdap.Account(x[0], x[1])
+         if not IsInGroup(x): continue
+
          # Do not let people try to buffer overflow some busted passwd parser.
-         if len(GetAttr(x, "gecos")) > 100 or len(GetAttr(x, "loginShell")) > 50:
-            continue
-     
-         userlist[GetAttr(x, "uid")] = int(GetAttr(x, "gidNumber"))
-         Line = "%s:%s:%s:%s:%s:%s%s:%s" % (GetAttr(x, "uid"),\
-                 PwdMarker,\
-                 GetAttr(x, "uidNumber"), GetAttr(x, "gidNumber"),\
-                 GetAttr(x, "gecos"), HomePrefix, GetAttr(x, "uid"),\
-                 GetAttr(x, "loginShell"))
-     
-         Line = Sanitize(Line) + "\n"
-         F.write("0%u %s" % (I, Line))
-         F.write(".%s %s" % (GetAttr(x, "uid"), Line))
-         F.write("=%s %s" % (GetAttr(x, "uidNumber"), Line))
-         I = I + 1
-  
+         if len(a['gecos']) > 100 or len(a['loginShell']) > 50: continue
+
+         userlist[a['uid']] = a['gidNumber']
+         line = "%s:%s:%d:%d:%s:%s%s:%s" % (
+                 a['uid'],
+                 PwdMarker,
+                 a['uidNumber'],
+                 a['gidNumber'],
+                 a['gecos'],
+                 HomePrefix, a['uid'],
+                 a['loginShell'])
+         line = Sanitize(line) + "\n"
+         F.write("0%u %s" % (i, line))
+         F.write(".%s %s" % (a['uid'], line))
+         F.write("=%d %s" % (a['uidNumber'], line))
+         i = i + 1
+
    # Oops, something unspeakable happened.
    except:
       Die(File, None, F)
