@@ -31,7 +31,10 @@ class Account:
             if key in self.array_values:
                 return self.attributes[key]
             elif key in self.int_values:
-                return int(self.attributes[key][0])
+                if len(self.attributes[key]) == 1:
+                    return int(self.attributes[key][0])
+                else:
+                    raise ValueError, 'non-array value has not exactly one value'
             else:
                 return self.attributes[key][0]
         elif key in self.defaults:
