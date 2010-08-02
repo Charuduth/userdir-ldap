@@ -661,19 +661,12 @@ def GenMailDisable(File):
       global PasswdAttrs
      
       for x in PasswdAttrs:
-         Reason = None
-     
-         if x[1].has_key("mailDisableMessage"):
-            Reason = GetAttr(x, "mailDisableMessage")
-         else:
+         a = UDLdap.Account(x[0], x[1])
+         if not 'mailDisableMessage' in a:
             continue
-     
-         try:
-            Line = "%s: %s"%(GetAttr(x, "uid"), Reason)
-            Line = Sanitize(Line) + "\n"
-            F.write(Line)
-         except:
-            pass
+         Line = "%s: %s"%(a['uid'], a['mailDisableMessage'])
+         Line = Sanitize(Line) + "\n"
+         F.write(Line)
   
    # Oops, something unspeakable happened.
    except:
