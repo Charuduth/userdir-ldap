@@ -1,3 +1,19 @@
+userdir-ldap (0.3.7x) xnstable; urgency=low
+
+  * Start refactoring ud-generate:
+    - If environment variables UD_CREDENTIALS, UD_GENERATEDIR, UD_HMAC_KEY
+      are set, use their respective value instead of the default.  This
+      makes it possible to run ud-generate as a non-privileged user for
+      testing purposes.
+    - Start wrapping ldap search results in classes. For now we have done
+      this with just an ldap account.
+    - Also got rid of the global PasswdAttrs variable.  Now functions
+      get the account list (now a list of Account classes instead of
+      ldap result array of tuples of hashes) passed to them like well-behaved
+      functions.
+
+ -- Peter Palfrader <weasel@debian.org>  Mon, 02 Aug 2010 23:35:55 +0000
+
 userdir-ldap (0.3.77) unstable; urgency=low
 
   [ Peter Palfrader ]
