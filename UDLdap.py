@@ -55,7 +55,7 @@ class Account:
     def pw_active(self):
         if self['userPassword'] == '{crypt}*LK*':
             return False
-        if self['userPassword'].startswith("!"):
+        if self['userPassword'].startswith("{crypt}!"):
             return False
         return True
 
