@@ -44,9 +44,7 @@ if os.getuid() == 0:
    sys.stderr.write("You should probably not run ud-generate as root.\n")
    sys.exit(1)
 
-PasswdAttrs = None
 DebianUsers = None
-DisabledUsers = []
 GroupIDMap = {}
 SubGroupMap = {}
 Allowed = None
@@ -91,19 +89,17 @@ def DoLink(From, To, File):
       pass
    posix.link(From + File, To + File)
 
-def IsRetired(DnRecord):
+def IsRetired(account):
    """
    Looks for accountStatus in the LDAP record and tries to
    match it against one of the known retired statuses
    """
 
-   status = GetAttr(DnRecord, "accountStatus", None)
-   if status is None:
-      return False
+   status = account['accountStatus']
 
    line = status.split()
    status = line[0]
-   
+
    if status == "inactive":
       return True
 
@@ -122,32 +118,25 @@ def IsRetired(DnRecord):
 
    return False
 
-def IsGidDebian(x):
-   try:
-      return int(GetAttr(x, "gidNumber", 0)) == 800
-   except ValueError:
-      return False
+#def IsGidDebian(account):
+#   return account['gidNumber'] == 800
 
 # See if this user is in the group list
-def IsInGroup(DnRecord):
+def IsInGroup(account):
   if Allowed is None:
      return True
 
   # See if the primary group is in the list
-  if Allowed.has_key(GetAttr(DnRecord, "gidNumber")) != 0:
-     return True
+  if str(account['gidNumber']) in Allowed: return True
 
   # Check the host based ACL
-  if DnRecord[1].has_key("allowedHost") != 0:
-     if CurrentHost in DnRecord[1]["allowedHost"]:
-        return True
+  if 'allowedHost' in account and CurrentHost in account['allowedHost']: return True
 
   # See if there are supplementary groups
-  if DnRecord[1].has_key("supplementaryGid") == 0:
-     return False
+  if not 'supplementaryGid' in account: return False
 
   supgroups=[]
-  addGroups(supgroups, DnRecord[1]["supplementaryGid"], GetAttr(DnRecord, "uid"))
+  addGroups(supgroups, account['supplementaryGid'], account['uid'])
   for g in supgroups:
      if Allowed.has_key(g):
         return True
@@ -176,19 +165,15 @@ def Done(File, F, Fdb):
       os.rename(File + ".tdb.tmp", File + ".tdb")
 
 # Generate the password list
-def GenPasswd(File, HomePrefix, PwdMarker):
+def GenPasswd(accounts, File, HomePrefix, PwdMarker):
    F = None
    try:
       F = open(File + ".tdb.tmp", "w")
-     
-      userlist = {}
-      # Fetch all the users
-      global PasswdAttrs
 
+      userlist = {}
       i = 0
-      for x in PasswdAttrs:
-         a = UDLdap.Account(x[0], x[1])
-         if not IsInGroup(x): continue
+      for a in accounts:
+         if not IsInGroup(a): continue
 
          # Do not let people try to buffer overflow some busted passwd parser.
          if len(a['gecos']) > 100 or len(a['loginShell']) > 50: continue
@@ -218,20 +203,17 @@ def GenPasswd(File, HomePrefix, PwdMarker):
    return userlist
 
 # Generate the shadow list
-def GenShadow(File):
+def GenShadow(accounts, File):
    F = None
    try:
       OldMask = os.umask(0077)
       F = open(File + ".tdb.tmp", "w", 0600)
       os.umask(OldMask)
-     
-      # Fetch all the users
-      global PasswdAttrs
-     
+
       i = 0
-      for x in PasswdAttrs:
-         a = UDLdap.Account(x[0], x[1])
-         if not IsInGroup(x): continue
+      for a in accounts:
+         Pass = '*'
+         if not IsInGroup(a): continue
 
          # If the account is locked, mark it as such in shadow
          # See Debian Bug #308229 for why we set it to 1 instead of 0
@@ -259,20 +241,16 @@ def GenShadow(File):
    Done(File, None, F)
 
 # Generate the sudo passwd file
-def GenShadowSudo(File, untrusted):
+def GenShadowSudo(accounts, File, untrusted):
    F = None
    try:
       OldMask = os.umask(0077)
       F = open(File + ".tmp", "w", 0600)
       os.umask(OldMask)
-     
-      # Fetch all the users
-      global PasswdAttrs
-     
-      for x in PasswdAttrs:
-         a = UDLdap.Account(x[0], x[1])
+
+      for a in accounts:
          Pass = '*'
-         if not IsInGroup(x): continue
+         if not IsInGroup(a): continue
      
          if 'sudoPassword' in a:
             for entry in a['sudoPassword']:
@@ -310,17 +288,14 @@ def GenShadowSudo(File, untrusted):
    Done(File, F, None)
 
 # Generate the shadow list
-def GenSSHShadow():
+def GenSSHShadow(accounts):
    # Fetch all the users
    userfiles = []
-
-   global PasswdAttrs
 
    safe_rmtree(os.path.join(GlobalDir, 'userkeys'))
    safe_makedirs(os.path.join(GlobalDir, 'userkeys'))
 
-   for x in PasswdAttrs:
-      a = UDLdap.Account(x[0], x[1])
+   for a in accounts:
       if not 'sshRSAAuthKey' in a: continue
 
       F = None
@@ -434,7 +409,7 @@ def addGroups(existingGroups, newGroups, uid):
          addGroups(existingGroups, SubGroupMap[group], uid)
 
 # Generate the group list
-def GenGroup(File):
+def GenGroup(accounts, File):
    grouprevmap = {}
    F = None
    try:
@@ -445,15 +420,11 @@ def GenGroup(File):
       for x in GroupIDMap.keys():
          GroupMap[x] = []
       GroupHasPrimaryMembers = {}
-     
-      # Fetch all the users
-      global PasswdAttrs
-     
+
       # Sort them into a list of groups having a set of users
-      for x in PasswdAttrs:
-         a = UDLdap.Account(x[0], x[1])
+      for a in accounts:
          GroupHasPrimaryMembers[ a['gidNumber'] ] = True
-         if not IsInGroup(x): continue
+         if not IsInGroup(a): continue
          if not 'supplementaryGid' in a: continue
 
          supgroups=[]
@@ -491,51 +462,43 @@ def GenGroup(File):
   
    return grouprevmap
 
-def CheckForward():
-   global PasswdAttrs
-   for x in PasswdAttrs:
-      if x[1].has_key("emailForward") == 0:
-         continue
-   
-      if not IsInGroup(x):
-         x[1].pop("emailForward")
-         continue
+def CheckForward(accounts):
+   for a in accounts:
+      if not 'emailForward' in a: continue
 
+
+      delete = False
+
+      if not IsInGroup(a): delete = True
       # Do not allow people to try to buffer overflow busted parsers
-      if len(GetAttr(x, "emailForward")) > 200:
-         x[1].pop("emailForward")
-         continue
-
+      elif len(a['emailForward']) > 200: delete = True
       # Check the forwarding address
-      if EmailCheck.match(GetAttr(x, "emailForward")) == None:
-         x[1].pop("emailForward")
+      elif EmailCheck.match(a['emailForward']) is None: delete = True
+
+      if delete:
+         a.delete_mailforward()
 
 # Generate the email forwarding list
-def GenForward(File):
+def GenForward(accounts, File):
    F = None
    try:
       OldMask = os.umask(0022)
       F = open(File + ".tmp", "w", 0644)
       os.umask(OldMask)
-     
-      # Fetch all the users
-      global PasswdAttrs
-     
-      # Write out the email address for each user
-      for x in PasswdAttrs:
-         a = UDLdap.Account(x[0], x[1])
+
+      for a in accounts:
          if not 'emailForward' in a: continue
          Line = "%s: %s" % (a['uid'], a['emailForward'])
          Line = Sanitize(Line) + "\n"
          F.write(Line)
-  
+
    # Oops, something unspeakable happened.
    except:
       Die(File, F, None)
       raise
    Done(File, F, None)
 
-def GenCDB(File, Users, key):
+def GenCDB(accounts, File, key):
    Fdb = None
    try:
       OldMask = os.umask(0022)
@@ -543,8 +506,7 @@ def GenCDB(File, Users, key):
       os.umask(OldMask)
 
       # Write out the email address for each user
-      for x in Users:
-         a = UDLdap.Account(x[0], x[1])
+      for a in accounts:
          if not key in a: continue
          value = a[key]
          user = a['uid']
@@ -559,17 +521,13 @@ def GenCDB(File, Users, key):
       raise "cdbmake gave an error"
 
 # Generate the anon XEarth marker file
-def GenMarkers(File):
+def GenMarkers(accounts, File):
    F = None
    try:
       F = open(File + ".tmp", "w")
-     
-      # Fetch all the users
-      global PasswdAttrs
-     
+
       # Write out the position for each user
-      for x in PasswdAttrs:
-         a = UDLdap.Account(x[0], x[1])
+      for a in accounts:
          if not ('latitude' in a and 'longitude' in a): continue
          try:
             Line = "%8s %8s \"\""%(a.latitude_dec(True), a.longitude_dec(True))
@@ -585,17 +543,13 @@ def GenMarkers(File):
    Done(File, F, None)
 
 # Generate the debian-private subscription list
-def GenPrivate(File):
+def GenPrivate(accounts, File):
    F = None
    try:
       F = open(File + ".tmp", "w")
-     
-      # Fetch all the users
-      global DebianDDUsers
-     
+
       # Write out the position for each user
-      for x in DebianDDUsers:
-         a = UDLdap.Account(x[0], x[1])
+      for a in accounts:
          if not a.is_active_user(): continue
          if not 'privateSub' in a: continue
          try:
@@ -612,21 +566,17 @@ def GenPrivate(File):
    Done(File, F, None)
 
 # Generate a list of locked accounts
-def GenDisabledAccounts(File):
+def GenDisabledAccounts(accounts, File):
    F = None
    try:
       F = open(File + ".tmp", "w")
-     
+      disabled_accounts = []
+
       # Fetch all the users
-      global PasswdAttrs
-      global DisabledUsers
-     
-      I = 0
-      for x in PasswdAttrs:
-         a = UDLdap.Account(x[0], x[1])
+      for a in accounts:
          if a.pw_active(): continue
          Line = "%s:%s" % (a['uid'], "Account is locked")
-         DisabledUsers.append(x)
+         disabled_accounts.append(a)
          F.write(Sanitize(Line) + "\n")
 
    # Oops, something unspeakable happened.
@@ -634,23 +584,20 @@ def GenDisabledAccounts(File):
       Die(File, F, None)
       raise
    Done(File, F, None)
+   return disabled_accounts
 
 # Generate the list of local addresses that refuse all mail
-def GenMailDisable(File):
+def GenMailDisable(accounts, File):
    F = None
    try:
       F = open(File + ".tmp", "w")
-     
-      # Fetch all the users
-      global PasswdAttrs
-     
-      for x in PasswdAttrs:
-         a = UDLdap.Account(x[0], x[1])
+
+      for a in accounts:
          if not 'mailDisableMessage' in a: continue
          Line = "%s: %s"%(a['uid'], a['mailDisableMessage'])
          Line = Sanitize(Line) + "\n"
          F.write(Line)
-  
+
    # Oops, something unspeakable happened.
    except:
       Die(File, F, None)
@@ -658,16 +605,12 @@ def GenMailDisable(File):
    Done(File, F, None)
 
 # Generate a list of uids that should have boolean affects applied
-def GenMailBool(File, key):
+def GenMailBool(accounts, File, key):
    F = None
    try:
       F = open(File + ".tmp", "w")
-     
-      # Fetch all the users
-      global PasswdAttrs
-     
-      for x in PasswdAttrs:
-         a = UDLdap.Account(x[0], x[1])
+
+      for a in accounts:
          if not key in a: continue
          if not a[key] == 'TRUE': continue
          Line = "%s"%(a['uid'])
@@ -681,19 +624,15 @@ def GenMailBool(File, key):
    Done(File, F, None)
 
 # Generate a list of hosts for RBL or whitelist purposes.
-def GenMailList(File, key):
+def GenMailList(accounts, File, key):
    F = None
    try:
       F = open(File + ".tmp", "w")
-     
-      # Fetch all the users
-      global PasswdAttrs
-     
+
       if key == "mailWhitelist": validregex = re.compile('^[-\w.]+(/[\d]+)?$')
       else:                      validregex = re.compile('^[-\w.]+$')
 
-      for x in PasswdAttrs:
-         a = UDLdap.Account(x[0], x[1])
+      for a in accounts:
          if not key in a: continue
 
          filtered = filter(lambda z: validregex.match(z), a[key])
@@ -713,18 +652,16 @@ def isRoleAccount(account):
    return 'debianRoleAccount' in account['objectClass']
 
 # Generate the DNS Zone file
-def GenDNS(File):
+def GenDNS(accounts, File):
    F = None
    try:
       F = open(File + ".tmp", "w")
-     
+
       # Fetch all the users
-      global PasswdAttrs
       RRs = {}
-     
+
       # Write out the zone file entry for each user
-      for x in PasswdAttrs:
-         a = UDLdap.Account(x[0], x[1])
+      for a in accounts:
          if not 'dnsZoneEntry' in a: continue
          if not a.is_active_user() and not isRoleAccount(a): continue
 
@@ -866,17 +803,13 @@ def GenZoneRecords(File):
    Done(File, F, None)
 
 # Generate the BSMTP file
-def GenBSMTP(File, HomePrefix):
+def GenBSMTP(accounts, File, HomePrefix):
    F = None
    try:
       F = open(File + ".tmp", "w")
      
-      # Fetch all the users
-      global PasswdAttrs
-
       # Write out the zone file entry for each user
-      for x in PasswdAttrs:
-         a = UDLdap.Account(x[0], x[1])
+      for a in accounts:
          if not 'dnsZoneEntry' in a: continue
          if not a.is_active_user(): continue
 
@@ -1035,7 +968,7 @@ for x in Attrs:
       SubGroupMap.setdefault(x[1]["gid"][0], []).extend(x[1]["subGroup"])
 
 # Fetch all the users
-PasswdAttrs = l.search_s(BaseDn, ldap.SCOPE_ONELEVEL, "(&(uid=*)(!(uidNumber=0)))",\
+passwd_attrs = l.search_s(BaseDn, ldap.SCOPE_ONELEVEL, "(&(uid=*)(!(uidNumber=0)))",\
                 ["uid", "uidNumber", "gidNumber", "supplementaryGid",\
                  "gecos", "loginShell", "userPassword", "shadowLastChange",\
                  "shadowMin", "shadowMax", "shadowWarning", "shadowInactive",
@@ -1046,10 +979,10 @@ PasswdAttrs = l.search_s(BaseDn, ldap.SCOPE_ONELEVEL, "(&(uid=*)(!(uidNumber=0))
                  "mailWhitelist", "sudoPassword", "objectClass", "accountStatus",\
                  "mailContentInspectionAction"])
 
-if PasswdAttrs is None:
+if passwd_attrs is None:
    raise UDEmptyList, "No Users"
-
-PasswdAttrs.sort(lambda x, y: cmp((GetAttr(x, "uid")).lower(), (GetAttr(y, "uid")).lower()))
+accounts = map(lambda x: UDLdap.Account(x[0], x[1]), passwd_attrs)
+accounts.sort(lambda x,y: cmp(x['uid'].lower(), y['uid'].lower()))
 
 # Fetch all the hosts
 HostAttrs    = l.search_s(HostBaseDn, ldap.SCOPE_ONELEVEL, "objectClass=debianServer",\
@@ -1067,32 +1000,32 @@ if 'UD_GENERATEDIR' in os.environ:
 
 # Generate global things
 GlobalDir = GenerateDir + "/"
-GenDisabledAccounts(GlobalDir + "disabled-accounts")
+accounts_disabled = GenDisabledAccounts(accounts, GlobalDir + "disabled-accounts")
 
-PasswdAttrs = filter(lambda x: not IsRetired(x), PasswdAttrs)
-DebianDDUsers = filter(lambda x: IsGidDebian(x), PasswdAttrs)
+accounts = filter(lambda x: not IsRetired(x), accounts)
+#accounts_DDs = filter(lambda x: IsGidDebian(x), accounts)
 
-CheckForward()
+CheckForward(accounts)
 
-GenMailDisable(GlobalDir + "mail-disable")
-GenCDB(GlobalDir + "mail-forward.cdb", PasswdAttrs, 'emailForward')
-GenCDB(GlobalDir + "mail-contentinspectionaction.cdb", PasswdAttrs, 'mailContentInspectionAction')
-GenPrivate(GlobalDir + "debian-private")
+GenMailDisable(accounts, GlobalDir + "mail-disable")
+GenCDB(accounts, GlobalDir + "mail-forward.cdb", 'emailForward')
+GenCDB(accounts, GlobalDir + "mail-contentinspectionaction.cdb", 'mailContentInspectionAction')
+GenPrivate(accounts, GlobalDir + "debian-private")
 GenSSHKnown(GlobalDir+"authorized_keys", 'authorized_keys')
-GenMailBool(GlobalDir + "mail-greylist", "mailGreylisting")
-GenMailBool(GlobalDir + "mail-callout", "mailCallout")
-GenMailList(GlobalDir + "mail-rbl", "mailRBL")
-GenMailList(GlobalDir + "mail-rhsbl", "mailRHSBL")
-GenMailList(GlobalDir + "mail-whitelist", "mailWhitelist")
+GenMailBool(accounts, GlobalDir + "mail-greylist", "mailGreylisting")
+GenMailBool(accounts, GlobalDir + "mail-callout", "mailCallout")
+GenMailList(accounts, GlobalDir + "mail-rbl", "mailRBL")
+GenMailList(accounts, GlobalDir + "mail-rhsbl", "mailRHSBL")
+GenMailList(accounts, GlobalDir + "mail-whitelist", "mailWhitelist")
 GenKeyrings(GlobalDir)
 
 # Compatibility.
-GenForward(GlobalDir + "forward-alias")
+GenForward(accounts, GlobalDir + "forward-alias")
 
-PasswdAttrs = filter(lambda x: not x in DisabledUsers, PasswdAttrs)
+accounts = filter(lambda a: not a in accounts_disabled, accounts)
 
-SSHFiles = GenSSHShadow()
-GenMarkers(GlobalDir + "markers")
+SSHFiles = GenSSHShadow(accounts)
+GenMarkers(accounts, GlobalDir + "markers")
 GenSSHKnown(GlobalDir + "ssh_known_hosts")
 GenHosts(GlobalDir + "debianhosts")
 
@@ -1133,19 +1066,19 @@ for host in HostAttrs:
 
    sys.stdout.flush()
    if 'NOPASSWD' in ExtraList:
-      userlist = GenPasswd(OutDir + "passwd", HomePrefix, "*")
+      userlist = GenPasswd(accounts, OutDir + "passwd", HomePrefix, "*")
    else:
-      userlist = GenPasswd(OutDir + "passwd", HomePrefix, "x")
+      userlist = GenPasswd(accounts, OutDir + "passwd", HomePrefix, "x")
    sys.stdout.flush()
-   grouprevmap = GenGroup(OutDir + "group")
-   GenShadowSudo(OutDir + "sudo-passwd", ('UNTRUSTED' in ExtraList) or ('NOPASSWD' in ExtraList))
+   grouprevmap = GenGroup(accounts, OutDir + "group")
+   GenShadowSudo(accounts, OutDir + "sudo-passwd", ('UNTRUSTED' in ExtraList) or ('NOPASSWD' in ExtraList))
 
    # Now we know who we're allowing on the machine, export
    # the relevant ssh keys
    GenSSHtarballs(userlist, SSHFiles, grouprevmap, os.path.join(OutDir, 'ssh-keys.tar.gz'))
 
    if not 'NOPASSWD' in ExtraList:
-      GenShadow(OutDir + "shadow")
+      GenShadow(accounts, OutDir + "shadow")
 
    # Link in global things
    if not 'NOMARKERS' in ExtraList:
@@ -1158,22 +1091,22 @@ for host in HostAttrs:
    DoLink(GlobalDir, OutDir, "mail-rbl")
    DoLink(GlobalDir, OutDir, "mail-rhsbl")
    DoLink(GlobalDir, OutDir, "mail-whitelist")
-   GenCDB(OutDir + "user-forward.cdb", filter(lambda x: IsInGroup(x), PasswdAttrs), 'emailForward')
-   GenCDB(OutDir + "batv-tokens.cdb", filter(lambda x: IsInGroup(x), PasswdAttrs), 'bATVToken')
-   GenCDB(OutDir + "default-mail-options.cdb", filter(lambda x: IsInGroup(x), PasswdAttrs), 'mailDefaultOptions')
+   GenCDB(filter(lambda x: IsInGroup(x), accounts), OutDir + "user-forward.cdb", 'emailForward')
+   GenCDB(filter(lambda x: IsInGroup(x), accounts), OutDir + "batv-tokens.cdb", 'bATVToken')
+   GenCDB(filter(lambda x: IsInGroup(x), accounts), OutDir + "default-mail-options.cdb", 'mailDefaultOptions')
 
    # Compatibility.
    DoLink(GlobalDir, OutDir, "forward-alias")
 
    if 'DNS' in ExtraList:
-      GenDNS(OutDir + "dns-zone")
+      GenDNS(accounts, OutDir + "dns-zone")
       GenZoneRecords(OutDir + "dns-sshfp")
 
    if 'AUTHKEYS' in ExtraList:
       DoLink(GlobalDir, OutDir, "authorized_keys")
 
    if 'BSMTP' in ExtraList:
-      GenBSMTP(OutDir + "bsmtp", HomePrefix)
+      GenBSMTP(accounts, OutDir + "bsmtp", HomePrefix)
 
    if 'PRIVATE' in ExtraList:
       DoLink(GlobalDir, OutDir, "debian-private")

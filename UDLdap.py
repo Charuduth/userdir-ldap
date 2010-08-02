@@ -3,7 +3,9 @@ import time
 import userdir_ldap
 
 class Account:
-    array_values = ['objectClass', 'keyFingerPrint', 'mailWhitelist', 'mailRBL', 'mailRHSBL', 'supplementaryGid', 'sshRSAAuthKey', 'sudoPassword', 'dnsZoneEntry']
+    array_values = ['objectClass', 'keyFingerPrint', 'mailWhitelist', 'mailRBL',
+                    'mailRHSBL', 'supplementaryGid', 'sshRSAAuthKey',
+                    'sudoPassword', 'dnsZoneEntry', 'allowedHost']
     int_values = ['shadowExpire', 'gidNumber', 'uidNumber']
     defaults = {
                  'accountStatus': 'active',
@@ -93,6 +95,9 @@ class Account:
         status.append('status: %s'%( self['accountStatus'] ))
 
         return '(%s)'%(', '.join(status))
+
+    def delete_mailforward(self):
+        del self.attributes['emailForward']
 
     def get_dn(self):
         return self.dn
