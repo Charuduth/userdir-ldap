@@ -227,35 +227,30 @@ def GenShadow(File):
       # Fetch all the users
       global PasswdAttrs
      
-      I = 0
+      i = 0
       for x in PasswdAttrs:
-         if x[1].has_key("uidNumber") == 0 or not IsInGroup(x):
-            continue
-     
-         Pass = GetAttr(x, "userPassword")
-         if Pass[0:7] != "{crypt}" or len(Pass) > 50:
-            Pass = '*'
-         else:
-            Pass = Pass[7:]
-     
+         a = UDLdap.Account(x[0], x[1])
+         if not IsInGroup(x): continue
+
          # If the account is locked, mark it as such in shadow
          # See Debian Bug #308229 for why we set it to 1 instead of 0
-         if (GetAttr(x, "userPassword").find("*LK*") != -1) \
-             or GetAttr(x, "userPassword").startswith("!"):
-            ShadowExpire = '1'
-         else:
-            ShadowExpire = GetAttr(x, "shadowExpire")
-     
-         Line = "%s:%s:%s:%s:%s:%s:%s:%s:" % (GetAttr(x, "uid"),\
-                 Pass, GetAttr(x, "shadowLastChange"),\
-                 GetAttr(x, "shadowMin"), GetAttr(x, "shadowMax"),\
-                 GetAttr(x, "shadowWarning"), GetAttr(x, "shadowInactive"),\
-                 ShadowExpire)
-         Line = Sanitize(Line) + "\n"
-         F.write("0%u %s" % (I, Line))
-         F.write(".%s %s" % (GetAttr(x, "uid"), Line))
-         I = I + 1
-  
+         if not a.pw_active():     ShadowExpire = '1'
+         elif 'shadowExpire' in a: ShadowExpire = str(a['shadowExpire'])
+         else:                     ShadowExpire = ''
+
+         values = []
+         values.append(a['uid'])
+         values.append(a.get_password())
+         for key in 'shadowLastChange', 'shadowMin', 'shadowMax', 'shadowWarning', 'shadowInactive':
+            if key in a: values.append(a[key])
+            else:        values.append('')
+         values.append(ShadowExpire)
+         line = ':'.join(values)+':'
+         line = Sanitize(line) + "\n"
+         F.write("0%u %s" % (i, line))
+         F.write(".%s %s" % (a['uid'], line))
+         i = i + 1
+
    # Oops, something unspeakable happened.
    except:
       Die(File, None, F)

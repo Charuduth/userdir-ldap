@@ -59,6 +59,13 @@ class Account:
             return False
         return True
 
+    def get_password(self):
+        p = self['userPassword']
+        if not p.startswith('{crypt}') or len(p) > 50:
+            return p
+        else:
+            return p[7:]
+
     # not expired
     def shadow_active(self):
         if 'shadowExpire' in self and \
