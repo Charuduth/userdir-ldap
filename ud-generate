@@ -31,6 +31,7 @@
 import string, re, time, ldap, getopt, sys, os, pwd, posix, socket, base64, sha, shutil, errno, tarfile, grp
 from userdir_ldap import *
 from userdir_exceptions import *
+import UDLdap
 try:
    from cStringIO import StringIO
 except ImportError:
@@ -580,10 +581,11 @@ def GenMarkers(File):
      
       # Write out the position for each user
       for x in PasswdAttrs:
-         if x[1].has_key("latitude") == 0 or x[1].has_key("longitude") == 0:
+         a = UDLdap.Account(x[0], x[1])
+         if not ('latitude' in a and 'longitude' in a):
             continue
          try:
-            Line = "%8s %8s \"\""%(DecDegree(GetAttr(x, "latitude"), 1), DecDegree(GetAttr(x, "longitude"), 1))
+            Line = "%8s %8s \"\""%(DecDegree(a['latitude'], 1), DecDegree(a['longitude'], 1))
             Line = Sanitize(Line) + "\n"
             F.write(Line)
          except:
