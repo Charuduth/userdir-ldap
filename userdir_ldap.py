@@ -432,9 +432,12 @@ def Group2GID(l, name):
    return -1
 
 def make_hmac(str):
-   File = open(PassDir+"/key-hmac-"+pwd.getpwuid(os.getuid())[0],"r");
-   HmacKey = File.readline().strip()
-   File.close();
+   if 'UD_HMAC_KEY' in os.environ:
+      HmacKey = os.environ['UD_HMAC_KEY']
+   else:
+      File = open(PassDir+"/key-hmac-"+pwd.getpwuid(os.getuid())[0],"r");
+      HmacKey = File.readline().strip()
+      File.close();
    return hmac.new(HmacKey, str, sha1_module).hexdigest()
 
 def make_passwd_hmac(status, purpose, uid, uuid, hosts, cryptedpass):

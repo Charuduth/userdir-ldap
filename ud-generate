@@ -1076,9 +1076,14 @@ def GenKeyrings(OutDir):
 
 # Connect to the ldap server
 l = connectLDAP()
-F = open(PassDir + "/pass-" + pwd.getpwuid(os.getuid())[0], "r")
-Pass = F.readline().strip().split(" ")
-F.close()
+# for testing purposes it's sometimes useful to pass username/password
+# via the environment
+if 'UD_CREDENTIALS' in os.environ:
+   Pass = os.environ['UD_CREDENTIALS'].split()
+else:
+   F = open(PassDir + "/pass-" + pwd.getpwuid(os.getuid())[0], "r")
+   Pass = F.readline().strip().split(" ")
+   F.close()
 l.simple_bind_s("uid=" + Pass[0] + "," + BaseDn, Pass[1])
 
 # Fetch all the groups
@@ -1122,6 +1127,10 @@ if HostAttrs == None:
    raise UDEmptyList, "No Hosts"
 
 HostAttrs.sort(lambda x, y: cmp((GetAttr(x, "hostname")).lower(), (GetAttr(y, "hostname")).lower()))
+
+# override globaldir for testing
+if 'UD_GENERATEDIR' in os.environ:
+   GenerateDir = os.environ['UD_GENERATEDIR']
 
 # Generate global things
 GlobalDir = GenerateDir + "/"
