@@ -873,17 +873,15 @@ def GenBSMTP(File, HomePrefix):
      
       # Fetch all the users
       global PasswdAttrs
-     
+
       # Write out the zone file entry for each user
       for x in PasswdAttrs:
-         if x[1].has_key("dnsZoneEntry") == 0:
-            continue
-     
-         # If the account has no PGP key, do not write it
-         if x[1].has_key("keyFingerPrint") == 0:
-            continue
+         a = UDLdap.Account(x[0], x[1])
+         if not 'dnsZoneEntry' in a: continue
+         if not a.is_active_user(): continue
+
          try:
-            for z in x[1]["dnsZoneEntry"]:
+            for z in a["dnsZoneEntry"]:
                Split = z.lower().split()
                if Split[1].lower() == 'in':
                   for y in range(0, len(Split)):
@@ -894,7 +892,7 @@ def GenBSMTP(File, HomePrefix):
                   Host = Split[0] + DNSZone
                   if BSMTPCheck.match(Line) != None:
                       F.write("%s: user=%s group=Debian file=%s%s/bsmtp/%s\n"%(Host,
-                                  GetAttr(x, "uid"), HomePrefix, GetAttr(x, "uid"), Host))
+                                  a['uid'], HomePrefix, a['uid'], Host))
      
          except:
             F.write("; Errors\n")
