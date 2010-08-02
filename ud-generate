@@ -693,7 +693,7 @@ def GenMailBool(File, key):
    Done(File, F, None)
 
 # Generate a list of hosts for RBL or whitelist purposes.
-def GenMailList(File, Key):
+def GenMailList(File, key):
    F = None
    try:
       F = open(File + ".tmp", "w")
@@ -701,37 +701,20 @@ def GenMailList(File, Key):
       # Fetch all the users
       global PasswdAttrs
      
+      if key == "mailWhitelist": validregex = re.compile('^[-\w.]+(/[\d]+)?$')
+      else:                      validregex = re.compile('^[-\w.]+$')
+
       for x in PasswdAttrs:
-         Reason = None
-     
-         if x[1].has_key(Key) == 0:
-            continue
-     
-         try:
-            found = 0
-            Line = None
-            for z in x[1][Key]:
-                if Key == "mailWhitelist":
-                   if re.match('^[-\w.]+(/[\d]+)?$', z) == None:
-                      continue
-                else:
-                   if re.match('^[-\w.]+$', z) == None:
-                      continue
-                if found == 0:
-                   found = 1
-                   Line = GetAttr(x, "uid")
-                else:
-                    Line += " "
-                Line += ": " + z
-                if Key == "mailRHSBL":
-                   Line += "/$sender_address_domain"
-     
-            if Line != None:
-               Line = Sanitize(Line) + "\n"
-               F.write(Line)
-         except:
-            pass
-  
+         a = UDLdap.Account(x[0], x[1])
+         if not key in a: continue
+
+         filtered = filter(lambda z: validregex.match(z), a[key])
+         if len(filtered) == 0: continue
+         if key == "mailRHSBL": filtered = map(lambda z: z+"/$sender_address_domain", filtered)
+         line = a['uid'] + ': ' + ' : '.join(filtered)
+         line = Sanitize(line) + "\n"
+         F.write(line)
+
    # Oops, something unspeakable happened.
    except:
       Die(File, F, None)
