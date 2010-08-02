@@ -48,8 +48,8 @@ def connect(user):
     return l
 
 def do_one_user(lc, user, ticket):
-    u = UDLdap.Account(user)
-    if not u.account_status() == 'active':
+    u = UDLdap.Account.from_search(lc, BaseDn, user)
+    if not u['accountStatus'] == 'active':
         sys.stderr.write('%s: Account is not active, skipping.  (details: %s)\n'%(user, u.verbose_status()))
         return
 
