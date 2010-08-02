@@ -547,7 +547,7 @@ def GenForward(File):
       raise
    Done(File, F, None)
 
-def GenCDB(File, Users, Key):
+def GenCDB(File, Users, key):
    Fdb = None
    try:
       OldMask = os.umask(0022)
@@ -556,11 +556,11 @@ def GenCDB(File, Users, Key):
 
       # Write out the email address for each user
       for x in Users:
-         if not Key in x[1]:
-            continue
-         Value = GetAttr(x, Key)
-         User = GetAttr(x, "uid")
-         Fdb.write("+%d,%d:%s->%s\n" % (len(User), len(Value), User, Value))
+         a = UDLdap.Account(x[0], x[1])
+         if not key in a: continue
+         value = a[key]
+         user = a['uid']
+         Fdb.write("+%d,%d:%s->%s\n" % (len(user), len(value), user, value))
 
       Fdb.write("\n")
    # Oops, something unspeakable happened.
