@@ -459,19 +459,16 @@ def GenGroup(File):
      
       # Sort them into a list of groups having a set of users
       for x in PasswdAttrs:
-         uid = GetAttr(x, "uid")
-         if 'gidNumber' in x[1]:
-            GroupHasPrimaryMembers[ int(x[1]["gidNumber"][0]) ] = True
-         if x[1].has_key("uidNumber") == 0 or not IsInGroup(x):
-            continue
-         if x[1].has_key("supplementaryGid") == 0:
-            continue
-     
+         a = UDLdap.Account(x[0], x[1])
+         GroupHasPrimaryMembers[ a['gidNumber'] ] = True
+         if not IsInGroup(x): continue
+         if not 'supplementaryGid' in a: continue
+
          supgroups=[]
-         addGroups(supgroups, x[1]["supplementaryGid"], uid)
+         addGroups(supgroups, a['supplementaryGid'], a['uid'])
          for g in supgroups:
-            GroupMap[g].append(uid)
-     
+            GroupMap[g].append(a['uid'])
+
       # Output the group file.
       J = 0
       for x in GroupMap.keys():
