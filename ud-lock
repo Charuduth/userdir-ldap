@@ -48,7 +48,11 @@ def connect(user):
     return l
 
 def do_one_user(lc, user, ticket):
-    u = UDLdap.Account.from_search(lc, BaseDn, user)
+    try:
+        u = UDLdap.Account.from_search(lc, BaseDn, user)
+    except IndexError, e:
+        sys.stderr.write("Cannot instantiate account from LDAP: %s"%(str(e)))
+        return
     if not u['accountStatus'] == 'active':
         sys.stderr.write('%s: Account is not active, skipping.  (details: %s)\n'%(user, u.verbose_status()))
         return

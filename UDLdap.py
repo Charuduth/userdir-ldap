@@ -16,11 +16,9 @@ class Account:
     def from_search(ldap_connection, base, user):
         searchresult = ldap_connection.search_s(base, ldap.SCOPE_SUBTREE, 'uid=%s'%(user))
         if len(searchresult) < 1:
-            sys.stderr.write("No such user: %s\n"%(user))
-            return
+            raise IndexError, "No such user: %s\n"%(user)
         elif len(searchresult) > 1:
-            sys.stderr.write("More than one hit when getting %s\n"%(user))
-            return
+            raise IndexError, "More than one hit when getting %s\n"%(user)
         else:
             return Account(searchresult[0][0], searchresult[0][1])
 
