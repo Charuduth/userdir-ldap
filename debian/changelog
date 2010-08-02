@@ -1,4 +1,4 @@
-userdir-ldap (0.3.7X) Xnstable; urgency=low
+userdir-ldap (0.3.77) Xnstable; urgency=low
 
   [ Peter Palfrader ]
   * ud-mailgate: Remove a global declaration after a variable has
