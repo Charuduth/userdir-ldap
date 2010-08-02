@@ -582,8 +582,7 @@ def GenMarkers(File):
       # Write out the position for each user
       for x in PasswdAttrs:
          a = UDLdap.Account(x[0], x[1])
-         if not ('latitude' in a and 'longitude' in a):
-            continue
+         if not ('latitude' in a and 'longitude' in a): continue
          try:
             Line = "%8s %8s \"\""%(a.latitude_dec(True), a.longitude_dec(True))
             Line = Sanitize(Line) + "\n"
@@ -609,10 +608,8 @@ def GenPrivate(File):
       # Write out the position for each user
       for x in DebianDDUsers:
          a = UDLdap.Account(x[0], x[1])
-         if not a.is_active_user():
-            continue
-         if not 'privateSub' in a:
-            continue
+         if not a.is_active_user(): continue
+         if not 'privateSub' in a: continue
          try:
             Line = "%s"%(a['privateSub'])
             Line = Sanitize(Line) + "\n"
@@ -639,8 +636,7 @@ def GenDisabledAccounts(File):
       I = 0
       for x in PasswdAttrs:
          a = UDLdap.Account(x[0], x[1])
-         if a.pw_active():
-            continue
+         if a.pw_active(): continue
          Line = "%s:%s" % (a['uid'], "Account is locked")
          DisabledUsers.append(x)
          F.write(Sanitize(Line) + "\n")
@@ -662,8 +658,7 @@ def GenMailDisable(File):
      
       for x in PasswdAttrs:
          a = UDLdap.Account(x[0], x[1])
-         if not 'mailDisableMessage' in a:
-            continue
+         if not 'mailDisableMessage' in a: continue
          Line = "%s: %s"%(a['uid'], a['mailDisableMessage'])
          Line = Sanitize(Line) + "\n"
          F.write(Line)
