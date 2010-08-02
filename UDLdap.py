@@ -66,6 +66,9 @@ class Account:
     def numkeys(self):
         return len(self['keyFingerPrint'])
 
+    def is_active_user(self):
+        return self['accountStatus'] == 'active' and self.numkeys() != 0
+
     def latitude_dec(self, anonymized=False):
         return userdir_ldap.DecDegree(self['latitude'], anonymized)
     def longitude_dec(self, anonymized=False):

@@ -608,15 +608,13 @@ def GenPrivate(File):
      
       # Write out the position for each user
       for x in DebianDDUsers:
-         if x[1].has_key("privateSub") == 0:
+         a = UDLdap.Account(x[0], x[1])
+         if not a.is_active_user():
             continue
-     
-         # If the account has no PGP key, do not write it
-         if x[1].has_key("keyFingerPrint") == 0:
+         if not 'privateSub' in a:
             continue
-     
          try:
-            Line = "%s"%(GetAttr(x, "privateSub"))
+            Line = "%s"%(a['privateSub'])
             Line = Sanitize(Line) + "\n"
             F.write(Line)
          except:
