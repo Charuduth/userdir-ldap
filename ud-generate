@@ -675,7 +675,7 @@ def GenMailDisable(File):
    Done(File, F, None)
 
 # Generate a list of uids that should have boolean affects applied
-def GenMailBool(File, Key):
+def GenMailBool(File, key):
    F = None
    try:
       F = open(File + ".tmp", "w")
@@ -684,21 +684,13 @@ def GenMailBool(File, Key):
       global PasswdAttrs
      
       for x in PasswdAttrs:
-         Reason = None
-     
-         if x[1].has_key(Key) == 0:
-            continue
-     
-         if GetAttr(x, Key) != "TRUE":
-            continue
-     
-         try:
-            Line = "%s"%(GetAttr(x, "uid"))
-            Line = Sanitize(Line) + "\n"
-            F.write(Line)
-         except:
-            pass
-  
+         a = UDLdap.Account(x[0], x[1])
+         if not key in a: continue
+         if not a[key] == 'TRUE': continue
+         Line = "%s"%(a['uid'])
+         Line = Sanitize(Line) + "\n"
+         F.write(Line)
+
    # Oops, something unspeakable happened.
    except:
       Die(File, F, None)
