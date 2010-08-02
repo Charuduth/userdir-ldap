@@ -3,7 +3,7 @@ import time
 import userdir_ldap
 
 class Account:
-    array_values = ['keyFingerPrint', 'mailWhitelist', 'mailRBL', 'mailRHSBL', 'supplementaryGid']
+    array_values = ['keyFingerPrint', 'mailWhitelist', 'mailRBL', 'mailRHSBL', 'supplementaryGid', 'sshRSAAuthKey']
     int_values = ['shadowExpire', 'gidNumber']
     defaults = {
                  'accountStatus': 'active',
