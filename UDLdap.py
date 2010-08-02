@@ -54,6 +54,8 @@ class Account:
     def pw_active(self):
         if self['userPassword'] == '{crypt}*LK*':
             return False
+        if self['userPassword'].startswith("!"):
+            return False
         return True
 
     # not expired

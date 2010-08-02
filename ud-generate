@@ -638,22 +638,13 @@ def GenDisabledAccounts(File):
      
       I = 0
       for x in PasswdAttrs:
-         if x[1].has_key("uidNumber") == 0:
+         a = UDLdap.Account(x[0], x[1])
+         if a.pw_active():
             continue
-     
-         Pass = GetAttr(x, "userPassword")
-         Line = ""
-         # *LK* is the reference value for a locked account
-         # password starting with ! is also a locked account
-         if Pass.find("*LK*") != -1 or Pass.startswith("!"):
-            # Format is <login>:<reason>
-            Line = "%s:%s" % (GetAttr(x, "uid"), "Account is locked")
-            DisabledUsers.append(x)
-     
-         if Line != "":
-            F.write(Sanitize(Line) + "\n")
-     
-   
+         Line = "%s:%s" % (a['uid'], "Account is locked")
+         DisabledUsers.append(x)
+         F.write(Sanitize(Line) + "\n")
+
    # Oops, something unspeakable happened.
    except:
       Die(File, F, None)
@@ -1102,7 +1093,7 @@ for x in Attrs:
       SubGroupMap.setdefault(x[1]["gid"][0], []).extend(x[1]["subGroup"])
 
 # Fetch all the users
-PasswdAttrs = l.search_s(BaseDn, ldap.SCOPE_ONELEVEL, "uid=*",\
+PasswdAttrs = l.search_s(BaseDn, ldap.SCOPE_ONELEVEL, "(&(uid=*)(!(uidNumber=0)))",\
                 ["uid", "uidNumber", "gidNumber", "supplementaryGid",\
                  "gecos", "loginShell", "userPassword", "shadowLastChange",\
                  "shadowMin", "shadowMax", "shadowWarning", "shadowInactive",
