@@ -534,10 +534,9 @@ def GenForward(File):
      
       # Write out the email address for each user
       for x in PasswdAttrs:
-         if x[1].has_key("emailForward") == 0:
-            continue
-     
-         Line = "%s: %s" % (GetAttr(x, "uid"), GetAttr(x, "emailForward"))
+         a = UDLdap.Account(x[0], x[1])
+         if not 'emailForward' in a: continue
+         Line = "%s: %s" % (a['uid'], a['emailForward'])
          Line = Sanitize(Line) + "\n"
          F.write(Line)
   
