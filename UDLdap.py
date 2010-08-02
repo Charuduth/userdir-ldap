@@ -3,7 +3,7 @@ import time
 import userdir_ldap
 
 class Account:
-    array_values = ['keyFingerPrint', 'mailWhitelist', 'mailRBL', 'mailRHSBL', 'supplementaryGid', 'sshRSAAuthKey', 'sudoPassword']
+    array_values = ['objectClass', 'keyFingerPrint', 'mailWhitelist', 'mailRBL', 'mailRHSBL', 'supplementaryGid', 'sshRSAAuthKey', 'sudoPassword', 'dnsZoneEntry']
     int_values = ['shadowExpire', 'gidNumber', 'uidNumber']
     defaults = {
                  'accountStatus': 'active',
@@ -96,6 +96,14 @@ class Account:
 
     def get_dn(self):
         return self.dn
+
+    def email_address(self):
+        mailbox = "<%s@%s>" % (self['uid'], userdir_ldap.EmailAppend)
+        tokens = []
+        if 'cn' in self: tokens.append(self['cn'])
+        if 'sn' in self: tokens.append(self['sn'])
+        tokens.append(mailbox)
+        return ' '.join(tokens)
 
 # vim:set et:
 # vim:set ts=4:

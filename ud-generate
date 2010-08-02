@@ -709,15 +709,8 @@ def GenMailList(File, key):
       raise
    Done(File, F, None)
 
-def isRoleAccount(pwEntry):
-   if not pwEntry.has_key("objectClass"):
-      raise "pwEntry has no objectClass"
-   oc =  pwEntry['objectClass']
-   try:
-      i = oc.index('debianRoleAccount')
-      return True
-   except ValueError:
-      return False
+def isRoleAccount(account):
+   return 'debianRoleAccount' in account['objectClass']
 
 # Generate the DNS Zone file
 def GenDNS(File):
@@ -731,15 +724,13 @@ def GenDNS(File):
      
       # Write out the zone file entry for each user
       for x in PasswdAttrs:
-         if x[1].has_key("dnsZoneEntry") == 0:
-            continue
-     
-         # If the account has no PGP key, do not write it
-         if x[1].has_key("keyFingerPrint") == 0 and not isRoleAccount(x[1]):
-            continue
+         a = UDLdap.Account(x[0], x[1])
+         if not 'dnsZoneEntry' in a: continue
+         if not a.is_active_user() and not isRoleAccount(a): continue
+
          try:
-            F.write("; %s\n"%(EmailAddress(x)))
-            for z in x[1]["dnsZoneEntry"]:
+            F.write("; %s\n"%(a.email_address()))
+            for z in a["dnsZoneEntry"]:
                Split = z.lower().split()
                if Split[1].lower() == 'in':
                   for y in range(0, len(Split)):
@@ -755,8 +746,8 @@ def GenDNS(File):
                   # Write some identification information
                   if not RRs.has_key(Host):
                      if Split[2].lower() in ["a", "aaaa"]:
-                        Line = "%s IN TXT \"%s\"\n"%(Split[0], EmailAddress(x))
-                        for y in x[1]["keyFingerPrint"]:
+                        Line = "%s IN TXT \"%s\"\n"%(Split[0], a.email_address())
+                        for y in a["keyFingerPrint"]:
                            Line = Line + "%s IN TXT \"PGP %s\"\n"%(Split[0], FormatPGPKey(y))
                            F.write(Line)
                         RRs[Host] = 1
@@ -765,8 +756,10 @@ def GenDNS(File):
                   F.write(Line)
      
             F.write("\n")
-         except:
-            F.write("; Errors\n")
+         except Exception, e:
+            F.write("; Errors:\n")
+            for line in str(e).split("\n"):
+               F.write("; %s\n"%(line))
             pass
   
    # Oops, something unspeakable happened.
