@@ -11,8 +11,10 @@ userdir-ldap (0.3.7x) xnstable; urgency=low
       get the account list (now a list of Account classes instead of
       ldap result array of tuples of hashes) passed to them like well-behaved
       functions.
+  * userdir-ldap-slapd.conf: Fix ACL rule for keyring maintainers
+    (we want group=..., not dn=...).
 
- -- Peter Palfrader <weasel@debian.org>  Mon, 02 Aug 2010 23:35:55 +0000
+ -- Peter Palfrader <weasel@debian.org>  Wed, 11 Aug 2010 11:11:53 +0200
 
 userdir-ldap (0.3.77) unstable; urgency=low
 

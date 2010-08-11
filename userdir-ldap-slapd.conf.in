@@ -33,7 +33,7 @@ access to *
 # allow keyring maint to write to the keyFingerPrint attribute
 # (make an exception for adm for security reasons)
 access to filter="(!(supplementaryGid=adm))" attrs=keyFingerPrint
-	by dn="cn=Keyring Maintainers,ou=users,@@DN@@" write
+	by group="cn=Keyring Maintainers,ou=users,@@DN@@" write
 	by * break
 
 # allow users write access to an explicit subset of their fields
