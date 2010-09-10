@@ -9,6 +9,7 @@
 
 import userdir_gpg, userdir_ldap, sys, traceback, time, ldap, os, commands
 import pwd, tempfile
+import subprocess
 
 from userdir_gpg import *
 from userdir_ldap import *
@@ -568,6 +569,8 @@ def connect_to_ldap_and_check_if_locked(DnRecord):
              or GetAttr(Attrs[0],"userPassword").startswith("!"):
       raise UDNotAllowedError, "This account is locked";
 
+   return l
+
 # Handle an [almost] arbitary change
 def HandleChange(Reply,DnRecord,Key):
    global PlainText;
@@ -690,6 +693,44 @@ def HandleChPass(Reply,DnRecord,Key):
 
    return Reply;
 
+def HandleChKrbPass(Reply,DnRecord,Key):
+   # Connect to the ldap server, will throw an exception if account locked.
+   l = connect_to_ldap_and_check_if_locked(DnRecord)
+
+   user = GetAttr(DnRecord,"uid")
+   krb_proc = subprocess.Popen( ('ud-krb-reset', user), stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+   krb_proc.stdin.close()
+   out = krb_proc.stdout.readlines()
+   krb_proc.wait()
+   exitcode = krb_proc.returncode
+
+   # Use GPG to encrypt it
+   m = "Tried to reset your kerberos principal's password.\n"
+   if exitcode == 0:
+      m += "The exitcode of the reset script was zero, indicating that everything\n"
+      m += "worked.  However, this being software who knows.  Script's output below."
+   else:
+      m += "The exitcode of the reset script was %d, indicating that something\n"%(exitcode)
+      m += "went terribly, terribly wrong.  Please consult the script's output below\n"
+      m += "for more information.  Contact the admins if you have any questions or\n"
+      m += "require assitance."
+
+   m += "\n"+''.join( map(lambda x: "| "+x, out)  )
+
+   Message = GPGEncrypt(m, "0x"+Key[1],Key[4]);
+   if Message == None:
+      raise UDFormatError, "Unable to generate the encrypted reply, gpg failed.";
+
+   Subst = {};
+   Subst["__FROM__"] = ChPassFrom;
+   Subst["__EMAIL__"] = EmailAddress(DnRecord);
+   Subst["__CRYPTTYPE__"] = get_crypttype_preamble(Key)
+   Subst["__PASSWORD__"] = Message;
+   Subst["__ADMIN__"] = ReplyTo;
+   Reply = Reply + TemplateSubst(Subst,open(TemplatesDir+"passwd-changed","r").read());
+
+   return Reply;
+
 # Start of main program
 
 # Drop messages from a mailer daemon.
@@ -787,8 +828,10 @@ try:
    if sys.argv[1] == "ping":
       Reply = HandlePing(Reply,Attrs[0],pgp.key_info);
    elif sys.argv[1] == "chpass":
-      if PlainText.strip().find("Please change my Debian password"):
+      if PlainText.strip().find("Please change my Debian password") >= 0:
          Reply = HandleChPass(Reply,Attrs[0],pgp.key_info);
+      elif PlainText.strip().find("Please change my Kerberos password") >= 0:
+         Reply = HandleChKrbPass(Reply,Attrs[0],pgp.key_info);
       else:
          raise UDFormatError,"Please send a signed message where the first line of text is the string 'Please change my Debian password' or some other string we accept here.";
    elif sys.argv[1] == "change":

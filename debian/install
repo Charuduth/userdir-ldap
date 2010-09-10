@@ -11,6 +11,7 @@ ud-lock usr/bin
 ud-ldapshow usr/bin
 ud-userimport usr/bin
 ud-mailgate usr/bin
+ud-krb-reset usr/bin
 ud-generate usr/bin
 ud-passchk usr/bin
 ud-useradd usr/bin

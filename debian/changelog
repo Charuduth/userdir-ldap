@@ -13,8 +13,11 @@ userdir-ldap (0.3.7x) xnstable; urgency=low
       functions.
   * userdir-ldap-slapd.conf: Fix ACL rule for keyring maintainers
     (we want group=..., not dn=...).
+  * Add ud-krb-reset, and make ud-mailgate call it when
+    receiving a mail at chpasswd@ saying
+    'Please change my Kerberos password'.
 
- -- Peter Palfrader <weasel@debian.org>  Wed, 11 Aug 2010 11:11:53 +0200
+ -- Peter Palfrader <weasel@debian.org>  Fri, 10 Sep 2010 14:52:43 +0200
 
 userdir-ldap (0.3.77) unstable; urgency=low
 
