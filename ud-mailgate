@@ -554,6 +554,20 @@ def FinishConfirmSudopassword(l, uid, Attrs):
 
    return result
 
+def connect_to_ldap_and_check_if_locked(DnRecord):
+   # Connect to the ldap server
+   l = connectLDAP()
+   F = open(PassDir+"/pass-"+pwd.getpwuid(os.getuid())[0],"r");
+   AccessPass = F.readline().strip().split(" ")
+   F.close();
+   l.simple_bind_s("uid="+AccessPass[0]+","+BaseDn,AccessPass[1]);
+
+   # Check for a locked account
+   Attrs = l.search_s(BaseDn,ldap.SCOPE_ONELEVEL,"uid="+GetAttr(DnRecord,"uid"));
+   if (GetAttr(Attrs[0],"userPassword").find("*LK*") != -1) \
+             or GetAttr(Attrs[0],"userPassword").startswith("!"):
+      raise UDNotAllowedError, "This account is locked";
+
 # Handle an [almost] arbitary change
 def HandleChange(Reply,DnRecord,Key):
    global PlainText;
@@ -592,16 +606,7 @@ def HandleChange(Reply,DnRecord,Key):
       Result = Result + Res + "\n";
 
    # Connect to the ldap server
-   l = connectLDAP()
-   F = open(PassDir+"/pass-"+pwd.getpwuid(os.getuid())[0],"r");
-   AccessPass = F.readline().strip().split(" ")
-   F.close();
-
-   l.simple_bind_s("uid="+AccessPass[0]+","+BaseDn,AccessPass[1]);
-   oldAttrs = l.search_s(BaseDn,ldap.SCOPE_ONELEVEL,"uid="+GetAttr(DnRecord,"uid"));
-   if ((GetAttr(oldAttrs[0],"userPassword").find("*LK*") != -1) 
-       or GetAttr(oldAttrs[0],"userPassword").startswith("!")):
-      raise UDNotAllowedError, "This account is locked";
+   l = connect_to_ldap_and_check_if_locked(DnRecord)
 
    if CommitChanges == 1: # only if we are still good to go
       try:
@@ -643,13 +648,23 @@ def HandlePing(Reply,DnRecord,Key):
 
    return Reply + TemplateSubst(Subst,open(TemplatesDir+"ping-reply","r").read());
 
+
+
+def get_crypttype_preamble(key):
+   if (key[4] == 1):
+      type = "Your message was encrypted using PGP 2.x\ncompatibility mode.";
+   else:
+      type = "Your message was encrypted using GPG (OpenPGP)\ncompatibility "\
+             "mode, without IDEA. This message cannot be decoded using PGP 2.x";
+   return type
+
 # Handle a change password email sent to the change password address
 # (this program called with the chpass argument)
 def HandleChPass(Reply,DnRecord,Key):
    # Generate a random password
    Password = GenPass();
    Pass = HashPass(Password);
-      
+
    # Use GPG to encrypt it      
    Message = GPGEncrypt("Your new password is '" + Password + "'\n",\
                         "0x"+Key[1],Key[4]);
@@ -658,33 +673,15 @@ def HandleChPass(Reply,DnRecord,Key):
    if Message == None:
       raise UDFormatError, "Unable to generate the encrypted reply, gpg failed.";
 
-   if (Key[4] == 1):
-      Type = "Your message was encrypted using PGP 2.x\ncompatibility mode.";
-   else:
-      Type = "Your message was encrypted using GPG (OpenPGP)\ncompatibility "\
-             "mode, without IDEA. This message cannot be decoded using PGP 2.x";
-   
    Subst = {};
    Subst["__FROM__"] = ChPassFrom;
    Subst["__EMAIL__"] = EmailAddress(DnRecord);
-   Subst["__CRYPTTYPE__"] = Type;
+   Subst["__CRYPTTYPE__"] = get_crypttype_preamble(Key)
    Subst["__PASSWORD__"] = Message;
    Subst["__ADMIN__"] = ReplyTo;
    Reply = Reply + TemplateSubst(Subst,open(TemplatesDir+"passwd-changed","r").read());
-   
-   # Connect to the ldap server
-   l = connectLDAP()
-   F = open(PassDir+"/pass-"+pwd.getpwuid(os.getuid())[0],"r");
-   AccessPass = F.readline().strip().split(" ")
-   F.close();
-   l.simple_bind_s("uid="+AccessPass[0]+","+BaseDn,AccessPass[1]);
 
-   # Check for a locked account
-   Attrs = l.search_s(BaseDn,ldap.SCOPE_ONELEVEL,"uid="+GetAttr(DnRecord,"uid"));
-   if (GetAttr(Attrs[0],"userPassword").find("*LK*") != -1) \
-             or GetAttr(Attrs[0],"userPassword").startswith("!"):
-      raise UDNotAllowedError, "This account is locked";
-
+   l = connect_to_ldap_and_check_if_locked(DnRecord)
    # Modify the password
    Rec = [(ldap.MOD_REPLACE,"userPassword","{crypt}"+Pass),
           (ldap.MOD_REPLACE,"shadowLastChange",str(int(time.time()/24/60/60)))];
@@ -692,7 +689,7 @@ def HandleChPass(Reply,DnRecord,Key):
    l.modify_s(Dn,Rec);
 
    return Reply;
-      
+
 # Start of main program
 
 # Drop messages from a mailer daemon.
@@ -790,9 +787,10 @@ try:
    if sys.argv[1] == "ping":
       Reply = HandlePing(Reply,Attrs[0],pgp.key_info);
    elif sys.argv[1] == "chpass":
-      if PlainText.strip().find("Please change my Debian password") != 0:
-         raise UDFormatError,"Please send a signed message where the first line of text is the string 'Please change my Debian password'";
-      Reply = HandleChPass(Reply,Attrs[0],pgp.key_info);
+      if PlainText.strip().find("Please change my Debian password"):
+         Reply = HandleChPass(Reply,Attrs[0],pgp.key_info);
+      else:
+         raise UDFormatError,"Please send a signed message where the first line of text is the string 'Please change my Debian password' or some other string we accept here.";
    elif sys.argv[1] == "change":
       Reply = HandleChange(Reply,Attrs[0],pgp.key_info);
    else:
