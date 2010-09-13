@@ -1,4 +1,4 @@
-userdir-ldap (0.3.7x) xnstable; urgency=low
+userdir-ldap (0.3.78) unstable; urgency=low
 
   * Start refactoring ud-generate:
     - If environment variables UD_CREDENTIALS, UD_GENERATEDIR, UD_HMAC_KEY
@@ -16,8 +16,10 @@ userdir-ldap (0.3.7x) xnstable; urgency=low
   * Add ud-krb-reset, and make ud-mailgate call it when
     receiving a mail at chpasswd@ saying
     'Please change my Kerberos password'.
+  * ud-generate: Add an extra output file called all-users.json that
+    can be used on one of the AFS hosts to create afs users.
 
- -- Peter Palfrader <weasel@debian.org>  Fri, 10 Sep 2010 14:52:43 +0200
+ -- Peter Palfrader <weasel@debian.org>  Mon, 13 Sep 2010 19:08:34 +0200
 
 userdir-ldap (0.3.77) unstable; urgency=low
 

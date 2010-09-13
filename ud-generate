@@ -36,6 +36,13 @@ try:
    from cStringIO import StringIO
 except ImportError:
    from StringIO import StringIO
+try:
+   import simplejson as json
+except ImportError:
+   import json
+   if not '__author__' in json.__dict__:
+      sys.stderr.write("Warning: This is probably the wrong json module.  We want python 2.6's json\n")
+      sys.stderr.write("module, or simplejson on pytyon 2.5.  Let's see if/how stuff blows up.\n")
 
 global Allowed
 global CurrentHost
@@ -201,6 +208,26 @@ def GenPasswd(accounts, File, HomePrefix, PwdMarker):
 
    # Return the list of users so we know which keys to export
    return userlist
+
+def GenAllUsers(accounts, file):
+   f = None
+   try:
+      OldMask = os.umask(0022)
+      f = open(file + ".tmp", "w", 0644)
+      os.umask(OldMask)
+
+      all = []
+      for a in accounts:
+         all.append( { 'uid': a['uid'],
+                       'uidNumber': a['uidNumber'],
+                       'active': a.pw_active() and a.shadow_active() } )
+      json.dump(all, f)
+
+   # Oops, something unspeakable happened.
+   except:
+      Die(file, f, None)
+      raise
+   Done(file, f, None)
 
 # Generate the shadow list
 def GenShadow(accounts, File):
@@ -1022,6 +1049,7 @@ GenKeyrings(GlobalDir)
 # Compatibility.
 GenForward(accounts, GlobalDir + "forward-alias")
 
+GenAllUsers(accounts, 'all-accounts.json')
 accounts = filter(lambda a: not a in accounts_disabled, accounts)
 
 SSHFiles = GenSSHShadow(accounts)
@@ -1091,6 +1119,7 @@ for host in HostAttrs:
    DoLink(GlobalDir, OutDir, "mail-rbl")
    DoLink(GlobalDir, OutDir, "mail-rhsbl")
    DoLink(GlobalDir, OutDir, "mail-whitelist")
+   DoLink(GlobalDir, OutDir, "all-accounts.json")
    GenCDB(filter(lambda x: IsInGroup(x), accounts), OutDir + "user-forward.cdb", 'emailForward')
    GenCDB(filter(lambda x: IsInGroup(x), accounts), OutDir + "batv-tokens.cdb", 'bATVToken')
    GenCDB(filter(lambda x: IsInGroup(x), accounts), OutDir + "default-mail-options.cdb", 'mailDefaultOptions')
