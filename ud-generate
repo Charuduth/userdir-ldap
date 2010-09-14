@@ -1049,7 +1049,7 @@ GenKeyrings(GlobalDir)
 # Compatibility.
 GenForward(accounts, GlobalDir + "forward-alias")
 
-GenAllUsers(accounts, 'all-accounts.json')
+GenAllUsers(accounts, GlobalDir + 'all-accounts.json')
 accounts = filter(lambda a: not a in accounts_disabled, accounts)
 
 SSHFiles = GenSSHShadow(accounts)
