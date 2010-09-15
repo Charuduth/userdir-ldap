@@ -1,0 +1,261 @@
+#!/usr/bin/python
+
+# Copyright (c) 2010 Peter Palfrader
+
+# reads a list of active accounts from /var/lib/misc/thishost/all-accounts.json
+# and creates those accounts in AFS's protection database.
+# Furthermore it creates per-user scratch directories in
+# /afs/debian.org/scratch/eu/grnet (or whatever path is specified in a command
+# line option), owned by that user.
+
+import optparse
+import os
+import os.path
+import pwd
+import re
+import subprocess
+import sys
+import tempfile
+
+
+import json
+if not '__author__' in json.__dict__:
+   sys.stderr.write("Warning: This is probably the wrong json module.  We want python 2.6's json\n")
+   sys.stderr.write("module, or simplejson on python 2.5.  Let's see if/how stuff blows up.\n")
+   import simplejson as json
+
+class UserEntries:
+   def __init__(self):
+      self.entries = []
+      self.by_name = {}
+      self.by_id = {}
+
+   def append(self, name, idnumber, owner=None, creator=None):
+      if name in self.by_name: raise Exception("Name '%s' is not unique."%(name))
+      if idnumber in self.by_id: raise Exception("ID '%d' is not unique."%(idnumber))
+
+      h = { 'name': name, 'id': idnumber, 'owner': owner, 'creator': creator }
+      self.entries.append( h )
+      self.by_name[name] = h
+      self.by_id[idnumber] = h
+
+   def del_id(self, i):
+      h = self.by_id[i]
+      del self.by_id[i]
+      del self.by_name[h['name']]
+      self.entries.remove(h)
+
+   def del_name(self, n):
+      self.del_id(self.by_name[n]['id'])
+
+def load_expected():
+   accountsfile = '/var/lib/misc/thishost/all-accounts.json'
+
+   if not os.path.isfile(accountsfile):
+      print >> sys.stderr, "Accountsfile %s not found."%(accountsfile)
+   accounts_json = open(accountsfile, 'r').read()
+   accounts = json.loads(accounts_json)
+
+   entries = UserEntries()
+   for a in accounts:
+      if a['active']:
+         entries.append(a['uid'], a['uidNumber'])
+   return entries
+
+def load_existing():
+   entries = UserEntries()
+   l = subprocess.Popen(('pts', 'listentries', '-users'), stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=None)
+   l.stdin.close()
+   l.stdout.readline() # headers
+   # Name                          ID  Owner Creator
+   for line in l.stdout:
+      line = line.strip()
+      m = re.match('([0-9a-z.-]+) +(\d+) +(-?\d+) +(-?\d+)$', line)
+      if m is None:
+         raise Exception("Cannot parse pts listentries line '%s'."%(line))
+      (name, afsid, owner, creator) = m.groups()
+      entries.append(name, int(afsid), int(owner), int(creator))
+   l.wait()
+   exitcode = l.returncode
+   if not exitcode == 0:
+      raise Exception("pts listentries -users exited with non-zero exit code %d."%(exitcode))
+   return entries
+
+class Krb:
+   def __init__(self, keytab, principal):
+      (fd_dummy, self.ccachefile) = tempfile.mkstemp(prefix='krb5cc')
+      os.environ['KRB5CCNAME'] = self.ccachefile
+      self.kinit(keytab, principal)
+
+   def kinit(self, keytab, principal):
+      subprocess.check_call( ('kinit', '-t', keytab, principal) )
+   def klist(self):
+      subprocess.check_call( ('klist') )
+   def kdestroy(self):
+      if os.path.exists(self.ccachefile):
+         subprocess.check_call( ('kdestroy') )
+      if os.path.exists(self.ccachefile):
+         os.unlink(self.ccachefile)
+
+def filter_common(a, b):
+   ids = a.by_id.keys()
+   for i in ids:
+      if i in b.by_id:
+         if a.by_id[i]['name'] == b.by_id[i]['name']:
+            #print "Common: %s (%d)"%(a.by_id[i]['name'], i)
+            a.del_id(i)
+            b.del_id(i)
+         else:
+            print >> sys.stderr, Excetption("ID %d has different names in our two databases ('%s' vs. '%s')."%(i, a.by_id[i]['name'], b.by_id[i]['name']))
+            sys.exit(1)
+
+   # just make sure there are not same names on both sides
+   # but with differend uids:
+   for n in a.by_name:
+      if n in b.by_name:
+         print >> sys.stderr, Excetption("Name %n has different IDs in our two databases ('%d' vs. '%d')."%(n, a.by_name[n]['id'], b.by_name[n]['id']))
+         sys.exit(1)
+
+def filter_have(a):
+   # removing from the list means we keep the account and
+   # do not delete it later on.
+   names = a.by_name.keys()
+   for n in names:
+      if n == 'anonymous': # keep account, so remove from the have list
+         a.del_name(n)
+         continue
+      m = re.match('[0-9a-z]+$', n)
+      if not m: # weird name, probably has dots like weasel.admin etc.
+         a.del_name(n)
+         continue
+
+def remove_extra(have, ifownedby):
+   for name in have.by_name:
+      if have.by_name[name]['creator'] == ifownedby:
+         subprocess.check_call( ('pts', 'delete', name) )
+         print "Deleted user %s(%d)."%(name, have.by_name[name]['id'])
+      else:
+         print >> sys.stderr, "Did not delete %s because it was not created by me(%d) but by %d."%(name, ifownedby, have.by_name[name]['creator'])
+
+def add_new(want):
+   #for name in want.by_name:
+   #   subprocess.check_call( ('pts', 'createuser', '-name', name, '-id', '%d'%(want.by_name[name]['id'])) )
+   #   print "Added user %s(%d)."%(name, want.by_name[name]['id'])
+   names = []
+   ids = []
+   for name in want.by_name:
+      names.append(name)
+      ids.append('%d'%(want.by_name[name]['id']))
+
+   if len(names) == 0: return
+
+   args = ['pts', 'createuser']
+   for n in names:
+      args.append('-name')
+      args.append(n)
+   for i in ids:
+      args.append('-id')
+      args.append(i)
+   subprocess.check_call(args)
+
+
+def do_accounts():
+   want = load_expected()
+   have = load_existing()
+
+   if not options.user in have.by_name:
+      print >> sys.stderr, "Cannot find our user, '%s', in pts listentries"%(options.user)
+      sys.exit(1)
+   me = have.by_name[options.user]
+
+   filter_common(have, want)
+   filter_have(have)
+   # just for the sake of it, make sure 'want' does not have weird names either.
+   # this gets rid of a few accounts with underscores in them, like buildd_$ARCH
+   # but we might not care about them in AFS anyway
+   filter_have(want)
+
+   remove_extra(have, me['id'])
+   add_new(want)
+
+   created_some = len(want.by_id) > 0
+   return created_some
+
+def do_scratchdir(d):
+   have = load_existing()
+   filter_have(have)
+
+   if not os.path.isdir(d):
+      print >> sys.stderr, "Path '%s' is not a directory"%(d)
+
+   for n in have.by_name:
+      tree = ( n[0], n[0:2] )
+
+      p = d
+      for t in tree:
+         p = os.path.join(p, t)
+         if not os.path.exists(p): os.mkdir(p)
+
+      p = os.path.join(p, n)
+      if os.path.exists(p): continue
+
+      print "Making directory %s"%(p)
+      os.mkdir(p)
+      subprocess.check_call(('fs', 'sa', '-dir', p, '-acl', n, 'all'))
+
+
+parser = optparse.OptionParser()
+parser.add_option("-p", "--principal", dest="principal", metavar="name",
+  help="Principal to auth as")
+parser.add_option("-k", "--keytab", dest="keytab", metavar="file",
+  help="keytab file location")
+parser.add_option("-P", "--PAGed", action="store_true",
+  help="already running in own PAG")
+parser.add_option("-s", "--self", dest="user", metavar="ownafsuser",
+  help="This principal's AFS user")
+parser.add_option("-d", "--dir", dest="scratchdir", action="append",
+  help="scratchdir to create directories in.")
+parser.add_option("-D", "--dircheck-force", dest="dircheck", action="store_true", default=False,
+  help="Check if all user scratch dirs exist even if no new users were created")
+
+(options, args) = parser.parse_args()
+if len(args) > 0:
+   parser.print_help()
+   sys.exit(1)
+
+if not options.PAGed:
+   #print >> sys.stderr, "running self in new PAG"
+   os.execlp('pagsh', 'pagsh', '-c', ' '.join(sys.argv)+" -P")
+
+if options.principal is None:
+   options.principal = "%s/admin"%( pwd.getpwuid(os.getuid())[0] )
+if options.keytab is None:
+   options.keytab = "/etc/userdir-ldap/keytab.%s"%(pwd.getpwuid(os.getuid())[0] )
+if options.user is None:
+   options.user = options.principal.replace('/', '.')
+if options.scratchdir is None:
+   options.scratchdir = ['/afs/debian.org/scratch/eu/grnet']
+
+k = None
+try:
+   k = Krb(options.keytab, options.principal)
+   subprocess.check_call( ('aklog') )
+   #k.klist()
+   #subprocess.check_call( ('tokens') )
+
+   created_some = do_accounts()
+   if created_some or options.dircheck:
+      for d in options.scratchdir:
+         do_scratchdir(d)
+finally:
+   try:
+      subprocess.check_call( ('unlog') )
+   except Exception, e:
+      print >> sys.stderr, "During unlog: %s"%(e)
+      pass
+   if k is not None: k.kdestroy()
+
+
+# vim:set et:
+# vim:set ts=3:
+# vim:set shiftwidth=3:
