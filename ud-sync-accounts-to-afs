@@ -123,7 +123,7 @@ def filter_have(a):
       if n == 'anonymous': # keep account, so remove from the have list
          a.del_name(n)
          continue
-      m = re.match('[0-9a-z]+$', n)
+      m = re.match('[0-9a-z-]+$', n)
       if not m: # weird name, probably has dots like weasel.admin etc.
          a.del_name(n)
          continue
