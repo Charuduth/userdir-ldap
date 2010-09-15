@@ -18,11 +18,10 @@ import sys
 import tempfile
 
 
-import json
-if not '__author__' in json.__dict__:
-   sys.stderr.write("Warning: This is probably the wrong json module.  We want python 2.6's json\n")
-   sys.stderr.write("module, or simplejson on python 2.5.  Let's see if/how stuff blows up.\n")
+try:
    import simplejson as json
+except ImportError:
+   import json # this better be pthon 2.6's json..
 
 class UserEntries:
    def __init__(self):
