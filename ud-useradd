@@ -61,9 +61,18 @@ ForceMail = 0;
 NoAutomaticIDs = 0;
 OldGPGKeyRings = GPGKeyRings;
 userdir_gpg.GPGKeyRings = [];
-(options, arguments) = getopt.getopt(sys.argv[1:], "u:man")
+(options, arguments) = getopt.getopt(sys.argv[1:], "hu:man")
 for (switch, val) in options:
-   if (switch == '-u'):
+   if (switch == '-h'):
+      print "Usage: ud-useradd <options>"
+      print "Available options:"
+      print "        -h         Show this help"
+      print "        -u=<user>  Admin user (defaults to current username)"
+      print "        -m         Force mail (for updates)"
+      print "        -a         Use old keyrings instead (??)"
+      print "        -n         Do not automatically assign UID/GIDs (useful for usergroups or non-default group membership"
+      sys.exit(0)
+   elif (switch == '-u'):
       AdminUser = val;
    elif (switch == '-m'):
       ForceMail = 1;
@@ -333,3 +342,7 @@ Child = os.popen("/usr/sbin/sendmail -t","w");
 Child.write(Reply);
 if Child.close() != None:
    raise Error, "Sendmail gave a non-zero return code";
+
+# vim:set et:
+# vim:set ts=3:
+# vim:set shiftwidth=3:
