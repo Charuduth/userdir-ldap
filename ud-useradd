@@ -22,6 +22,7 @@
 
 import re, time, ldap, getopt, sys, os, pwd;
 import email.Header
+import datetime
 
 from userdir_ldap import *;
 from userdir_gpg import *;
@@ -59,9 +60,10 @@ AdminUser = pwd.getpwuid(os.getuid())[0];
 # Process options
 ForceMail = 0;
 NoAutomaticIDs = 0;
+GuestAccount = False
 OldGPGKeyRings = GPGKeyRings;
 userdir_gpg.GPGKeyRings = [];
-(options, arguments) = getopt.getopt(sys.argv[1:], "hu:man")
+(options, arguments) = getopt.getopt(sys.argv[1:], "hgu:man")
 for (switch, val) in options:
    if (switch == '-h'):
       print "Usage: ud-useradd <options>"
@@ -71,6 +73,7 @@ for (switch, val) in options:
       print "        -m         Force mail (for updates)"
       print "        -a         Use old keyrings instead (??)"
       print "        -n         Do not automatically assign UID/GIDs (useful for usergroups or non-default group membership"
+      print "        -g         Add a guest account"
       sys.exit(0)
    elif (switch == '-u'):
       AdminUser = val;
@@ -80,11 +83,17 @@ for (switch, val) in options:
       userdir_gpg.GPGKeyRings = OldGPGKeyRings;
    elif (switch == '-n'):
       NoAutomaticIDs = 1;
+   elif (switch == '-g'):
+      GuestAccount = True
 
 l = passwdAccessLDAP(BaseDn, AdminUser)
 
 # Locate the key of the user we are adding
-SetKeyrings(ConfModule.add_keyrings.split(":"))
+if GuestAccount:
+   SetKeyrings(ConfModule.add_keyrings_guest.split(":"))
+else:
+   SetKeyrings(ConfModule.add_keyrings.split(":"))
+
 while (1):
    Foo = raw_input("Who are you going to add (for a GPG search)? ");
    if Foo == "":
@@ -179,18 +188,21 @@ if Res != "":
    emailaddr = Res;
 
 # Debian-Private subscription
-if HavePrivateList:
+if HavePrivateList and not GuestAccount:
    Res = raw_input("Subscribe to debian-private (space is none) [" + privsub + "]? ");
    if Res != "":
       privsub = Res;
 else:
    privsub = " "
 
-(uidNumber, generatedGID) = GetFreeID(l)
 if not gidNumber:
-   gidNumber = DefaultGID
-UserGroup = 0
+   if not GuestAccount:
+      gidNumber = DefaultGID
+   else:
+      gidNumber = DebianGroups['guest']
 
+(uidNumber, generatedGID) = GetFreeID(l)
+UserGroup = 0
 if NoAutomaticIDs:
    # UID
    if not Update:
@@ -208,6 +220,21 @@ if NoAutomaticIDs:
    
    if gidNumber == generatedGID:
       UserGroup = 1
+
+shadowExpire = None
+hostacl = []
+if GuestAccount:
+   res = raw_input("Expires in xx days [60] (0 to disable)")
+   if res == "": res = '60'
+   exp = int(res)
+   if exp > 0:
+      shadowExpire = int(time.time() / 3600 / 24) + exp
+   res = raw_input("Hosts to grant access to: ")
+   for h in res.split():
+      if not '.' in h: h = h + '.' + HostDomain
+      if exp > 0: h = h + " " + datetime.datetime.fromtimestamp( time.time() + exp * 24*3600 ).strftime("%Y%m%d")
+      hostacl.append(h)
+
 
 # Generate a random password
 if Update == 0 or ForceMail == 1:
@@ -246,6 +273,11 @@ if HavePrivateList:
 print "   GECOS Field: \"%s,,,,\"" % (FullName);
 print "   Login Shell: /bin/bash";
 print "   Key Fingerprint:",Keys[0][1];
+if shadowExpire:
+   print "   ShadowExpire: %d (%s)"%(shadowExpire, datetime.datetime.fromtimestamp( shadowExpire * 24*3600 ).strftime("%Y%m%d") )
+for h in hostacl:
+   print "   allowedHost: ", h
+
 Res = raw_input("Continue [No/yes]? ");
 if Res != "yes":
    sys.exit(1);
@@ -294,6 +326,11 @@ if Update == 0:
       Details.append(("mn",mn));
    if privsub != " ":
       Details.append(("privateSub",privsub))
+   if shadowExpire:
+      Details.append(("shadowExpire",str(shadowExpire)))
+   if len(hostacl) > 0:
+      Details.append(("allowedHost",hostacl))
+
    l.add_s(Dn,Details);
 
    #Add user group if needed, then the actual user:
