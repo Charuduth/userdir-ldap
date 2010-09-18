@@ -137,7 +137,7 @@ def IsInGroup(account):
   if str(account['gidNumber']) in Allowed: return True
 
   # Check the host based ACL
-  if 'allowedHost' in account and CurrentHost in account['allowedHost']: return True
+  if account.is_allowed_by_hostacl(CurrentHost): return True
 
   # See if there are supplementary groups
   if not 'supplementaryGid' in account: return False

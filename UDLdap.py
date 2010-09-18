@@ -1,6 +1,8 @@
 import ldap
 import time
+import datetime
 import userdir_ldap
+import sys
 
 class Account:
     array_values = ['objectClass', 'keyFingerPrint', 'mailWhitelist', 'mailRBL',
@@ -107,6 +109,24 @@ class Account:
         if 'sn' in self: tokens.append(self['sn'])
         tokens.append(mailbox)
         return ' '.join(tokens)
+
+    def is_allowed_by_hostacl(self, host):
+        if not 'allowedHost' in self: return False
+        if host in self['allowedHost']: return True
+        # or maybe it's a date limited ACL
+        for entry in self['allowedHost']:
+            list = entry.split(None,1)
+            if len(list) == 1: continue
+            (h, expire) = list
+            if host != h: continue
+            try:
+                parsed = datetime.datetime.strptime(expire, '%Y%m%d')
+            except ValueError:
+                print >>sys.stderr, "Cannot parse expiry date in '%s' in hostACL entry for %s."%(entry, self['uid'])
+                return False
+            return parsed >= datetime.datetime.now()
+        return False
+
 
 # vim:set et:
 # vim:set ts=4:
