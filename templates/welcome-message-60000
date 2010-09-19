@@ -12,29 +12,39 @@ Dear __REALNAME__!
 
 An account has been created for you on the Debian machine cluster. You can
 use this account to help make software run properly on the Debian GNU/Linux
-distribution. The username for this account is '__LOGIN__'. The password can
-be found encrypted with your PGP key and appended to this message.
+distribution. The username for this account is '__LOGIN__'.
 
 See <URL:http://db.debian.org/machines.cgi> for a list of machines that are
-available. The ones marked 'public' are available to non-developers.
+available.  The list of which machines you can access is user-dependent.
+To find out which machines you have access to try running
+    ldapsearch -LLL -b dc=debian,dc=org -x -h db.debian.org \
+        uid=__LOGIN__ allowedHost
 
 Requests for Debian software to be installed on the machines (either
 in the host system or a chroot environment) should be directed at
-debian-admin@lists.debian.org.  Please note that not all software is
-available on all architectures.  The chroot environments can be
-entered with the 'dchroot' command.
+debian-admin@lists.debian.org, see the instructions at
+http://dsa.debian.org/doc/install-req/ for details.
+Please note that not all software is available on all architectures.  The
+chroot environments can be entered with the 'dchroot' command.
 
 You should use ssh to log into the machines. See the host details on
 db.debian.org for the ssh hostkey fingerprints for the servers you
 access.  Our LDAP directory is able to share ssh RSA keys among
-machines, please see <URL:http://db.debian.org/doc-mail.html>. Please be
+machines, please see <URL:http://db.debian.org/doc-mail.html> for
+general documentation and for how to add ssh keys to the LDAP. Please be
 aware of the security implications of using RSA authentication and ssh
 agents.
 
-After a short while of inactivity this account will be expired. This account
-is only to be used to help porting/improving free software.
+Your password to access db.debian.org can be found encrypted with your
+PGP key and appended to this message.  It cannot be used to log into
+our machines; see the paragraph on SSH keys above.
 
-Please note while technically there is a __LOGIN__@debian.org address
+After a short while this account will be expired, please contact DSA
+if you need it for longer or wish to re-activate your account once
+expired. This account is only to be used to help porting/improving free
+software.
+
+Please note while technically there might be __LOGIN__@debian.org address
 associated with this account we very much expect you to not use it.  Thanks.
 -- 
 Debian Administration

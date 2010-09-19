@@ -7,8 +7,9 @@ userdir-ldap (0.3.7X) Xnstable; urgency=low
     proper setting hostacls and shadowexpire and picking the
     right keyring.
   * Remove .pgp (v3 pgp key) keyrings from config.
+  * Update guest welcome template.
 
- -- Peter Palfrader <weasel@debian.org>  Sun, 19 Sep 2010 01:44:24 +0200
+ -- Peter Palfrader <weasel@debian.org>  Sun, 19 Sep 2010 01:59:46 +0200
 
 userdir-ldap (0.3.78) unstable; urgency=low
 
