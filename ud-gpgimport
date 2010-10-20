@@ -53,6 +53,57 @@ def LoadOverride(File):
       Split = re.split("[:\n]",Line);
       UnknownMap[Split[0]] = Split[1].strip()
 
+
+def load_keys_from_gpg(keyrings):
+   keys = {}
+
+   # Popen GPG with the correct magic special options
+   ClearKeyrings()
+   SetKeyrings(keyrings)
+
+   Args = [GPGPath] + GPGBasicOptions + GPGKeyRings + GPGSearchOptions + [" 2> /dev/null"]
+   Keys = os.popen(" ".join(Args),"r");
+
+   # Loop over the GPG key file
+   Outstanding = 0;
+   while(1):
+      Line = Keys.readline();
+      if Line == "":
+         break;
+
+      Split = Line.split(":")
+      if len(Split) < 8 or Split[0] != "pub":
+         continue;
+
+      while (1):
+          Line2 = Keys.readline();
+          if Line2 == "":
+             break;
+          Split2 = Line2.split(":");
+          if len(Split2) < 11 or Split2[0] != "fpr":
+             continue;
+          break;
+      if Line2 == "":
+         break;
+
+      pgp_uid = Split[9]
+      fingerprint = Split2[9]
+
+      if fingerprint in keys:
+         print "Duplicate key in keyrings: %s, belonging to %s"%(fingerprint, pgp_uid)
+         continue
+      keys[fingerprint] = pgp_uid
+
+   if Keys.close() != None:
+      raise "Error","GPG failed"
+
+   return keys
+
+
+
+
+
+
 # Process options
 AdminUser = pwd.getpwuid(os.getuid())[0];
 (options, arguments) = getopt.getopt(sys.argv[1:], "au:m:n")
@@ -103,71 +154,36 @@ for x in Attrs:
 Attrs = None;
 print;
 
-# Popen GPG with the correct magic special options
-ClearKeyrings()
-if len(arguments) == 0:
-   print "Using default keyrings: %s"%ConfModule.add_keyrings;
-   SetKeyrings(ConfModule.add_keyrings.split(":"))
-for x in arguments:
-   if x.find("/") == -1:
-      x= "./"+x
-   SetKeyrings( [x] )
 
-Args = [GPGPath] + GPGBasicOptions + GPGKeyRings + GPGSearchOptions + [" 2> /dev/null"]
-Keys = os.popen(" ".join(Args),"r");
+pgpkeys = load_keys_from_gpg( ConfModule.add_keyrings.split(":") )
+pgpkeys_extra = load_keys_from_gpg( ConfModule.add_keyrings_guest.split(":") )
 
-# Loop over the GPG key file
-Outstanding = 0;
 Ignored = 0;
-SeenKeys = {};
-while(1):
-   Line = Keys.readline();
-   if Line == "":
-      break;
-   
-   Split = Line.split(":")
-   if len(Split) < 8 or Split[0] != "pub":
-      continue;
-
-   while (1):
-       Line2 = Keys.readline();
-       if Line2 == "":
-          break;
-       Split2 = Line2.split(":");
-       if len(Split2) < 11 or Split2[0] != "fpr":
-          continue;
-       break;
-   if Line2 == "":
-      break;
-
-   if SeenKeys.has_key(Split2[9]):
-      print "Dup key ",Split2[9],"belonging to",KeyMap[Split2[9]][0];
-      continue;
-   SeenKeys[Split2[9]] = None;
-
-   if KeyMap.has_key(Split2[9]):
+for fpr in pgpkeys:
+   pgp_uid = pgpkeys[fpr]
+   if fpr in KeyMap:
       Ignored = Ignored + 1;
-      # print "Ignoring keyID",Split2[9],"belonging to",KeyMap[Split2[9]][0];
-      KeyMap[Split2[9]][1] = 1;
+      # print "Ignoring keyID",fpr,"belonging to",KeyMap[fpr][0];
+      KeyMap[fpr][1] = 1;
       continue;
-      
-   UID = GetUID(l,SplitEmail(Split[9]),UnknownMap);
+
+   UID = GetUID(l,SplitEmail(pgp_uid),UnknownMap);
    if UID[0] == None:
-      print "None for",SplitEmail(Split[9]),"'%s'"%(Split[9]);
-      if UID[1] != None: 
+      print "Unassigned key in keyrings: %s, belonging to %s"%(fpr, pgp_uid)
+      if UID[1] != None:
          for x in UID[1]: print x;
-      print "MISSING " + Split2[9];
+      print "MISSING " + fpr;
       continue;
 
    UID = UID[0]
-   Rec = [(ldap.MOD_ADD,"keyFingerPrint",Split2[9])];
+   Rec = [(ldap.MOD_ADD,"keyFingerPrint",fpr)];
    Dn = "uid=" + UID + "," + BaseDn;
-   print "Adding key "+Split2[9],"to",UID;
+   print "Adding key "+fpr,"to",UID;
    if KeyCount.has_key(UID):
       KeyCount[UID] = KeyCount[UID] + 1;
    else:
       KeyCount[UID] = 1;
-   
+
    if NoAct == 1:
       continue;
 
@@ -180,14 +196,11 @@ while(1):
 if NoAct == 0:
    FlushOutstanding(l,Outstanding);
 
-if Keys.close() != None:
-   raise "Error","GPG failed"
-
 print Ignored,"keys already in the directory (ignored)";
 
 # Look for unmatched keys
 for x in KeyMap.keys():
-   if KeyMap[x][1] == 0:
+   if KeyMap[x][1] == 0 and not x in pgpkeys_extra:
       print "key %s belonging to %s removed"%(x,KeyMap[x][0]);
       if KeyCount.has_key(KeyMap[x][0]) :
          KeyCount[KeyMap[x][0]] = KeyCount[KeyMap[x][0]] - 1
@@ -196,4 +209,7 @@ for x in KeyMap.keys():
       if NoAct == 0:
          l.modify_s("uid="+KeyMap[x][0]+","+BaseDn,\
                      [(ldap.MOD_DELETE,"keyFingerPrint",x)]);
-      
+
+# vim:set et:
+# vim:set ts=3:
+# vim:set shiftwidth=3:
