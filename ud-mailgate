@@ -41,12 +41,12 @@ ValidHostNames = [] # will be initialized in later
 SSHFingerprint = re.compile('^(\d+) ([0-9a-f\:]{47}) (.+)$')
 SSHRSA1Match = re.compile('^^(.* )?\d+ \d+ \d+')
 
-GenderTable = {"male": 1,
-	       "1": 1,
-	       "female": 2,
-	       "2": 2,
-	       "unspecified": 9,
-	       "9": 9,
+GenderTable = {"male": '1',
+	       "1": '1',
+	       "female": '2',
+	       "2": '2',
+	       "unspecified": '9',
+	       "9": '9',
 };
 
 ArbChanges = {"c": "..",
