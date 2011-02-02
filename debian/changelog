@@ -10,8 +10,9 @@ userdir-ldap (0.3.7X) Xnstable; urgency=low
   * Update guest welcome template.
   * ud-gpgimport: handle guest keyrings.
   * ud-mailgate: Make updating of gender actually work.
+  * templates/change-reply: say a word about subjects in mail to admin@db.
 
- -- Peter Palfrader <weasel@debian.org>  Wed, 05 Jan 2011 09:53:06 +0100
+ -- Peter Palfrader <weasel@debian.org>  Wed, 02 Feb 2011 21:51:43 +0100
 
 userdir-ldap (0.3.78) unstable; urgency=low
 
