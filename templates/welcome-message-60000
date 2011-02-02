@@ -11,7 +11,7 @@ User-Agent: Script run by __WHOAMI__
 Dear __REALNAME__!
 
 An account has been created for you on the Debian machine cluster. You can
-use this account to help make software run properly on the Debian GNU/Linux
+use this account to help make software run properly on the Debian
 distribution. The username for this account is '__LOGIN__'.
 
 See <URL:http://db.debian.org/machines.cgi> for a list of machines that are
