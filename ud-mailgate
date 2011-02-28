@@ -506,6 +506,9 @@ def FinishConfirmSudopassword(l, uid, Attrs):
    global SudoPasswd
    result = "\n"
 
+   if len(SudoPasswd) == 0:
+       return None
+
    res = l.search_s(BaseDn,ldap.SCOPE_ONELEVEL,"uid="+uid, ['sudoPassword']);
    if len(res) != 1:
       raise UDFormatError, "Not exactly one hit when searching for user"
@@ -614,7 +617,8 @@ def HandleChange(Reply,DnRecord,Key):
    if CommitChanges == 1: # only if we are still good to go
       try:
          Res = FinishConfirmSudopassword(l, GetAttr(DnRecord,"uid"), Attrs)
-         Result = Result + Res + "\n";
+         if not Res is None:
+            Result = Result + Res + "\n";
       except Error, e:
          CommitChanges = 0
          Result = Result + "FinishConfirmSudopassword raised an error (%s) - no changes committed\n"%(e);

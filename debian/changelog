@@ -9,10 +9,12 @@ userdir-ldap (0.3.7X) Xnstable; urgency=low
   * Remove .pgp (v3 pgp key) keyrings from config.
   * Update guest welcome template.
   * ud-gpgimport: handle guest keyrings.
-  * ud-mailgate: Make updating of gender actually work.
+  * ud-mailgate:
+    - Make updating of gender actually work.
+    - Do not mess with sudo passwords if nothing changed.
   * templates/change-reply: say a word about subjects in mail to admin@db.
 
- -- Peter Palfrader <weasel@debian.org>  Wed, 02 Feb 2011 21:51:43 +0100
+ -- Peter Palfrader <weasel@debian.org>  Mon, 28 Feb 2011 22:45:32 +0100
 
 userdir-ldap (0.3.78) unstable; urgency=low
 
