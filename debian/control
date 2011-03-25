@@ -8,7 +8,7 @@ Uploaders: Ryan Murray <rmurray@debian.org>, Peter Palfrader <weasel@debian.org>
 
 Package: userdir-ldap
 Architecture: all
-Depends: ${python:Depends}, python-ldap, perl5, procmail, rsync, libnss-db
+Depends: ${python:Depends}, python-ldap, perl5, procmail, rsync, libnss-db, python-lockfile
 Suggests: libnet-ldap-perl, libcrypt-blowfish-perl, gnupg (>= 1.0.3), python-net, python-gdbm, libdate-manip-perl, liburi-perl, userdir-ldap-cgi, python (>= 2.6) | python-simplejson
 Description: Login User Directory in LDAP support scripts
  These scripts simplifiy the creation and management of a LDAP based user
