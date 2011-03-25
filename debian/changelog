@@ -2,7 +2,10 @@ userdir-ldap (0.3.7X) Xnstable; urgency=low
 
   * Add ud-sync-accounts-to-afs, a script to sync accounts to an
     AFS protection database.
-  * ud-generate: support host ACLs that expire.
+  * ud-generate:
+    - support host ACLs that expire.
+    - lock output directory when generating.
+    - support sync keyring dirs now too.
   * ud-useradd: A new -g switch for adding guest accounts, with
     proper setting hostacls and shadowexpire and picking the
     right keyring.
@@ -14,7 +17,7 @@ userdir-ldap (0.3.7X) Xnstable; urgency=low
     - Do not mess with sudo passwords if nothing changed.
   * templates/change-reply: say a word about subjects in mail to admin@db.
 
- -- Peter Palfrader <weasel@debian.org>  Mon, 28 Feb 2011 22:45:32 +0100
+ -- Peter Palfrader <weasel@debian.org>  Fri, 25 Mar 2011 20:03:09 +0100
 
 userdir-ldap (0.3.78) unstable; urgency=low
 
