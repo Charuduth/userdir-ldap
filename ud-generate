@@ -44,18 +44,20 @@ except ImportError:
       sys.stderr.write("Warning: This is probably the wrong json module.  We want python 2.6's json\n")
       sys.stderr.write("module, or simplejson on pytyon 2.5.  Let's see if/how stuff blows up.\n")
 
-global Allowed
-global CurrentHost
-
 if os.getuid() == 0:
    sys.stderr.write("You should probably not run ud-generate as root.\n")
    sys.exit(1)
 
-DebianUsers = None
+
+#
+# GLOBAL STATE
+#
 GroupIDMap = {}
 SubGroupMap = {}
 Allowed = None
 CurrentHost = ""
+
+
 
 UUID_FORMAT = '[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}'
 
@@ -315,12 +317,12 @@ def GenShadowSudo(accounts, File, untrusted):
    Done(File, F, None)
 
 # Generate the shadow list
-def GenSSHShadow(accounts):
+def GenSSHShadow(global_dir, accounts):
    # Fetch all the users
    userfiles = []
 
-   safe_rmtree(os.path.join(GlobalDir, 'userkeys'))
-   safe_makedirs(os.path.join(GlobalDir, 'userkeys'))
+   safe_rmtree(os.path.join(global_dir, 'userkeys'))
+   safe_makedirs(os.path.join(global_dir, 'userkeys'))
 
    for a in accounts:
       if not 'sshRSAAuthKey' in a: continue
@@ -328,7 +330,7 @@ def GenSSHShadow(accounts):
       F = None
       try:
          OldMask = os.umask(0077)
-         File = os.path.join(GlobalDir, 'userkeys', a['uid'])
+         File = os.path.join(global_dir, 'userkeys', a['uid'])
          F = open(File + ".tmp", "w", 0600)
          os.umask(OldMask)
 
@@ -350,9 +352,9 @@ def GenSSHShadow(accounts):
 
    return userfiles
 
-def GenSSHtarballs(userlist, SSHFiles, grouprevmap, target):
+def GenSSHtarballs(global_dir, userlist, SSHFiles, grouprevmap, target):
    OldMask = os.umask(0077)
-   tf = tarfile.open(name=os.path.join(GlobalDir, 'ssh-keys-%s.tar.gz' % CurrentHost), mode='w:gz')
+   tf = tarfile.open(name=os.path.join(global_dir, 'ssh-keys-%s.tar.gz' % CurrentHost), mode='w:gz')
    os.umask(OldMask)
    for f in userlist.keys():
       if f not in SSHFiles:
@@ -376,7 +378,7 @@ def GenSSHtarballs(userlist, SSHFiles, grouprevmap, target):
          print "User %s is supposed to have their key exported to host %s but their primary group (gid: %d) isn't in LDAP" % (f, CurrentHost, userlist[f])
          continue
 
-      to = tf.gettarinfo(os.path.join(GlobalDir, 'userkeys', f), f)
+      to = tf.gettarinfo(os.path.join(global_dir, 'userkeys', f), f)
       # These will only be used where the username doesn't
       # exist on the target system for some reason; hence,
       # in those cases, the safest thing is for the file to
@@ -393,7 +395,7 @@ def GenSSHtarballs(userlist, SSHFiles, grouprevmap, target):
       to.gname = grname
       to.mode  = 0400
 
-      contents = file(os.path.join(GlobalDir, 'userkeys', f)).read()
+      contents = file(os.path.join(global_dir, 'userkeys', f)).read()
       lines = []
       for line in contents.splitlines():
          if line.startswith("allowed_hosts=") and ' ' in line:
@@ -408,7 +410,7 @@ def GenSSHtarballs(userlist, SSHFiles, grouprevmap, target):
       tf.addfile(to, StringIO(contents))
 
    tf.close()
-   os.rename(os.path.join(GlobalDir, 'ssh-keys-%s.tar.gz' % CurrentHost), target)
+   os.rename(os.path.join(global_dir, 'ssh-keys-%s.tar.gz' % CurrentHost), target)
 
 # add a list of groups to existing groups,
 # including all subgroups thereof, recursively.
@@ -774,15 +776,13 @@ def ExtractDNSInfo(x):
    return DNSInfo
 
 # Generate the DNS records
-def GenZoneRecords(File):
+def GenZoneRecords(host_attrs, File):
    F = None
    try:
       F = open(File + ".tmp", "w")
 
       # Fetch all the hosts
-      global HostAttrs
-
-      for x in HostAttrs:
+      for x in host_attrs:
          if x[1].has_key("hostname") == 0:
             continue
 
@@ -877,16 +877,14 @@ def HostToIP(Host, mapped=True):
    return IPAdresses
 
 # Generate the ssh known hosts file
-def GenSSHKnown(File, mode=None):
+def GenSSHKnown(host_attrs, File, mode=None):
    F = None
    try:
       OldMask = os.umask(0022)
       F = open(File + ".tmp", "w", 0644)
       os.umask(OldMask)
      
-      global HostAttrs
-     
-      for x in HostAttrs:
+      for x in host_attrs:
          if x[1].has_key("hostname") == 0 or \
             x[1].has_key("sshRSAHostKey") == 0:
             continue
@@ -931,7 +929,7 @@ def GenSSHKnown(File, mode=None):
    Done(File, F, None)
 
 # Generate the debianhosts file (list of all IP addresses)
-def GenHosts(File):
+def GenHosts(host_attrs, File):
    F = None
    try:
       OldMask = os.umask(0022)
@@ -940,9 +938,7 @@ def GenHosts(File):
      
       seen = set()
 
-      global HostAttrs
-
-      for x in HostAttrs:
+      for x in host_attrs:
 
          if IsDebianHost.match(GetAttr(x, "hostname")) is None:
             continue
@@ -967,105 +963,108 @@ def GenKeyrings(OutDir):
    for k in Keyrings:
       shutil.copy(k, OutDir)
 
-# Connect to the ldap server
-l = connectLDAP()
-# for testing purposes it's sometimes useful to pass username/password
-# via the environment
-if 'UD_CREDENTIALS' in os.environ:
-   Pass = os.environ['UD_CREDENTIALS'].split()
-else:
-   F = open(PassDir + "/pass-" + pwd.getpwuid(os.getuid())[0], "r")
-   Pass = F.readline().strip().split(" ")
-   F.close()
-l.simple_bind_s("uid=" + Pass[0] + "," + BaseDn, Pass[1])
 
-# Fetch all the groups
-GroupIDMap = {}
-Attrs = l.search_s(BaseDn, ldap.SCOPE_ONELEVEL, "gid=*",\
-                  ["gid", "gidNumber", "subGroup"])
+def get_accounts(ldap_conn):
+   # Fetch all the users
+   passwd_attrs = ldap_conn.search_s(BaseDn, ldap.SCOPE_ONELEVEL, "(&(uid=*)(!(uidNumber=0)))",\
+                   ["uid", "uidNumber", "gidNumber", "supplementaryGid",\
+                    "gecos", "loginShell", "userPassword", "shadowLastChange",\
+                    "shadowMin", "shadowMax", "shadowWarning", "shadowInactive",
+                    "shadowExpire", "emailForward", "latitude", "longitude",\
+                    "allowedHost", "sshRSAAuthKey", "dnsZoneEntry", "cn", "sn",\
+                    "keyFingerPrint", "privateSub", "mailDisableMessage",\
+                    "mailGreylisting", "mailCallout", "mailRBL", "mailRHSBL",\
+                    "mailWhitelist", "sudoPassword", "objectClass", "accountStatus",\
+                    "mailContentInspectionAction"])
 
-# Generate the SubGroupMap and GroupIDMap
-for x in Attrs:
-   if x[1].has_key("accountStatus") and x[1]['accountStatus'] == "disabled":
-      continue
-   if x[1].has_key("gidNumber") == 0:
-      continue
-   GroupIDMap[x[1]["gid"][0]] = int(x[1]["gidNumber"][0])
-   if x[1].has_key("subGroup") != 0:
-      SubGroupMap.setdefault(x[1]["gid"][0], []).extend(x[1]["subGroup"])
+   if passwd_attrs is None:
+      raise UDEmptyList, "No Users"
+   accounts = map(lambda x: UDLdap.Account(x[0], x[1]), passwd_attrs)
+   accounts.sort(lambda x,y: cmp(x['uid'].lower(), y['uid'].lower()))
 
-# Fetch all the users
-passwd_attrs = l.search_s(BaseDn, ldap.SCOPE_ONELEVEL, "(&(uid=*)(!(uidNumber=0)))",\
-                ["uid", "uidNumber", "gidNumber", "supplementaryGid",\
-                 "gecos", "loginShell", "userPassword", "shadowLastChange",\
-                 "shadowMin", "shadowMax", "shadowWarning", "shadowInactive",
-                 "shadowExpire", "emailForward", "latitude", "longitude",\
-                 "allowedHost", "sshRSAAuthKey", "dnsZoneEntry", "cn", "sn",\
-                 "keyFingerPrint", "privateSub", "mailDisableMessage",\
-                 "mailGreylisting", "mailCallout", "mailRBL", "mailRHSBL",\
-                 "mailWhitelist", "sudoPassword", "objectClass", "accountStatus",\
-                 "mailContentInspectionAction"])
+   return accounts
 
-if passwd_attrs is None:
-   raise UDEmptyList, "No Users"
-accounts = map(lambda x: UDLdap.Account(x[0], x[1]), passwd_attrs)
-accounts.sort(lambda x,y: cmp(x['uid'].lower(), y['uid'].lower()))
+def get_hosts(ldap_conn):
+   # Fetch all the hosts
+   HostAttrs    = ldap_conn.search_s(HostBaseDn, ldap.SCOPE_ONELEVEL, "objectClass=debianServer",\
+                   ["hostname", "sshRSAHostKey", "purpose", "allowedGroups", "exportOptions",\
+                    "mXRecord", "ipHostNumber", "dnsTTL", "machine", "architecture"])
 
-# Fetch all the hosts
-HostAttrs    = l.search_s(HostBaseDn, ldap.SCOPE_ONELEVEL, "objectClass=debianServer",\
-                ["hostname", "sshRSAHostKey", "purpose", "allowedGroups", "exportOptions",\
-                 "mXRecord", "ipHostNumber", "dnsTTL", "machine", "architecture"])
+   if HostAttrs == None:
+      raise UDEmptyList, "No Hosts"
 
-if HostAttrs == None:
-   raise UDEmptyList, "No Hosts"
+   HostAttrs.sort(lambda x, y: cmp((GetAttr(x, "hostname")).lower(), (GetAttr(y, "hostname")).lower()))
 
-HostAttrs.sort(lambda x, y: cmp((GetAttr(x, "hostname")).lower(), (GetAttr(y, "hostname")).lower()))
+   return HostAttrs
 
-# override globaldir for testing
-if 'UD_GENERATEDIR' in os.environ:
-   GenerateDir = os.environ['UD_GENERATEDIR']
 
-# Generate global things
-GlobalDir = GenerateDir + "/"
-accounts_disabled = GenDisabledAccounts(accounts, GlobalDir + "disabled-accounts")
+def make_ldap_conn():
+   # Connect to the ldap server
+   l = connectLDAP()
+   # for testing purposes it's sometimes useful to pass username/password
+   # via the environment
+   if 'UD_CREDENTIALS' in os.environ:
+      Pass = os.environ['UD_CREDENTIALS'].split()
+   else:
+      F = open(PassDir + "/pass-" + pwd.getpwuid(os.getuid())[0], "r")
+      Pass = F.readline().strip().split(" ")
+      F.close()
+   l.simple_bind_s("uid=" + Pass[0] + "," + BaseDn, Pass[1])
 
-accounts = filter(lambda x: not IsRetired(x), accounts)
-#accounts_DDs = filter(lambda x: IsGidDebian(x), accounts)
+   return l
 
-CheckForward(accounts)
+def generate_all(global_dir, ldap_conn):
+   accounts = get_accounts(ldap_conn)
+   host_attrs = get_hosts(ldap_conn)
 
-GenMailDisable(accounts, GlobalDir + "mail-disable")
-GenCDB(accounts, GlobalDir + "mail-forward.cdb", 'emailForward')
-GenCDB(accounts, GlobalDir + "mail-contentinspectionaction.cdb", 'mailContentInspectionAction')
-GenPrivate(accounts, GlobalDir + "debian-private")
-GenSSHKnown(GlobalDir+"authorized_keys", 'authorized_keys')
-GenMailBool(accounts, GlobalDir + "mail-greylist", "mailGreylisting")
-GenMailBool(accounts, GlobalDir + "mail-callout", "mailCallout")
-GenMailList(accounts, GlobalDir + "mail-rbl", "mailRBL")
-GenMailList(accounts, GlobalDir + "mail-rhsbl", "mailRHSBL")
-GenMailList(accounts, GlobalDir + "mail-whitelist", "mailWhitelist")
-GenKeyrings(GlobalDir)
+   global_dir += '/'
+   # Generate global things
+   accounts_disabled = GenDisabledAccounts(accounts, global_dir + "disabled-accounts")
 
-# Compatibility.
-GenForward(accounts, GlobalDir + "forward-alias")
+   accounts = filter(lambda x: not IsRetired(x), accounts)
+   #accounts_DDs = filter(lambda x: IsGidDebian(x), accounts)
 
-GenAllUsers(accounts, GlobalDir + 'all-accounts.json')
-accounts = filter(lambda a: not a in accounts_disabled, accounts)
+   CheckForward(accounts)
 
-SSHFiles = GenSSHShadow(accounts)
-GenMarkers(accounts, GlobalDir + "markers")
-GenSSHKnown(GlobalDir + "ssh_known_hosts")
-GenHosts(GlobalDir + "debianhosts")
+   GenMailDisable(accounts, global_dir + "mail-disable")
+   GenCDB(accounts, global_dir + "mail-forward.cdb", 'emailForward')
+   GenCDB(accounts, global_dir + "mail-contentinspectionaction.cdb", 'mailContentInspectionAction')
+   GenPrivate(accounts, global_dir + "debian-private")
+   GenSSHKnown(host_attrs, global_dir+"authorized_keys", 'authorized_keys')
+   GenMailBool(accounts, global_dir + "mail-greylist", "mailGreylisting")
+   GenMailBool(accounts, global_dir + "mail-callout", "mailCallout")
+   GenMailList(accounts, global_dir + "mail-rbl", "mailRBL")
+   GenMailList(accounts, global_dir + "mail-rhsbl", "mailRHSBL")
+   GenMailList(accounts, global_dir + "mail-whitelist", "mailWhitelist")
+   GenKeyrings(global_dir)
 
-for host in HostAttrs:
-   if not "hostname" in host[1]:
-      continue
+   # Compatibility.
+   GenForward(accounts, global_dir + "forward-alias")
+
+   GenAllUsers(accounts, global_dir + 'all-accounts.json')
+   accounts = filter(lambda a: not a in accounts_disabled, accounts)
+
+   ssh_files = GenSSHShadow(global_dir, accounts)
+   GenMarkers(accounts, global_dir + "markers")
+   GenSSHKnown(host_attrs, global_dir + "ssh_known_hosts")
+   GenHosts(host_attrs, global_dir + "debianhosts")
+
+   GenDNS(accounts, global_dir + "dns-zone")
+   GenZoneRecords(host_attrs, global_dir + "dns-sshfp")
+
+   for host in host_attrs:
+      if not "hostname" in host[1]:
+         continue
+      generate_host(host, global_dir, accounts, ssh_files)
+
+def generate_host(host, global_dir, accounts, ssh_files):
+   global CurrentHost
 
    CurrentHost = host[1]['hostname'][0]
-   OutDir = GlobalDir + CurrentHost + '/'
+   OutDir = global_dir + CurrentHost + '/'
    try:
       os.mkdir(OutDir)
-   except: 
+   except:
       pass
 
    # Get the group list and convert any named groups to numerics
@@ -1084,13 +1083,14 @@ for host in HostAttrs:
       for extra in host[1]['exportOptions']:
          ExtraList[extra.upper()] = True
 
+   global Allowed
    Allowed = GroupList
    if Allowed == {}:
       Allowed = None
 
-   DoLink(GlobalDir, OutDir, "debianhosts")
-   DoLink(GlobalDir, OutDir, "ssh_known_hosts")
-   DoLink(GlobalDir, OutDir, "disabled-accounts")
+   DoLink(global_dir, OutDir, "debianhosts")
+   DoLink(global_dir, OutDir, "ssh_known_hosts")
+   DoLink(global_dir, OutDir, "disabled-accounts")
 
    sys.stdout.flush()
    if 'NOPASSWD' in ExtraList:
@@ -1103,52 +1103,75 @@ for host in HostAttrs:
 
    # Now we know who we're allowing on the machine, export
    # the relevant ssh keys
-   GenSSHtarballs(userlist, SSHFiles, grouprevmap, os.path.join(OutDir, 'ssh-keys.tar.gz'))
+   GenSSHtarballs(global_dir, userlist, ssh_files, grouprevmap, os.path.join(OutDir, 'ssh-keys.tar.gz'))
 
    if not 'NOPASSWD' in ExtraList:
       GenShadow(accounts, OutDir + "shadow")
 
    # Link in global things
    if not 'NOMARKERS' in ExtraList:
-      DoLink(GlobalDir, OutDir, "markers")
-   DoLink(GlobalDir, OutDir, "mail-forward.cdb")
-   DoLink(GlobalDir, OutDir, "mail-contentinspectionaction.cdb")
-   DoLink(GlobalDir, OutDir, "mail-disable")
-   DoLink(GlobalDir, OutDir, "mail-greylist")
-   DoLink(GlobalDir, OutDir, "mail-callout")
-   DoLink(GlobalDir, OutDir, "mail-rbl")
-   DoLink(GlobalDir, OutDir, "mail-rhsbl")
-   DoLink(GlobalDir, OutDir, "mail-whitelist")
-   DoLink(GlobalDir, OutDir, "all-accounts.json")
+      DoLink(global_dir, OutDir, "markers")
+   DoLink(global_dir, OutDir, "mail-forward.cdb")
+   DoLink(global_dir, OutDir, "mail-contentinspectionaction.cdb")
+   DoLink(global_dir, OutDir, "mail-disable")
+   DoLink(global_dir, OutDir, "mail-greylist")
+   DoLink(global_dir, OutDir, "mail-callout")
+   DoLink(global_dir, OutDir, "mail-rbl")
+   DoLink(global_dir, OutDir, "mail-rhsbl")
+   DoLink(global_dir, OutDir, "mail-whitelist")
+   DoLink(global_dir, OutDir, "all-accounts.json")
    GenCDB(filter(lambda x: IsInGroup(x), accounts), OutDir + "user-forward.cdb", 'emailForward')
    GenCDB(filter(lambda x: IsInGroup(x), accounts), OutDir + "batv-tokens.cdb", 'bATVToken')
    GenCDB(filter(lambda x: IsInGroup(x), accounts), OutDir + "default-mail-options.cdb", 'mailDefaultOptions')
 
    # Compatibility.
-   DoLink(GlobalDir, OutDir, "forward-alias")
+   DoLink(global_dir, OutDir, "forward-alias")
 
    if 'DNS' in ExtraList:
-      GenDNS(accounts, OutDir + "dns-zone")
-      GenZoneRecords(OutDir + "dns-sshfp")
+      DoLink(global_dir, OutDir, "dns-zone")
+      DoLink(global_dir, OutDir, "dns-sshfp")
 
    if 'AUTHKEYS' in ExtraList:
-      DoLink(GlobalDir, OutDir, "authorized_keys")
+      DoLink(global_dir, OutDir, "authorized_keys")
 
    if 'BSMTP' in ExtraList:
       GenBSMTP(accounts, OutDir + "bsmtp", HomePrefix)
 
    if 'PRIVATE' in ExtraList:
-      DoLink(GlobalDir, OutDir, "debian-private")
+      DoLink(global_dir, OutDir, "debian-private")
 
    if 'KEYRING' in ExtraList:
       for k in Keyrings:
-        DoLink(GlobalDir, OutDir, os.path.basename(k))
+        DoLink(global_dir, OutDir, os.path.basename(k))
    else:
       for k in Keyrings:
-         try: 
+         try:
             posix.remove(OutDir + os.path.basename(k))
          except:
             pass
+
+l = make_ldap_conn()
+
+# Fetch all the groups
+GroupIDMap = {}
+attrs = l.search_s(BaseDn, ldap.SCOPE_ONELEVEL, "gid=*",\
+                  ["gid", "gidNumber", "subGroup"])
+
+# Generate the SubGroupMap and GroupIDMap
+for x in attrs:
+   if x[1].has_key("accountStatus") and x[1]['accountStatus'] == "disabled":
+      continue
+   if x[1].has_key("gidNumber") == 0:
+      continue
+   GroupIDMap[x[1]["gid"][0]] = int(x[1]["gidNumber"][0])
+   if x[1].has_key("subGroup") != 0:
+      SubGroupMap.setdefault(x[1]["gid"][0], []).extend(x[1]["subGroup"])
+
+# override globaldir for testing
+if 'UD_GENERATEDIR' in os.environ:
+   GenerateDir = os.environ['UD_GENERATEDIR']
+
+generate_all(GenerateDir, l)
 
 # vim:set et:
 # vim:set ts=3:
