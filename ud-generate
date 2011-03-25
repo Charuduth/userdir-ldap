@@ -981,9 +981,18 @@ def GenHosts(host_attrs, File):
       raise
    Done(File, F, None)
 
+def replaceTree(src, dst_basedir):
+   bn = os.path.basename(src)
+   dst = os.path.join(dst_basedir, bn)
+   safe_rmtree(dst)
+   shutil.copytree(src, dst)
+
 def GenKeyrings(OutDir):
    for k in Keyrings:
-      shutil.copy(k, OutDir)
+      if os.path.isdir(k):
+         replaceTree(k, OutDir)
+      else:
+         shutil.copy(k, OutDir)
 
 
 def get_accounts(ldap_conn):
@@ -1164,11 +1173,21 @@ def generate_host(host, global_dir, accounts, ssh_files):
 
    if 'KEYRING' in ExtraList:
       for k in Keyrings:
-        DoLink(global_dir, OutDir, os.path.basename(k))
+         bn = os.path.basename(k)
+         if os.path.isdir(k):
+            src = os.path.join(global_dir, bn)
+            replaceTree(src, OutDir)
+         else:
+            DoLink(global_dir, OutDir, bn)
    else:
       for k in Keyrings:
          try:
-            posix.remove(OutDir + os.path.basename(k))
+            bn = os.path.basename(k)
+            target = os.path.join(OutDir, bn)
+            if os.path.isdir(target):
+               safe_rmtree(dst)
+            else:
+               posix.remove(target)
          except:
             pass
 
