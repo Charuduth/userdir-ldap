@@ -10,6 +10,7 @@
 import userdir_gpg, userdir_ldap, sys, traceback, time, ldap, os, commands
 import pwd, tempfile
 import subprocess
+import email, email.parser
 
 from userdir_gpg import *
 from userdir_ldap import *
@@ -751,8 +752,8 @@ try:
    # Get the email 
    ErrType = EX_PERMFAIL;
    ErrMsg = "Failed to understand the email or find a signature:";
-   Email = mimetools.Message(sys.stdin,0);
-   Msg = GetClearSig(Email);
+   email = email.parser.Parser().parse(sys.stdin);
+   Msg = GetClearSig(email);
 
    ErrMsg = "Message is not PGP signed:"
    if Msg[0].find("-----BEGIN PGP SIGNED MESSAGE-----") == -1 and \
@@ -773,11 +774,8 @@ try:
    global PlainText;
    ErrMsg = "Problem stripping MIME headers from the decoded message"
    if Msg[1] == 1:
-      try:
-         Index = pgp.text.index("\n\n") + 2
-      except ValueError:
-         Index = pgp.text.index("\n\r\n") + 3
-      PlainText = pgp.text[Index:]
+      e = email.parser.Parser().parsestr(pgp.text)
+      PlainText = e.get_payload(decode=True)
    else:
       PlainText = pgp.text
 
@@ -800,22 +798,13 @@ try:
 
    # Check the signature against the replay cache
    RC = ReplayCache(ReplayCacheFile);
-   RC.Clean();
-   ErrMsg = "The replay cache rejected your message. Check your clock!";
-   Rply = RC.Check(pgp.sig_info);
-   if Rply != None:
-      RC.close()
-      raise UDNotAllowedError, Rply;
-   RC.Add(pgp.sig_info);
-   RC.close()
+   RC.process(pgp.sig_info)
 
    # Determine the sender address
    ErrMsg = "A problem occured while trying to formulate the reply";
-   Sender = Email.getheader("Reply-To");
-   if Sender == None:
-      Sender = Email.getheader("From");
-   if Sender == None:
-      raise UDFormatError, "Unable to determine the sender's address";
+   Sender = email['Reply-To']
+   if not Sender: Sender = email['From']
+   if not Sender: raise UDFormatError, "Unable to determine the sender's address";
 
    # Formulate a reply
    Date = time.strftime("%a, %d %b %Y %H:%M:%S +0000",time.gmtime(time.time()));

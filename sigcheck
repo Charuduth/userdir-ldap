@@ -26,6 +26,7 @@
 
 import sys, traceback, time, os;
 import pwd, getopt;
+import email, email.parser
 from userdir_gpg import *;
 
 EX_TEMPFAIL = 75;
@@ -124,17 +125,16 @@ try:
    if ReplayCacheFile != None:
       ErrMsg = "Failed to initialize the replay cache:";
       RC = ReplayCache(ReplayCacheFile);
-      RC.Clean();
-   
+
    # Get the email 
    ErrType = EX_PERMFAIL;
    ErrMsg = "Failed to understand the email or find a signature:";
-   Email = mimetools.Message(sys.stdin,0);
-   MsgID = Email.getheader("Message-ID");
+   email = email.parser.Parser().parse(sys.stdin);
+   MsgID = email["Message-ID"]
+
    print "Inspecting message %s"%MsgID;
    verbmsg("Processing message %s" % MsgID)
-   Msg = GetClearSig(Email,1);
-   # print Msg
+   Msg = GetClearSig(email,1);
    if AllowMIME == 0 and Msg[1] != 0:
       raise Error, "PGP/MIME disallowed";
   
@@ -144,34 +144,28 @@ try:
    
    # Check the signature
    ErrMsg = "Unable to check the signature or the signature was invalid:";
-   Res = GPGCheckSig(Msg[0]);
+   pgp = GPGCheckSig2(Msg[0])
 
-   if Res[0] != None:
-      raise Error, Res[0];
-      
-   if Res[3] == None:
-      raise Error, "Null signature text";
+   if not pgp.ok:
+      raise UDFormatError, pgp.why
+   if pgp.text is None:
+      raise UDFormatError, "Null signature text"
 
    # Check the signature against the replay cache
    if ReplayCacheFile != None:
-      ErrMsg = "The replay cache rejected your message. Check your clock!";
-      Rply = RC.Check(Res[1]);
-      if Rply != None:
-         raise Error, Rply;
-      RC.Add(Res[1]);
-      RC.close();
+      RC.process(pgp.sig_info)
 
    # Do LDAP stuff
    if LDAPDn != None:
-      CheckLDAP(Res[2][1]);
-         
+      CheckLDAP(pgp.key_fpr)
+
    ErrMsg = "Verifying message:";
    if Phrases != None:
       F = open(Phrases,"r");
       while 1:
 	  Line = F.readline();
 	  if Line == "": break;
-	  if Res[3].find(Line.strip()) == -1:
+	  if pgp.text.find(Line.strip()) == -1:
 	      raise Error,"Phrase '%s' was not found" % (Line.strip())
       
 except:

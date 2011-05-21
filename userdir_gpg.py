@@ -26,8 +26,11 @@
 #    packets so I can tell if a signature is made by pgp2 to enable the
 #    pgp2 encrypting mode.
 
-import mimetools, multifile, sys, StringIO, os, tempfile, re;
+import sys, StringIO, os, tempfile, re;
 import time, fcntl, anydbm
+import email, email.message
+
+from userdir_exceptions import *
 
 # General GPG options
 GPGPath = "gpg"
@@ -75,109 +78,78 @@ def SetKeyrings(Rings):
 # Paranoid will check the message text to make sure that all the plaintext is
 # in fact signed (bounded by a PGP packet)
 def GetClearSig(Msg,Paranoid = 0):
-   Error = 'MIME Error';
+   if not Msg.__class__ == email.message.Message:
+      raise RuntimeError, "GetClearSign() not called with a email.message.Message"
+
    # See if this is a MIME encoded multipart signed message
-   if Msg.gettype() == "multipart/signed":
-      Boundary = Msg.getparam("boundary");
-      if not Boundary:
-         raise Error, "multipart/* without a boundary parameter";
+   if Msg.is_multipart():
+      if not Msg.get_content_type() == "multipart/signed":
+         raise UDFormatError, "Cannot handle multipart messages not of type multipart/signed";
 
-      # Create the multipart handler. Regrettably their implementation
-      # Needs seeking..
-      SkMessage = StringIO.StringIO();
-      SkMessage.write(Msg.fp.read());
-      SkMessage.seek(0);
-      mf = multifile.MultiFile(SkMessage)
-      mf.push(Msg.getparam("boundary"));
+      if Paranoid:
+         if Msg.preamble is not None and Msg.preamble.strip() != "":
+            raise UDFormatError,"Unsigned text in message (at start)";
+         if Msg.epilogue is not None and Msg.epilogue.strip() != "":
+            raise UDFormatError,"Unsigned text in message (at end)";
 
-      # Check the first bit of the message..
-      if Paranoid != 0:
-         Pos = mf.tell();
-         while 1:
-             x = mf.readline();
-             if not x: break;
-             if len(x.strip()) != 0:
-                raise Error,"Unsigned text in message (at start)";
-         mf.seek(Pos);
+      payloads = Msg.get_payload()
+      if len(payloads) != 2:
+         raise UDFormatError, "multipart/signed message with number of payloads != 2";
 
-      # Get the first part of the multipart message
-      if not mf.next():
-         raise Error, "Invalid pgp/mime encoding [no section]";
+      (Signed, Signature) = payloads
 
-      # Get the part as a safe seekable stream
-      Signed = StringIO.StringIO();
-      Signed.write(mf.read());
-      InnerMsg = mimetools.Message(Signed);
-
-      # Make sure it is the right type
-      if InnerMsg.gettype() != "text/plain":
-         raise Error, "Invalid pgp/mime encoding [wrong plaintext type]";
-
-      # Get the next part of the multipart message
-      if not mf.next():
-         raise Error, "Invalid pgp/mime encoding [no section]";
-      InnerMsg = mimetools.Message(mf);
-      if InnerMsg.gettype() != "application/pgp-signature":
-         raise Error, "Invalid pgp/mime encoding [wrong signature type]";
-      Signature = ''.join(mf.readlines())
-
-      # Check the last bit of the message..
-      if Paranoid != 0:
-         mf.pop();
-         Pos = mf.tell();
-         while 1:
-             x = mf.readline();
-             if not x: break;
-             if len(x.strip()) != 0:
-                raise Error,"Unsigned text in message (at end)";
-         mf.seek(Pos);
+      if Signed.get_content_type() != "text/plain":
+         raise UDFormatError, "Invalid pgp/mime encoding [wrong plaintext type]";
+      if Signature.get_content_type() != "application/pgp-signature":
+         raise UDFormatError, "Invalid pgp/mime encoding [wrong signature type]";
 
       # Append the PGP boundary header and the signature text to re-form the
       # original signed block [needs to convert to \r\n]
       Output = "-----BEGIN PGP SIGNED MESSAGE-----\r\n";
       # Semi-evil hack to get the proper hash type inserted in the message
-      if Msg.getparam('micalg') != None:
-          Output = Output + "Hash: MD5,SHA1,%s\r\n"%(Msg.getparam('micalg')[4:].upper())
+      if Msg.get_param('micalg') != None:
+          Output = Output + "Hash: MD5,SHA1,%s\r\n"%(Msg.get_param('micalg')[4:].upper())
       Output = Output + "\r\n";
-      Output = Output + Signed.getvalue().replace("\n-","\n- -") + Signature
+      Output = Output + Signed.as_string().replace("\n-","\n- -") + "\n" + Signature.get_payload(decode=True)
       return (Output,1);
    else:
       if Paranoid == 0:
          # Just return the message body
-         return (''.join(Msg.fp.readlines()),0);
+         return (Msg.get_payload(decode=True), 0);
 
-      Body = "";
+      Body = [];
       State = 1;
-      for x in Msg.fp.readlines():
-          Body = Body + x;
-          Tmp = x.strip()
-          if len(Tmp) == 0:
+      for x in Msg.get_payload(decode=True).split('\n'):
+          Body.append(x)
+
+          if x == "":
              continue;
 
           # Leading up to the signature
           if State == 1:
-             if Tmp == "-----BEGIN PGP SIGNED MESSAGE-----":
+             if x == "-----BEGIN PGP SIGNED MESSAGE-----":
                 State = 2;
              else:
-                raise Error,"Unsigned text in message (at start)";
+                raise UDFormatError,"Unsigned text in message (at start)";
              continue;
 
           # In the signature plain text
           if State == 2:
-             if Tmp == "-----BEGIN PGP SIGNATURE-----":
+             if x == "-----BEGIN PGP SIGNATURE-----":
                 State = 3;
              continue;
 
           # In the signature
           if State == 3:
-             if Tmp == "-----END PGP SIGNATURE-----":
+             if x == "-----END PGP SIGNATURE-----":
                 State = 4;
              continue;
 
           # Past the end
           if State == 4:
-             raise Error,"Unsigned text in message (at end)";
-      return (Body,0);
+             raise UDFormatError,"Unsigned text in message (at end)";
+
+      return ("\n".join(Body), 0);
 
 # This opens GPG in 'write filter' mode. It takes Message and sends it
 # to GPGs standard input, pipes the standard output to a temp file along
@@ -546,6 +518,7 @@ class ReplayCache:
       self.CleanCutOff = CleanCutOff;
       self.AgeCutOff = AgeCutOff;
       self.FutureCutOff = FutureCutOff;
+      self.Clean()
 
    # Close the cache and lock
    def __del__(self):
@@ -587,6 +560,13 @@ class ReplayCache:
             self.DB[Key] = str(int(Sig[1]));
       else:
          self.DB[Key] = str(int(Sig[1]));
+
+   def process(self, sig_info):
+      r = self.Check(sig_info);
+      if r != None:
+         raise RuntimeError, "The replay cache rejected your message: %s."%(r);
+      self.Add(sig_info);
+      self.close();
 
 # vim:set et:
 # vim:set ts=3:

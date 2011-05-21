@@ -17,8 +17,12 @@ userdir-ldap (0.3.7X) Xnstable; urgency=low
     - Do not mess with sudo passwords if nothing changed.
   * templates/change-reply: say a word about subjects in mail to admin@db.
   * move gpgwrapper to unmaintained/ - it is now using obsolete interfaces.
+  * try to properly handle some more mime stuff.
+    - use email module instead of deprecated mimetools and multifile modules
+    - changes: sigcheck ud-echelon ud-mailgate userdir_gpg.py
+  * move ud-echelon and sigcheck to GPGCheckSig2 interface.
 
- -- Peter Palfrader <weasel@debian.org>  Sat, 21 May 2011 14:49:52 +0200
+ -- Peter Palfrader <weasel@debian.org>  Sat, 21 May 2011 14:50:32 +0200
 
 userdir-ldap (0.3.78) unstable; urgency=low
 

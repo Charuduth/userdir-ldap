@@ -2,6 +2,7 @@
 # -*- mode: python -*-
 import userdir_gpg, userdir_ldap, sys, traceback, time, ldap, os, getopt;
 import pwd
+import email, email.parser
 from userdir_gpg import *;
 from userdir_ldap import *;
 
@@ -10,10 +11,10 @@ EX_PERMFAIL = 65;      # EX_DATAERR
 Debug = None;
 
 # Try to extract a key fingerprint from a PGP siged message
-def TryGPG(Email):
+def TryGPG(email):
    # Try to get a pgp text
    try:
-      Msg = GetClearSig(Email);
+      Msg = GetClearSig(email);
    except:
       # Log an exception.. but continue. This is to deal with 'sort of' 
       # PGP-MIME things
@@ -25,26 +26,26 @@ def TryGPG(Email):
    if Msg[0].find("-----BEGIN PGP SIGNED MESSAGE-----") == -1:
       return None;
 
-   Res = GPGCheckSig(Msg[0]);
+   pgp = GPGCheckSig2(Msg[0]);
 
    # Failed to find a matching sig
-   if Res[0] != None:
-      S = "%s: %s -> PGP Checking failed '%s': %s %s\n" %(Now,MsgID,Email.getheader("From"),str(Res[0]),str(Res[2]));
+   if not pgp.ok:
+      S = "%s: %s -> PGP Checking failed '%s': %s %s\n" %(Now,MsgID,email["From"],str(pgp.why),str(pgp.key_info));
       ErrLog.write(S);
       return None;
       
    # Search for the matching key fingerprint
-   Attrs = l.search_s(BaseDn,ldap.SCOPE_ONELEVEL,"keyFingerPrint=" + Res[2][1]);
+   Attrs = l.search_s(BaseDn,ldap.SCOPE_ONELEVEL,"keyFingerPrint=" + pgp.key_fpr);
    if len(Attrs) == 0:
       return None;
    if len(Attrs) != 1:
       raise Error, "Oddly your key fingerprint is assigned to more than one account.."
    
-   return (Attrs[0][1]["uid"][0],"PGP",FormatPGPKey(Res[2][1]));
+   return (Attrs[0][1]["uid"][0],"PGP",FormatPGPKey(pgp.key_fpr));
 
 # Try to guess the name from the email address
-def TryMatcher(Email):
-   Sender = Email.getheader("From");
+def TryMatcher(email):
+   Sender = email["From"];
    if Sender == None:
       return None;
       
@@ -87,9 +88,9 @@ try:
    # Get the email 
    ErrType = EX_PERMFAIL;
    ErrMsg = "Failed to understand the email or find a signature:";
-   Email = mimetools.Message(sys.stdin,0);
-   MsgID = Email.getheader("Message-ID");
-   
+   email = email.parser.Parser().parse(sys.stdin);
+   MsgID = email["Message-ID"]
+
    # Connect to the ldap server
    ErrType = EX_TEMPFAIL;
    ErrMsg = "An error occured while performing the LDAP lookup";
@@ -106,14 +107,15 @@ try:
    # Try to decode
    ErrType = EX_TEMPFAIL;
    ErrMsg = "An error occured while trying GPG decoding";
-   User = TryGPG(Email);
+   User = TryGPG(email);
    if User == None:
       ErrMsg = "An error occured while trying Matcher decoding";
-      User = TryMatcher(Email);
+      User = TryMatcher(email);
 
    # Get any mailing list information   
-   List = Email.getheader("X-Mailing-List");
-   if List == None:
+   if 'X-Mailing-List' in email:
+      List = email['X-Mailing-List']
+   else:
       List = "-";
 
    # Tada, write a log message
@@ -127,7 +129,7 @@ try:
       else:
          print Rec;
    else:
-      User = ("-","UKN",Email.getheader("From"));
+      User = ("-","UKN",email("From"));
       Msg = "[%s] \"%s\" \"%s\" \"%s\""%(Now,User[2],List,MsgID);
       MainLog.write("%s %s %s\n"%(User[0],User[1],Msg));
 
