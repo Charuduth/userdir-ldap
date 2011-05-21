@@ -997,7 +997,7 @@ def GenKeyrings(OutDir):
 
 def get_accounts(ldap_conn):
    # Fetch all the users
-   passwd_attrs = ldap_conn.search_s(BaseDn, ldap.SCOPE_ONELEVEL, "(&(uid=*)(!(uidNumber=0)))",\
+   passwd_attrs = ldap_conn.search_s(BaseDn, ldap.SCOPE_ONELEVEL, "(&(uid=*)(!(uidNumber=0))(objectClass=shadowAccount))",\
                    ["uid", "uidNumber", "gidNumber", "supplementaryGid",\
                     "gecos", "loginShell", "userPassword", "shadowLastChange",\
                     "shadowMin", "shadowMax", "shadowWarning", "shadowInactive",

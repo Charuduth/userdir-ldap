@@ -4,8 +4,9 @@ userdir-ldap (0.3.XXX) UNRELEASED; urgency=low
   * userdir_gpg.py: GetClearSig: add lax_multipart to deal
     with random multipart mails.
   * naming your variable like a module is unsmart.
+  * ud-generate: filter on shadowAccount.
 
- -- Peter Palfrader <weasel@debian.org>  Sat, 21 May 2011 16:03:00 +0200
+ -- Peter Palfrader <weasel@debian.org>  Sat, 21 May 2011 16:42:30 +0200
 
 userdir-ldap (0.3.79) unstable; urgency=low
 
