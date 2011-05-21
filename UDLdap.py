@@ -57,15 +57,15 @@ class Account:
     def pw_active(self):
         if not 'userPassword' in self:
             return False
-        if self['userPassword'] == '{crypt}*LK*':
+        if self['userPassword'].upper() == '{CRYPT}*LK*':
             return False
-        if self['userPassword'].startswith("{crypt}!"):
+        if self['userPassword'].upper().startswith("{CRYPT}!"):
             return False
         return True
 
     def get_password(self):
         p = self['userPassword']
-        if not p.startswith('{crypt}') or len(p) > 50:
+        if not p.upper().startswith('{CRYPT}') or len(p) > 50:
             return p
         else:
             return p[7:]
