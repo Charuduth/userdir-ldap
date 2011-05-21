@@ -43,7 +43,7 @@ class Account:
         elif key in self.defaults:
             return self.defaults[key]
         else:
-            raise IndexError
+            raise IndexError, "No such key: %s (dn: %s)"%(key, self.dn)
 
     def __contains__(self, key):
         return key in self.attributes
@@ -55,6 +55,8 @@ class Account:
 
     # not locked locked,  just reset to something invalid like {crypt}*SSLRESET* is still active
     def pw_active(self):
+        if not 'userPassword' in self:
+            return False
         if self['userPassword'] == '{crypt}*LK*':
             return False
         if self['userPassword'].startswith("{crypt}!"):
