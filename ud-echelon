@@ -14,7 +14,7 @@ Debug = None;
 def TryGPG(email):
    # Try to get a pgp text
    try:
-      Msg = GetClearSig(email);
+      Msg = GetClearSig(email, lax_multipart=True);
    except:
       # Log an exception.. but continue. This is to deal with 'sort of' 
       # PGP-MIME things
@@ -113,10 +113,8 @@ try:
       User = TryMatcher(email);
 
    # Get any mailing list information   
-   if 'X-Mailing-List' in email:
-      List = email['X-Mailing-List']
-   else:
-      List = "-";
+   List = email['X-Mailing-List']
+   if not List: List = "-";
 
    # Tada, write a log message
    if User != None:
@@ -129,7 +127,7 @@ try:
       else:
          print Rec;
    else:
-      User = ("-","UKN",email("From"));
+      User = ("-","UKN",email["From"]);
       Msg = "[%s] \"%s\" \"%s\" \"%s\""%(Now,User[2],List,MsgID);
       MainLog.write("%s %s %s\n"%(User[0],User[1],Msg));
 

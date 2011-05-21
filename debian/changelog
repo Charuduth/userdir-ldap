@@ -1,8 +1,10 @@
 userdir-ldap (0.3.XXX) UNRELEASED; urgency=low
 
-  * 
+  * some ud-echelon fixes,
+  * userdir_gpg.py: GetClearSig: add lax_multipart to deal
+    with random multipart mails.
 
- -- Peter Palfrader <weasel@debian.org>  Sat, 21 May 2011 14:57:05 +0200
+ -- Peter Palfrader <weasel@debian.org>  Sat, 21 May 2011 15:12:23 +0200
 
 userdir-ldap (0.3.79) unstable; urgency=low
 

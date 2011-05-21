@@ -77,13 +77,23 @@ def SetKeyrings(Rings):
 #
 # Paranoid will check the message text to make sure that all the plaintext is
 # in fact signed (bounded by a PGP packet)
-def GetClearSig(Msg,Paranoid = 0):
+#
+# lax_multipart: treat multipart bodies other than multipart/signed
+# as one big plain text body
+def GetClearSig(Msg, Paranoid = 0, lax_multipart = False):
    if not Msg.__class__ == email.message.Message:
       raise RuntimeError, "GetClearSign() not called with a email.message.Message"
+
+   if Paranoid and lax_multipart:
+      raise RuntimeError, "Paranoid and lax_multipart don't mix well"
 
    # See if this is a MIME encoded multipart signed message
    if Msg.is_multipart():
       if not Msg.get_content_type() == "multipart/signed":
+         if lax_multipart:
+            payloads = Msg.get_payload()
+            msg = "\n".join(map( lambda p: p.get_payload(decode=True), payloads))
+            return (msg, 0)
          raise UDFormatError, "Cannot handle multipart messages not of type multipart/signed";
 
       if Paranoid:
