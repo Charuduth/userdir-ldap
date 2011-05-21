@@ -1,3 +1,9 @@
+userdir-ldap (0.3.XXX) UNRELEASED; urgency=low
+
+  * 
+
+ -- Peter Palfrader <weasel@debian.org>  Sat, 21 May 2011 14:57:05 +0200
+
 userdir-ldap (0.3.79) unstable; urgency=low
 
   * Add ud-sync-accounts-to-afs, a script to sync accounts to an
