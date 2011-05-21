@@ -15,14 +15,14 @@
 #   along with this program; if not, write to the Free Software
 #   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
-# GPG issues - 
+# GPG issues -
 #  - gpgm with a status FD being fed keymaterial and other interesting
 #    things does nothing.. If it could ID the keys and stuff over the
 #    status-fd I could decide what to do with them. I would also like it
-#    to report which key it selected for encryption (also if there 
+#    to report which key it selected for encryption (also if there
 #    were multi-matches..) Being able to detect a key-revoke cert would be
 #    good too.
-#  - I would like to be able to fetch the comment and version fields from the 
+#  - I would like to be able to fetch the comment and version fields from the
 #    packets so I can tell if a signature is made by pgp2 to enable the
 #    pgp2 encrypting mode.
 
@@ -44,8 +44,8 @@ GPGSearchOptions = ["--dry-run","--with-colons","--fingerprint"];
 GPGEncryptOptions = ["--output","-","--quiet","--always-trust",\
                      "--armor","--encrypt"];
 GPGEncryptPGP2Options = ["--set-filename","","--rfc1991",\
-		         "--load-extension","idea",\
-		         "--cipher-algo","idea"] + GPGEncryptOptions;
+                         "--load-extension","idea",\
+                         "--cipher-algo","idea"] + GPGEncryptOptions;
 
 # Replay cutoff times in seconds
 CleanCutOff = 7*24*60*60;
@@ -59,10 +59,10 @@ def ClearKeyrings():
 def SetKeyrings(Rings):
    for x in Rings:
       GPGKeyRings.append("--keyring");
-      GPGKeyRings.append(x);	       
+      GPGKeyRings.append(x);
 
-# GetClearSig takes an un-seekable email message stream (mimetools.Message) 
-# and returns a standard PGP '---BEGIN PGP SIGNED MESSAGE---' bounded 
+# GetClearSig takes an un-seekable email message stream (mimetools.Message)
+# and returns a standard PGP '---BEGIN PGP SIGNED MESSAGE---' bounded
 # clear signed text.
 # If this is fed to gpg/pgp it will verify the signature and spit out the
 # signed text component. Email headers and PGP mime (RFC 2015) is understood
@@ -72,7 +72,7 @@ def SetKeyrings(Rings):
 # element is the text itself the second is a mime flag indicating if the
 # result should be mime processed after sig checking.
 #
-# Paranoid will check the message text to make sure that all the plaintext is 
+# Paranoid will check the message text to make sure that all the plaintext is
 # in fact signed (bounded by a PGP packet)
 def GetClearSig(Msg,Paranoid = 0):
    Error = 'MIME Error';
@@ -82,7 +82,7 @@ def GetClearSig(Msg,Paranoid = 0):
       if not Boundary:
          raise Error, "multipart/* without a boundary parameter";
 
-      # Create the multipart handler. Regrettably their implementation 
+      # Create the multipart handler. Regrettably their implementation
       # Needs seeking..
       SkMessage = StringIO.StringIO();
       SkMessage.write(Msg.fp.read());
@@ -92,14 +92,14 @@ def GetClearSig(Msg,Paranoid = 0):
 
       # Check the first bit of the message..
       if Paranoid != 0:
-	 Pos = mf.tell();
-	 while 1:
-	     x = mf.readline();
-	     if not x: break;
-	     if len(x.strip()) != 0:
-	        raise Error,"Unsigned text in message (at start)";
+         Pos = mf.tell();
+         while 1:
+             x = mf.readline();
+             if not x: break;
+             if len(x.strip()) != 0:
+                raise Error,"Unsigned text in message (at start)";
          mf.seek(Pos);
-      
+
       # Get the first part of the multipart message
       if not mf.next():
          raise Error, "Invalid pgp/mime encoding [no section]";
@@ -108,11 +108,11 @@ def GetClearSig(Msg,Paranoid = 0):
       Signed = StringIO.StringIO();
       Signed.write(mf.read());
       InnerMsg = mimetools.Message(Signed);
-      
+
       # Make sure it is the right type
       if InnerMsg.gettype() != "text/plain":
          raise Error, "Invalid pgp/mime encoding [wrong plaintext type]";
-   
+
       # Get the next part of the multipart message
       if not mf.next():
          raise Error, "Invalid pgp/mime encoding [no section]";
@@ -123,15 +123,15 @@ def GetClearSig(Msg,Paranoid = 0):
 
       # Check the last bit of the message..
       if Paranoid != 0:
-	 mf.pop();
-	 Pos = mf.tell();
-	 while 1:
-	     x = mf.readline();
-	     if not x: break; 
-	     if len(x.strip()) != 0:
-	        raise Error,"Unsigned text in message (at end)";
+         mf.pop();
+         Pos = mf.tell();
+         while 1:
+             x = mf.readline();
+             if not x: break;
+             if len(x.strip()) != 0:
+                raise Error,"Unsigned text in message (at end)";
          mf.seek(Pos);
-      
+
       # Append the PGP boundary header and the signature text to re-form the
       # original signed block [needs to convert to \r\n]
       Output = "-----BEGIN PGP SIGNED MESSAGE-----\r\n";
@@ -145,38 +145,38 @@ def GetClearSig(Msg,Paranoid = 0):
       if Paranoid == 0:
          # Just return the message body
          return (''.join(Msg.fp.readlines()),0);
-     
+
       Body = "";
       State = 1;
       for x in Msg.fp.readlines():
-	  Body = Body + x;
-	  Tmp = x.strip()
-	  if len(Tmp) == 0:
-	     continue;
-	 
-	  # Leading up to the signature
-	  if State == 1:
-  	     if Tmp == "-----BEGIN PGP SIGNED MESSAGE-----":
-	        State = 2;
-	     else:
-	        raise Error,"Unsigned text in message (at start)";
-	     continue;
-	 
-	  # In the signature plain text
-	  if State == 2:
-  	     if Tmp == "-----BEGIN PGP SIGNATURE-----":
-	        State = 3;
-	     continue;
-		
-	  # In the signature
-	  if State == 3:
-  	     if Tmp == "-----END PGP SIGNATURE-----":
-	        State = 4;
-	     continue;
-		
+          Body = Body + x;
+          Tmp = x.strip()
+          if len(Tmp) == 0:
+             continue;
+
+          # Leading up to the signature
+          if State == 1:
+             if Tmp == "-----BEGIN PGP SIGNED MESSAGE-----":
+                State = 2;
+             else:
+                raise Error,"Unsigned text in message (at start)";
+             continue;
+
+          # In the signature plain text
+          if State == 2:
+             if Tmp == "-----BEGIN PGP SIGNATURE-----":
+                State = 3;
+             continue;
+
+          # In the signature
+          if State == 3:
+             if Tmp == "-----END PGP SIGNATURE-----":
+                State = 4;
+             continue;
+
           # Past the end
-	  if State == 4:
-	     raise Error,"Unsigned text in message (at end)";
+          if State == 4:
+             raise Error,"Unsigned text in message (at end)";
       return (Body,0);
 
 # This opens GPG in 'write filter' mode. It takes Message and sends it
@@ -190,7 +190,7 @@ def GetClearSig(Msg,Paranoid = 0):
 def GPGWriteFilter(Program,Options,Message):
    # Make sure the tmp files we open are unreadable, there is a short race
    # between when the temp file is opened and unlinked that some one else
-   # could open it or hard link it. This is not important however as no 
+   # could open it or hard link it. This is not important however as no
    # Secure data is fed through the temp files.
    OldMask = os.umask(0777);
    try:
@@ -200,7 +200,7 @@ def GPGWriteFilter(Program,Options,Message):
       InPipe = [InPipe[0],InPipe[1]];
    finally:
       os.umask(OldMask);
-      
+
    try:
       # Fork off GPG in a horrible way, we redirect most of its FDs
       # Input comes from a pipe and its two outputs are spooled to unlinked
@@ -208,17 +208,17 @@ def GPGWriteFilter(Program,Options,Message):
       Child = os.fork();
       if Child == 0:
          try:
-	    os.dup2(InPipe[0],0);
+            os.dup2(InPipe[0],0);
             os.close(InPipe[1]);
-	    os.dup2(Output.fileno(),1);
-	    os.dup2(os.open("/dev/null",os.O_WRONLY),2);
-	    os.dup2(GPGText.fileno(),3);
-	    
-	    Args = [Program,"--status-fd","3"] + GPGBasicOptions + GPGKeyRings + Options
-	    os.execvp(Program,Args);
-	 finally:
-	    os._exit(100);
-      
+            os.dup2(Output.fileno(),1);
+            os.dup2(os.open("/dev/null",os.O_WRONLY),2);
+            os.dup2(GPGText.fileno(),3);
+
+            Args = [Program,"--status-fd","3"] + GPGBasicOptions + GPGKeyRings + Options
+            os.execvp(Program,Args);
+         finally:
+            os._exit(100);
+
       # Get rid of the other end of the pipe
       os.close(InPipe[0])
       InPipe[0] = -1;
@@ -252,7 +252,7 @@ def GPGWriteFilter(Program,Options,Message):
       Output.close();
       GPGText.close();
 
-# This takes a text passage, a destination and a flag indicating the 
+# This takes a text passage, a destination and a flag indicating the
 # compatibility to use and returns an encrypted message to the recipient.
 # It is best if the recipient is specified using the hex key fingerprint
 # of the target, ie 0x64BE1319CCF6D393BF87FF9358A6D4EE
@@ -310,13 +310,13 @@ def GPGEncrypt(Message,To,PGP2):
 # GetClearSig. It returns a large tuple of the form:
 #   (Why,(SigId,Date,KeyFinger),(KeyID,KeyFinger,Owner,Length,PGP2),Text);
 # Where,
-#  Why = None if checking was OK otherwise an error string. 
+#  Why = None if checking was OK otherwise an error string.
 #  SigID+Date represent something suitable for use in a replay cache. The
 #             date is returned as the number of seconds since the UTC epoch.
-#             The keyID is also in this tuple for easy use of the replay 
+#             The keyID is also in this tuple for easy use of the replay
 #             cache
 #  KeyID, KeyFinger and Owner represent the Key used to sign this message
-#         PGP2 indicates if the message was created using PGP 2.x 
+#         PGP2 indicates if the message was created using PGP 2.x
 #  Text is the full byte-for-byte signed text in a string
 def GPGCheckSig(Message):
    Res = None;
@@ -340,85 +340,85 @@ def GPGCheckSig(Message):
          if Line == "":
             break;
          Split = re.split("[ \n]",Line);
-	 if Split[0] != "[GNUPG:]":
-	    continue;
+         if Split[0] != "[GNUPG:]":
+            continue;
 
          # We only process the first occurance of any tag.
          if TagMap.has_key(Split[1]):
             continue;
          TagMap[Split[1]] = None;
 
-	 # Good signature response
+         # Good signature response
          if Split[1] == "GOODSIG":
             # Just in case GPG returned a bad signal before this (bug?)
-	    if Why == None:
-	       GoodSig = 1;
-	    KeyID = Split[2];
-	    Owner = ' '.join(Split[3:])
-	    # If this message is signed with a subkey which has not yet
-	    # expired, GnuPG will say GOODSIG here, even if the primary
-	    # key already has expired.  This came up in discussion of
-	    # bug #489225.  GPGKeySearch only returns non-expired keys.
-	    Verify = GPGKeySearch(KeyID);
-	    if len(Verify) == 0:
-	       GoodSig = 0
-	       Why = "Key has expired (no unexpired key found in keyring matching %s)"%(KeyId);
+            if Why == None:
+               GoodSig = 1;
+            KeyID = Split[2];
+            Owner = ' '.join(Split[3:])
+            # If this message is signed with a subkey which has not yet
+            # expired, GnuPG will say GOODSIG here, even if the primary
+            # key already has expired.  This came up in discussion of
+            # bug #489225.  GPGKeySearch only returns non-expired keys.
+            Verify = GPGKeySearch(KeyID);
+            if len(Verify) == 0:
+               GoodSig = 0
+               Why = "Key has expired (no unexpired key found in keyring matching %s)"%(KeyId);
 
-	 # Bad signature response
-	 if Split[1] == "BADSIG":
-	    GoodSig = 0;
-	    KeyID = Split[2];
+         # Bad signature response
+         if Split[1] == "BADSIG":
+            GoodSig = 0;
+            KeyID = Split[2];
             Why = "Verification of signature failed";
 
-	 # Bad signature response
-	 if Split[1] == "ERRSIG":
-	    GoodSig = 0;
-	    KeyID = Split[2];
+         # Bad signature response
+         if Split[1] == "ERRSIG":
+            GoodSig = 0;
+            KeyID = Split[2];
             if len(Split) <= 7:
                Why = "GPG error, ERRSIG status tag is invalid";
             elif Split[7] == '9':
                Why = "Unable to verify signature, signing key missing.";
             elif Split[7] == '4':
                Why = "Unable to verify signature, unknown packet format/key type";
-	    else:   
+            else:
                Why = "Unable to verify signature, unknown reason";
 
          if Split[1] == "NO_PUBKEY":
-	    GoodSig = 0;
+            GoodSig = 0;
             Why = "Unable to verify signature, signing key missing.";
 
-	 # Expired signature
-	 if Split[1] == "EXPSIG":
-	    GoodSig = 0;
+         # Expired signature
+         if Split[1] == "EXPSIG":
+            GoodSig = 0;
             Why = "Signature has expired";
 
-	 # Expired signature
-	 if Split[1] == "EXPKEYSIG":
-	    GoodSig = 0;
+         # Expired signature
+         if Split[1] == "EXPKEYSIG":
+            GoodSig = 0;
             Why = "Signing key (%s, %s) has expired"%(Split[2], Split[3]);
 
-	 # Revoked key
-	 if Split[1] == "KEYREVOKED" or Split[1] == "REVKEYSIG":
-	    GoodSig = 0;
+         # Revoked key
+         if Split[1] == "KEYREVOKED" or Split[1] == "REVKEYSIG":
+            GoodSig = 0;
             Why = "Signing key has been revoked";
 
-	 # Corrupted packet
-	 if Split[1] == "NODATA" or Split[1] == "BADARMOR":
-	    GoodSig = 0;
+         # Corrupted packet
+         if Split[1] == "NODATA" or Split[1] == "BADARMOR":
+            GoodSig = 0;
             Why = "The packet was corrupted or contained no data";
-	    
+
          # Signature ID
-	 if Split[1] == "SIG_ID":
-	    SigId = Split[2];
-	    Date = long(Split[4]);
+         if Split[1] == "SIG_ID":
+            SigId = Split[2];
+            Date = long(Split[4]);
 
          # ValidSig has the key finger print
-	 if Split[1] == "VALIDSIG":
-	    # Use the fingerprint of the primary key when available
-	    if len(Split) >= 12:
+         if Split[1] == "VALIDSIG":
+            # Use the fingerprint of the primary key when available
+            if len(Split) >= 12:
                KeyFinger = Split[11];
             else:
-	       KeyFinger = Split[2];
+               KeyFinger = Split[2];
 
       # Reopen the stream as a readable stream
       Text = Res[2].read();
@@ -443,24 +443,24 @@ def GPGCheckSig(Message):
          Res[2].close();
 
 class GPGCheckSig2:
-	def __init__(self, msg):
-		res = GPGCheckSig(msg)
-		self.why = res[0]
-		self.sig_info = res[1]
-		self.key_info = res[2]
-		self.text = res[3]
+        def __init__(self, msg):
+                res = GPGCheckSig(msg)
+                self.why = res[0]
+                self.sig_info = res[1]
+                self.key_info = res[2]
+                self.text = res[3]
 
-		self.ok = self.why is None
+                self.ok = self.why is None
 
-		self.sig_id = self.sig_info[0]
-		self.sig_date = self.sig_info[1]
-		self.sig_fpr = self.sig_info[2]
+                self.sig_id = self.sig_info[0]
+                self.sig_date = self.sig_info[1]
+                self.sig_fpr = self.sig_info[2]
 
-		self.key_id = self.key_info[0]
-		self.key_fpr = self.key_info[1]
-		self.key_owner = self.key_info[2]
+                self.key_id = self.key_info[0]
+                self.key_fpr = self.key_info[1]
+                self.key_owner = self.key_info[2]
 
-		self.is_pgp2 = self.key_info[4]
+                self.is_pgp2 = self.key_info[4]
 
 # Search for keys given a search pattern. The pattern is passed directly
 # to GPG for processing. The result is a list of tuples of the form:
@@ -482,10 +482,10 @@ def GPGKeySearch(SearchCriteria):
    dir = os.path.expanduser("~/.gnupg")
    if not os.path.isdir(dir):
       os.mkdir(dir, 0700)
-                      
+
    try:
       Strm = os.popen(" ".join(Args),"r")
-      
+
       while(1):
          # Grab and split up line
          Line = Strm.readline();
@@ -520,7 +520,7 @@ def GPGPrintKeyInfo(Ident):
    print "pub  %u?/%s ??-??-?? %s" % (Ident[3],Ident[0][-8:],Ident[2]);
    print "     key fingerprint = 0x%s" % (Ident[1]);
 
-# Perform a substition of template 
+# Perform a substition of template
 def TemplateSubst(Map,Template):
    for x in Map.keys():
       Template = Template.replace(x, Map[x])
@@ -529,12 +529,12 @@ def TemplateSubst(Map,Template):
 # The replay class uses a python DB (BSD db if avail) to implement
 # protection against replay. Replay is an attacker capturing the
 # plain text signed message and sending it back to the victim at some
-# later date. Each signature has a unique signature ID (and signing 
+# later date. Each signature has a unique signature ID (and signing
 # Key Fingerprint) as well as a timestamp. The first stage of replay
 # protection is to ensure that the timestamp is reasonable, in particular
 # not to far ahead or too far behind the current system time. The next
 # step is to look up the signature + key fingerprint in the replay database
-# and determine if it has been recived. The database is cleaned out 
+# and determine if it has been recived. The database is cleaned out
 # periodically and old signatures are discarded. By using a timestamp the
 # database size is bounded to being within the range of the allowed times
 # plus a little fuzz. The cache is serialized with a flocked lock file
@@ -546,21 +546,21 @@ class ReplayCache:
       self.CleanCutOff = CleanCutOff;
       self.AgeCutOff = AgeCutOff;
       self.FutureCutOff = FutureCutOff;
-      
+
    # Close the cache and lock
    def __del__(self):
       self.close();
    def close(self):
       self.DB.close();
       self.Lock.close();
-      
+
    # Clean out any old signatures
    def Clean(self):
       CutOff = time.time() - self.CleanCutOff;
       for x in self.DB.keys():
          if int(self.DB[x]) <= CutOff:
-	    del self.DB[x];
-    
+            del self.DB[x];
+
    # Check a signature. 'sig' is a 3 tuple that has the sigId, date and
    # key ID
    def Check(self,Sig):
@@ -574,7 +574,7 @@ class ReplayCache:
          return "Signature has passed the age cut off ";
       # + str(int(Sig[1])) + ',' + str(time.time()) + "," + str(Sig);
       return None;
-           
+
    # Add a signature, the sig is the same as is given to Check
    def Add(self,Sig):
       if Sig[0] == None or Sig[1] == None:
@@ -583,11 +583,11 @@ class ReplayCache:
          return;
       Key = Sig[0] + '-' + Sig[2]
       if self.DB.has_key(Key):
-      	 if int(self.DB[Key]) < Sig[1]:
-	    self.DB[Key] = str(int(Sig[1]));
+         if int(self.DB[Key]) < Sig[1]:
+            self.DB[Key] = str(int(Sig[1]));
       else:
          self.DB[Key] = str(int(Sig[1]));
-	 
+
 # vim:set et:
 # vim:set ts=3:
 # vim:set shiftwidth=3:
