@@ -108,10 +108,10 @@ def GetClearSig(Msg, Paranoid = 0, lax_multipart = False):
 
       (Signed, Signature) = payloads
 
-      if Signed.get_content_type() != "text/plain":
-         raise UDFormatError, "Invalid pgp/mime encoding [wrong plaintext type]";
+      if Signed.get_content_type() != "text/plain" and not lax_multipart:
+         raise UDFormatError, "Invalid pgp/mime encoding for first part[wrong plaintext type]";
       if Signature.get_content_type() != "application/pgp-signature":
-         raise UDFormatError, "Invalid pgp/mime encoding [wrong signature type]";
+         raise UDFormatError, "Invalid pgp/mime encoding for second part [wrong signature type]";
 
       # Append the PGP boundary header and the signature text to re-form the
       # original signed block [needs to convert to \r\n]
