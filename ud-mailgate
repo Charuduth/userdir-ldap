@@ -752,8 +752,8 @@ try:
    # Get the email 
    ErrType = EX_PERMFAIL;
    ErrMsg = "Failed to understand the email or find a signature:";
-   email = email.parser.Parser().parse(sys.stdin);
-   Msg = GetClearSig(email);
+   mail = email.parser.Parser().parse(sys.stdin);
+   Msg = GetClearSig(mail);
 
    ErrMsg = "Message is not PGP signed:"
    if Msg[0].find("-----BEGIN PGP SIGNED MESSAGE-----") == -1 and \
@@ -802,8 +802,8 @@ try:
 
    # Determine the sender address
    ErrMsg = "A problem occured while trying to formulate the reply";
-   Sender = email['Reply-To']
-   if not Sender: Sender = email['From']
+   Sender = mail['Reply-To']
+   if not Sender: Sender = mail['From']
    if not Sender: raise UDFormatError, "Unable to determine the sender's address";
 
    # Formulate a reply

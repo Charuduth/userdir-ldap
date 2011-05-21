@@ -129,12 +129,12 @@ try:
    # Get the email 
    ErrType = EX_PERMFAIL;
    ErrMsg = "Failed to understand the email or find a signature:";
-   email = email.parser.Parser().parse(sys.stdin);
-   MsgID = email["Message-ID"]
+   mail = email.parser.Parser().parse(sys.stdin);
+   MsgID = mail["Message-ID"]
 
    print "Inspecting message %s"%MsgID;
    verbmsg("Processing message %s" % MsgID)
-   Msg = GetClearSig(email,1);
+   Msg = GetClearSig(mail,1);
    if AllowMIME == 0 and Msg[1] != 0:
       raise Error, "PGP/MIME disallowed";
   

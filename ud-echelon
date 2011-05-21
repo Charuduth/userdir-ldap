@@ -11,10 +11,10 @@ EX_PERMFAIL = 65;      # EX_DATAERR
 Debug = None;
 
 # Try to extract a key fingerprint from a PGP siged message
-def TryGPG(email):
+def TryGPG(mail):
    # Try to get a pgp text
    try:
-      Msg = GetClearSig(email, lax_multipart=True);
+      Msg = GetClearSig(mail, lax_multipart=True);
    except:
       # Log an exception.. but continue. This is to deal with 'sort of' 
       # PGP-MIME things
@@ -30,7 +30,7 @@ def TryGPG(email):
 
    # Failed to find a matching sig
    if not pgp.ok:
-      S = "%s: %s -> PGP Checking failed '%s': %s %s\n" %(Now,MsgID,email["From"],str(pgp.why),str(pgp.key_info));
+      S = "%s: %s -> PGP Checking failed '%s': %s %s\n" %(Now,MsgID,mail["From"],str(pgp.why),str(pgp.key_info));
       ErrLog.write(S);
       return None;
       
@@ -44,8 +44,8 @@ def TryGPG(email):
    return (Attrs[0][1]["uid"][0],"PGP",FormatPGPKey(pgp.key_fpr));
 
 # Try to guess the name from the email address
-def TryMatcher(email):
-   Sender = email["From"];
+def TryMatcher(mail):
+   Sender = mail["From"];
    if Sender == None:
       return None;
       
@@ -88,8 +88,8 @@ try:
    # Get the email 
    ErrType = EX_PERMFAIL;
    ErrMsg = "Failed to understand the email or find a signature:";
-   email = email.parser.Parser().parse(sys.stdin);
-   MsgID = email["Message-ID"]
+   mail = email.parser.Parser().parse(sys.stdin);
+   MsgID = mail["Message-ID"]
 
    # Connect to the ldap server
    ErrType = EX_TEMPFAIL;
@@ -107,13 +107,13 @@ try:
    # Try to decode
    ErrType = EX_TEMPFAIL;
    ErrMsg = "An error occured while trying GPG decoding";
-   User = TryGPG(email);
+   User = TryGPG(mail);
    if User == None:
       ErrMsg = "An error occured while trying Matcher decoding";
-      User = TryMatcher(email);
+      User = TryMatcher(mail);
 
    # Get any mailing list information   
-   List = email['X-Mailing-List']
+   List = mail['X-Mailing-List']
    if not List: List = "-";
 
    # Tada, write a log message
@@ -127,7 +127,7 @@ try:
       else:
          print Rec;
    else:
-      User = ("-","UKN",email["From"]);
+      User = ("-","UKN",mail["From"]);
       Msg = "[%s] \"%s\" \"%s\" \"%s\""%(Now,User[2],List,MsgID);
       MainLog.write("%s %s %s\n"%(User[0],User[1],Msg));
 
