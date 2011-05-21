@@ -27,7 +27,7 @@
 #    pgp2 encrypting mode.
 
 import mimetools, multifile, sys, StringIO, os, tempfile, re;
-import rfc822, time, fcntl, anydbm
+import time, fcntl, anydbm
 
 # General GPG options
 GPGPath = "gpg"
