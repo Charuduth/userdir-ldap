@@ -16,8 +16,9 @@ userdir-ldap (0.3.7X) Xnstable; urgency=low
     - Make updating of gender actually work.
     - Do not mess with sudo passwords if nothing changed.
   * templates/change-reply: say a word about subjects in mail to admin@db.
+  * move gpgwrapper to unmaintained/ - it is now using obsolete interfaces.
 
- -- Peter Palfrader <weasel@debian.org>  Fri, 25 Mar 2011 20:03:09 +0100
+ -- Peter Palfrader <weasel@debian.org>  Sat, 21 May 2011 14:49:52 +0200
 
 userdir-ldap (0.3.78) unstable; urgency=low
 
