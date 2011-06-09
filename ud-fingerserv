@@ -13,7 +13,7 @@ use IO::Socket;
 use POSIX qw(:sys_wait_h);
 use Getopt::Std;
 use Util;
-use Net::LDAP qw(:all);
+use Net::LDAP;
 
 # Global settings...
 my %config = &Util::ReadConfigFile;
