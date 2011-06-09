@@ -22,7 +22,7 @@
 import termios, re, imp, ldap, sys, crypt, rfc822, pwd, os, getpass
 import userdir_gpg
 import hmac
-import sha as sha1_module
+import hashlib
 
 try:
    File = open("/etc/userdir-ldap/userdir-ldap.conf");
@@ -438,7 +438,7 @@ def make_hmac(str):
       File = open(PassDir+"/key-hmac-"+pwd.getpwuid(os.getuid())[0],"r");
       HmacKey = File.readline().strip()
       File.close();
-   return hmac.new(HmacKey, str, sha1_module).hexdigest()
+   return hmac.new(HmacKey, str, hashlib.sha1).hexdigest()
 
 def make_passwd_hmac(status, purpose, uid, uuid, hosts, cryptedpass):
    return make_hmac(':'.join([status, purpose, uid, uuid, hosts, cryptedpass]))
