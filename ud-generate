@@ -28,7 +28,7 @@
 #   along with this program; if not, write to the Free Software
 #   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
-import string, re, time, ldap, getopt, sys, os, pwd, posix, socket, base64, sha, shutil, errno, tarfile, grp
+import string, re, time, ldap, getopt, sys, os, pwd, posix, socket, base64, hashlib, shutil, errno, tarfile, grp
 import lockfile
 from userdir_ldap import *
 from userdir_exceptions import *
@@ -781,7 +781,7 @@ def ExtractDNSInfo(x):
             Algorithm = 2
          if Algorithm == None:
             continue
-         Fingerprint = sha.new(base64.decodestring(Split[1])).hexdigest()
+         Fingerprint = hashlib.new('sha1', base64.decodestring(Split[1])).hexdigest()
          DNSInfo.append("%sIN\tSSHFP\t%u 1 %s" % (TTLprefix, Algorithm, Fingerprint))
 
    if 'architecture' in x[1]:
