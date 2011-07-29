@@ -1193,6 +1193,40 @@ def generate_host(host, global_dir, accounts, ssh_files):
 
 l = make_ldap_conn()
 
+mods = l.search_s('cn=log',
+      ldap.SCOPE_ONELEVEL,
+      '(&(&(!(reqMod=activity-from*))(!(reqMod=activity-pgp*)))(|(reqType=add)(reqType=delete)(reqType=modify)(reqType=modrdn)))',
+      ['reqEnd'])
+
+last = 0
+
+# Sort the list by reqEnd
+sorted_mods = sorted(mods, key=lambda mod: mod[1]['reqEnd'][0].split('.')[0])
+# Take the last element in the array
+last = sorted_mods[-1][1]['reqEnd'][0].split('.')[0]
+
+# override globaldir for testing
+if 'UD_GENERATEDIR' in os.environ:
+   GenerateDir = os.environ['UD_GENERATEDIR']
+
+cache_last_mod = 0
+
+try:
+   fd = open(os.path.join(GenerateDir, "last_update.trace"), "r")
+   cache_last_mod=fd.read().strip()
+   fd.close()
+except IOError, e:
+   if e.errno == errno.ENOENT:
+      pass
+   else:
+      raise e
+if cache_last_mod >= last:
+   sys.exit(0)
+
+fd = open(os.path.join(GenerateDir, "last_update.trace"), "w")
+fd.write(last)
+fd.close()
+
 # Fetch all the groups
 GroupIDMap = {}
 attrs = l.search_s(BaseDn, ldap.SCOPE_ONELEVEL, "gid=*",\
@@ -1207,10 +1241,6 @@ for x in attrs:
    GroupIDMap[x[1]["gid"][0]] = int(x[1]["gidNumber"][0])
    if x[1].has_key("subGroup") != 0:
       SubGroupMap.setdefault(x[1]["gid"][0], []).extend(x[1]["subGroup"])
-
-# override globaldir for testing
-if 'UD_GENERATEDIR' in os.environ:
-   GenerateDir = os.environ['UD_GENERATEDIR']
 
 try:
    lock = get_lock( os.path.join(GenerateDir, 'ud-generate.lock') )
