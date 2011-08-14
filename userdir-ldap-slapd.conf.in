@@ -7,6 +7,10 @@ suffix          "@@DN@@"
 # Where the database file are physically stored
 directory       "/var/lib/ldap"
 
+moduleload      constraint
+overlay constraint
+constraint_attribute keyfingerprint regex ^([0-9A-F]{40})$
+
 # Indexing options
 index gecos,cn,sn,uid,ircNick,hostname,emailForward pres,eq,sub,approx
 index keyfingerprint,homeDirectory,objectClass,loginShell,supplementaryGid pres,eq
