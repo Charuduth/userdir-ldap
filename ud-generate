@@ -1243,9 +1243,10 @@ for x in attrs:
       SubGroupMap.setdefault(x[1]["gid"][0], []).extend(x[1]["subGroup"])
 
 try:
-   lock = get_lock( os.path.join(GenerateDir, 'ud-generate.lock') )
+   lockfile = os.path.join(GenerateDir, 'ud-generate.lock')
+   lock = get_lock( lockfile )
    if lock is None:
-      sys.stderr.write("Could not acquire lock %s.\n"%(fn))
+      sys.stderr.write("Could not acquire lock %s.\n"%(lockfile))
       sys.exit(1)
 
    generate_all(GenerateDir, l)
