@@ -1242,6 +1242,7 @@ for x in attrs:
    if x[1].has_key("subGroup") != 0:
       SubGroupMap.setdefault(x[1]["gid"][0], []).extend(x[1]["subGroup"])
 
+lock = None
 try:
    lockf = os.path.join(GenerateDir, 'ud-generate.lock')
    lock = get_lock( lockf )
@@ -1252,7 +1253,7 @@ try:
    generate_all(GenerateDir, l)
 
 finally:
-   if not lock is None:
+   if lock is not None:
       lock.release()
 
 # vim:set et:
