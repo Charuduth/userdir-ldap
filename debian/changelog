@@ -7,12 +7,14 @@ userdir-ldap (0.3.XXX) UNRELEASED; urgency=low
   * naming your variable like a module is unsmart.
   * ud-generate: filter on shadowAccount.
   * ud-mailgate: only run ldapmodfiy if we actually have attributes to modify.
+  * ud-replicate: do not hard-code 'debian.org' in the 'write-zonefile
+    debian.org' call, but instead re-use the domain from email-append.
 
   [ Stephen Gran ]
   * Fix deprecation warnings for sha module by using hashlib module instead
   * ud-fingerserv: update Net::LDAP import
 
- -- Peter Palfrader <weasel@debian.org>  Mon, 15 Aug 2011 21:52:22 +0200
+ -- Peter Palfrader <weasel@debian.org>  Wed, 02 Nov 2011 23:41:26 +0100
 
 userdir-ldap (0.3.79) unstable; urgency=low
 
