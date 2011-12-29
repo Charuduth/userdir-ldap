@@ -70,12 +70,12 @@ access to attrs=activity-pgp,activity-from,dnsZoneEntry,c,l,loginShell,onVacatio
 	by peername.ip=127.0.0.1 read
 	by domain=alioth.debian.org none
 	by domain.subtree=debian.org read
-	by dn.regex="uid=.*,ou=users,dc=debian,dc=org" read
+	by dn.regex="uid=.*,ou=users,@@DN@@" read
 	by * none
 
 # authenticated user readable
 access to attrs=facsimileTelephoneNumber,telephoneNumber,postalAddress,postalCode,privateSub,latitude,longitude,VoIP
-	by dn.regex="uid=.*,ou=users,dc=debian,dc=org" read
+	by dn.regex="uid=.*,ou=users,@@DN@@" read
 	by * none
 
 
@@ -92,7 +92,7 @@ sizelimit 10000
 
 index reqStart eq
 access to *
-	by group="cn=LDAP Administrator,ou=users,dc=debian,dc=org" write
-	by dn="uid=sshdist,ou=users,dc=debian,dc=org" read
+	by group="cn=LDAP Administrator,ou=users,@@DN@@" write
+	by dn="uid=sshdist,ou=users,@@DN@@" read
 	by * none
 
