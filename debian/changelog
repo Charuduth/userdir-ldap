@@ -9,14 +9,16 @@ userdir-ldap (0.3.XXX) UNRELEASED; urgency=low
     - filter on shadowAccount.
     - fix breaking old ud-generate locks.
   * ud-mailgate: only run ldapmodfiy if we actually have attributes to modify.
-  * ud-replicate: do not hard-code 'debian.org' in the 'write-zonefile
-    debian.org' call, but instead re-use the domain from email-append.
+  * ud-replicate:
+    - do not hard-code 'debian.org' in the 'write-zonefile debian.org' call,
+      but instead re-use the domain from email-append.
+    - now preserve server side modifcation times when rsyncing data.
 
   [ Stephen Gran ]
   * Fix deprecation warnings for sha module by using hashlib module instead
   * ud-fingerserv: update Net::LDAP import
 
- -- Peter Palfrader <weasel@debian.org>  Thu, 29 Dec 2011 21:54:54 +0100
+ -- Peter Palfrader <weasel@debian.org>  Thu, 29 Dec 2011 22:05:22 +0100
 
 userdir-ldap (0.3.79) unstable; urgency=low
 
