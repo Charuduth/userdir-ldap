@@ -91,10 +91,10 @@ def safe_rmtree(dir):
 
 def get_lock(fn, wait=5*60, max_age=3600*6):
    try:
-      stat = os.stat(fn)
-      if stat[ST_MTIME] < time.time() - max_age:
-         sys.stderr.write("Removing stale lock %s"%(fn))
-         os.unlink(fn)
+      stat = os.stat(fn + '.lock')
+      if stat.st_mtime < time.time() - max_age:
+         sys.stderr.write("Removing stale lock %s"%(fn + '.lock'))
+         os.unlink(fn + '.lock')
    except OSError, error:
       if error.errno == errno.ENOENT:
          pass
