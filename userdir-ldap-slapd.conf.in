@@ -47,7 +47,7 @@ access to filter="(!(supplementaryGid=adm))" attrs=keyFingerPrint
 	by * break
 
 # allow users write access to an explicit subset of their fields
-access to attrs=c,l,loginShell,ircNick,labeledURI,icqUIN,jabberJID,onVacation,birthDate,mailDisableMessage,gender,emailforward,mailCallout,mailGreylisting,mailRBL,mailRHSBL,mailWhitelist,mailContentInspectionAction,mailDefaultOptions,facsimileTelephoneNumber,telephoneNumber,postalAddress,postalCode,loginShell,onVacation,privateSub,latitude,longitude,VoIP,userPassword,sudoPassword,bATVToken
+access to attrs=c,l,loginShell,ircNick,labeledURI,icqUIN,jabberJID,onVacation,birthDate,mailDisableMessage,gender,emailforward,mailCallout,mailGreylisting,mailRBL,mailRHSBL,mailWhitelist,mailContentInspectionAction,mailDefaultOptions,facsimileTelephoneNumber,telephoneNumber,postalAddress,postalCode,loginShell,onVacation,privateSub,latitude,longitude,VoIP,userPassword,sudoPassword,webPassword,bATVToken
 	by self write
 	by * break
 
@@ -57,7 +57,7 @@ access to attrs=c,l,loginShell,ircNick,labeledURI,icqUIN,jabberJID,onVacation,bi
 ##
 
 # allow authn/z by anyone
-access to attrs=userPassword,sudoPassword,bATVToken
+access to attrs=userPassword,sudoPassword,webPassword,bATVToken
 	by * compare
 
 # readable only by self
