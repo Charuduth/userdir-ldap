@@ -4,8 +4,8 @@ MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 8bit
 Subject: New Debian developer __ENCODED_REALNAME__
-Cc: da-manager@debian.org, debian-admin@debian.org
-Reply-To: da-manager@debian.org
+Cc: nm@debian.org, debian-admin@debian.org
+Reply-To: nm@debian.org
 Date: __DATE__
 User-Agent: nm-create script run by __WHOAMI__
 
@@ -18,10 +18,8 @@ Your account '__LOGIN__' has just been created in the central LDAP
 database of the Debian project.  Please note that it needs a bit of time
 until this information is synced with all developer-accessible machines.
 You should be able to login into debian.org machines after about 30-60
-minutes.  The password for this account can be found appended to this
-message, encrypted with your GPG key. If you applied for Debian
-Developer with uploading rights, you should be able to upload packages
-already.
+minutes.  If you applied for Debian Developer with uploading rights,
+you should be able to upload packages already.
 
 Email sent to <__LOGIN__@debian.org> will be forwarded to <__EMAIL__>,
 to change this visit <URL:http://db.debian.org/forward.html>.
@@ -31,25 +29,34 @@ Please refer to <URL:http://db.debian.org/doc-mail.html> on how to change
 these settings.  Some may also be exposed via the web interface behind
 <URL:https://db.debian.org/login.html>.
 
+Your password to access db.debian.org can be found encrypted with your
+PGP key and appended to this message.  It cannot be used to log into
+our machines; see the paragraph on SSH keys below.
+
 You now have access to various project machines, for a list of them take
 a look at <URL:http://db.debian.org/machines.cgi>.
 Please remember that you accepted the Debian Machine Usage Policy in
 your NM process (available at <URL:http://www.debian.org/devel/dmup>).
 
-If you need additional software installed on one of the machines (either
-in the host system or a chroot environment) please contact
-debian-admin@lists.debian.org, but keep in mind that not all software is
-available on all architectures.  The chroot environments can be
-entered with the 'dchroot' command; take a look at the list of machines
-to know which one has chroots available for you.
+If you need additional software installed on one of the machines (in the
+host system) please contact debian-admin@lists.debian.org, but keep in
+mind that not all software is available on all architectures.
+
+On porter machines, the chroot environments can be entered with the
+'dchroot' or the 'schroot' command, depending on setup; take a look at
+the list of machines to know which are our porterboxes.  For
+installation requests in porter chroots please follow the procedure
+outlined at <URL:http://dsa.debian.org/doc/install-req/>.
 
 You need to use ssh to log into the machines; telnet and rlogin are
-disabled for security reasons.  The LDAP directory is able to share RSA
-ssh keys among machines, please see <URL:http://db.debian.org/doc-mail.html>
-Please be aware of the security implications of using RSA authentication
-and ssh agents.  The SSH fingerprints for all Debian machines can be
-looked up at <URL:http://db.debian.org/machines.cgi> or a known_hosts
-file can be downloaded from <URL:https://db.debian.org/debian_known_hosts>.
+disabled for security reasons.  On debian.org servers the only ssh
+authentication method available is publickey.  The LDAP directory is
+able to share RSA ssh keys among machines, please see
+<URL:http://db.debian.org/doc-mail.html>.  Please be aware of the
+security implications of using RSA authentication and ssh agents.  The
+SSH fingerprints for all Debian machines can be looked up at
+<URL:http://db.debian.org/machines.cgi> or a known_hosts file can be
+downloaded from <URL:https://db.debian.org/debian_known_hosts>.
 
 Debian secures some of it's websites using SSL. The SSL certificates
 used are signed by the intermediate CA ca.debian.org. ca.debian.org
