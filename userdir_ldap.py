@@ -52,6 +52,11 @@ try:
 except AttributeError:
    UseSSL = False;
 
+try:
+   BaseBaseDn = ConfModule.basebasedn;
+except AttributeError:
+   BaseBaseDn = BaseDn
+
 # Break up the keyring list
 userdir_gpg.SetKeyrings(ConfModule.keyrings.split(":"))
 
