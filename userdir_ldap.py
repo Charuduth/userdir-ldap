@@ -57,6 +57,12 @@ try:
 except AttributeError:
    BaseBaseDn = BaseDn
 
+try:
+   IgnoreUsersForUIDNumberGen = ConfModule.ignoreusersforuidnumbergen
+except AttributeError:
+   IgnoreUsersForUIDNumberGen = ['nobody']
+
+
 # Break up the keyring list
 userdir_gpg.SetKeyrings(ConfModule.keyrings.split(":"))
 

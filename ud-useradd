@@ -35,24 +35,38 @@ HavePrivateList = getattr(ConfModule, "haveprivatelist", True)
 # Regrettably ldap doesn't have an integer attribute comparision function
 # so we can only cut the search down slightly
 
+def ShouldIgnoreID(uid):
+   for i in IgnoreUsersForUIDNumberGen:
+      try:
+         if i.search(uid) is not None:
+            return True
+      except AttributeError:
+         if uid == i:
+            return True
+
+   return False
+
 # [JT] This is broken with Woody LDAP and the Schema; for now just
 #      search through all UIDs.
 def GetFreeID(l):
-   Attrs = l.search_s(BaseDn,ldap.SCOPE_ONELEVEL,
-                      "uidNumber=*",["uidNumber", "gidNumber"]);
+   Attrs = l.search_s(BaseBaseDn,ldap.SCOPE_SUBTREE,
+                      "uidNumber=*",["uidNumber", "gidNumber", "uid"]);
    HighestUID = 0;
    gids = [];
+   uids = [];
    for I in Attrs:
       ID = int(GetAttr(I,"uidNumber","0"));
+      uids.append(ID)
       gids.append(int(GetAttr(I, "gidNumber","0")))
-      if ID > HighestUID:
+      uid = GetAttr(I, "uid", None)
+      if ID > HighestUID and not uid is None and not ShouldIgnoreID(uid):
          HighestUID = ID;
 
-   resGID = HighestUID + 1;
-   while resGID in gids:
-      resGID += 1
+   resUID = HighestUID + 1;
+   while resUID in uids or resUID in gids:
+      resUID += 1
 
-   return (HighestUID + 1, resGID);
+   return (resUID, resUID)
 
 # Main starts here
 AdminUser = pwd.getpwuid(os.getuid())[0];
