@@ -126,7 +126,10 @@ def passwdAccessLDAP(BaseDn, AdminUser):
    """
    print "Accessing LDAP directory as '" + AdminUser + "'";
    while (1):
-      Password = getpass.getpass(AdminUser + "'s password: ")
+      if 'LDAP_PASSWORD' in os.environ:
+          Password = os.environ['LDAP_PASSWORD']
+      else:
+          Password = getpass.getpass(AdminUser + "'s password: ")
 
       if len(Password) == 0:
          sys.exit(0)
@@ -138,6 +141,9 @@ def passwdAccessLDAP(BaseDn, AdminUser):
       try:
          l.simple_bind_s(UserDn,Password);
       except ldap.INVALID_CREDENTIALS:
+         if 'LDAP_PASSWORD' in os.environ:
+             print "password in environment does not work"
+             del os.environ['LDAP_PASSWORD']
          continue
       break
    return l
