@@ -374,6 +374,27 @@ def GenSSHShadow(global_dir, accounts):
 
    return userfiles
 
+# Generate the webPassword list
+def GenWebPassword(accounts, File):
+   F = None
+   try:
+      OldMask = os.umask(0077)
+      F = open(File, "w", 0600)
+      os.umask(OldMask)
+
+      for a in accounts:
+         if not 'webPassword' in a: continue
+         if not a.pw_active(): continue
+
+         Pass = str(a['webPassword'])
+         Line = "%s:%s" % (a['uid'], Pass)
+         Line = Sanitize(Line) + "\n"
+         F.write("%s" % (Line))
+
+   except:
+      Die(File, None, F)
+      raise
+
 def GenSSHtarballs(global_dir, userlist, SSHFiles, grouprevmap, target):
    OldMask = os.umask(0077)
    tf = tarfile.open(name=os.path.join(global_dir, 'ssh-keys-%s.tar.gz' % CurrentHost), mode='w:gz')
@@ -1006,7 +1027,7 @@ def get_accounts(ldap_conn):
                     "keyFingerPrint", "privateSub", "mailDisableMessage",\
                     "mailGreylisting", "mailCallout", "mailRBL", "mailRHSBL",\
                     "mailWhitelist", "sudoPassword", "objectClass", "accountStatus",\
-                    "mailContentInspectionAction"])
+                    "mailContentInspectionAction", "webPassword"])
 
    if passwd_attrs is None:
       raise UDEmptyList, "No Users"
@@ -1067,6 +1088,7 @@ def generate_all(global_dir, ldap_conn):
    GenMailList(accounts, global_dir + "mail-rbl", "mailRBL")
    GenMailList(accounts, global_dir + "mail-rhsbl", "mailRHSBL")
    GenMailList(accounts, global_dir + "mail-whitelist", "mailWhitelist")
+   GenWebPassword(accounts, global_dir + "web-passwords")
    GenKeyrings(global_dir)
 
    # Compatibility.
@@ -1170,6 +1192,9 @@ def generate_host(host, global_dir, accounts, ssh_files):
 
    if 'PRIVATE' in ExtraList:
       DoLink(global_dir, OutDir, "debian-private")
+
+   if 'WEB-PASSWORDS' in ExtraList:
+      DoLink(global_dir, OutDir, "web-passwords")
 
    if 'KEYRING' in ExtraList:
       for k in Keyrings:
