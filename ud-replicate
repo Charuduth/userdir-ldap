@@ -105,6 +105,11 @@ if [ -e ${HOST}/ssh-keys.tar.gz ]; then
   rsync -a --delete-after $tempdir/ userkeys/
 fi
 
+if [ -e ${HOST}/web-passwords ]; then
+	chown root:www-data ${HOST}/web-passwords
+	chmod 0640 ${HOST}/web-passwords
+fi
+
 CHROOTS=""
 if [ -x /usr/bin/dchroot ]; then
 	CHROOTS=`dchroot --listpaths`
