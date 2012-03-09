@@ -1215,6 +1215,7 @@ def generate_host(host, global_dir, accounts, ssh_files):
                posix.remove(target)
          except:
             pass
+   DoLink(global_dir, OutDir, "last_update.trace")
 
 l = make_ldap_conn()
 
