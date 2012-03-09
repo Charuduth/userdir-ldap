@@ -1246,11 +1246,10 @@ except IOError, e:
    else:
       raise e
 
-fd = open(os.path.join(GenerateDir, "last_update.trace"), "w")
-fd.write("%s\n%s\n" % (last, int(time.time())))
-fd.close()
-
 if cache_last_mod[0] >= last:
+   fd = open(os.path.join(GenerateDir, "last_update.trace"), "w")
+   fd.write("%s\n%s\n" % (last, int(time.time())))
+   fd.close()
    sys.exit(0)
 
 # Fetch all the groups
@@ -1281,6 +1280,10 @@ try:
 finally:
    if lock is not None:
       lock.release()
+
+fd = open(os.path.join(GenerateDir, "last_update.trace"), "w")
+fd.write("%s\n%s\n" % (last, int(time.time())))
+fd.close()
 
 # vim:set et:
 # vim:set ts=3:
