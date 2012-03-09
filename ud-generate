@@ -1234,23 +1234,24 @@ last = sorted_mods[-1][1]['reqEnd'][0].split('.')[0]
 if 'UD_GENERATEDIR' in os.environ:
    GenerateDir = os.environ['UD_GENERATEDIR']
 
-cache_last_mod = 0
+cache_last_mod = [0,0]
 
 try:
    fd = open(os.path.join(GenerateDir, "last_update.trace"), "r")
-   cache_last_mod=fd.read().strip()
+   cache_last_mod=fd.read().split()
    fd.close()
 except IOError, e:
    if e.errno == errno.ENOENT:
       pass
    else:
       raise e
-if cache_last_mod >= last:
-   sys.exit(0)
 
 fd = open(os.path.join(GenerateDir, "last_update.trace"), "w")
-fd.write(last)
+fd.write("%s\n%s\n" % (last, int(time.time())))
 fd.close()
+
+if cache_last_mod[0] >= last:
+   sys.exit(0)
 
 # Fetch all the groups
 GroupIDMap = {}
