@@ -70,6 +70,8 @@ IsDebianHost = re.compile(ConfModule.dns_hostmatch)
 isSSHFP = re.compile("^\s*IN\s+SSHFP")
 DNSZone = ".debian.net"
 Keyrings = ConfModule.sync_keyrings.split(":")
+GitoliteSSHRestrictions = getattr(ConfModule, "gitolitesshrestrictions", None)
+
 
 def safe_makedirs(dir):
    try:
@@ -332,6 +334,34 @@ def GenShadowSudo(accounts, File, untrusted):
          Line = Sanitize(Line) + "\n"
          F.write("%s" % (Line))
   
+   # Oops, something unspeakable happened.
+   except:
+      Die(File, F, None)
+      raise
+   Done(File, F, None)
+
+# Generate the sudo passwd file
+def GenSSHGitolite(accounts, File):
+   F = None
+   try:
+      OldMask = os.umask(0022)
+      F = open(File + ".tmp", "w", 0600)
+      os.umask(OldMask)
+
+      if not GitoliteSSHRestrictions is None and GitoliteSSHRestrictions != "":
+         for a in accounts:
+            if not 'sshRSAAuthKey' in a: continue
+
+            User = a['uid']
+            prefix = GitoliteSSHRestrictions.replace('@@USER@@', User)
+            for I in a["sshRSAAuthKey"]:
+               if I.startswith('ssh-'):
+                  line = "%s %s"%(prefix, I)
+               else:
+                  line = "%s,%s"%(prefix, I)
+               line = Sanitize(line) + "\n"
+               F.write(line)
+
    # Oops, something unspeakable happened.
    except:
       Die(File, F, None)
@@ -1101,6 +1131,7 @@ def generate_all(global_dir, ldap_conn):
    GenMarkers(accounts, global_dir + "markers")
    GenSSHKnown(host_attrs, global_dir + "ssh_known_hosts")
    GenHosts(host_attrs, global_dir + "debianhosts")
+   GenSSHGitolite(accounts, global_dir + "ssh-gitolite")
 
    GenDNS(accounts, global_dir + "dns-zone")
    GenZoneRecords(host_attrs, global_dir + "dns-sshfp")
@@ -1192,6 +1223,9 @@ def generate_host(host, global_dir, accounts, ssh_files):
 
    if 'PRIVATE' in ExtraList:
       DoLink(global_dir, OutDir, "debian-private")
+
+   if 'GITOLITE' in ExtraList:
+      DoLink(global_dir, OutDir, "ssh-gitolite")
 
    if 'WEB-PASSWORDS' in ExtraList:
       DoLink(global_dir, OutDir, "web-passwords")

@@ -18,6 +18,10 @@ userdir-ldap (0.3.XXX) UNRELEASED; urgency=low
     has historically been used as the root of the user tree.
   * Allow a set of users to be ignored for picking UIDs.
   * When picking uid/gid numbers try to pick the same number for both.
+  * Merge from torproject.org:
+    - Allow sshRSAAuthKey for role accounts.
+    - Support ssh key attributes for gitolite export.
+    - Add ssh-gitolite support.
 
   [ Stephen Gran ]
   * Fix deprecation warnings for sha module by using hashlib module instead
@@ -29,7 +33,7 @@ userdir-ldap (0.3.XXX) UNRELEASED; urgency=low
   * ud-generate: generate webPasswords
   * ud-replicate: set correct permissions for web-passwords
 
- -- Stephen Gran <sgran@debian.org>  Sat, 10 Mar 2012 08:05:24 +0000
+ -- Peter Palfrader <weasel@debian.org>  Sat, 10 Mar 2012 14:49:47 +0100
 
 userdir-ldap (0.3.79) unstable; urgency=low
 
