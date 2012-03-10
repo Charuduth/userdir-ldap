@@ -24,6 +24,8 @@ userdir-ldap (0.3.80) UNRELEASED; urgency=low
     - Add ssh-gitolite support.
   * debianGroups may have cn attribute (helpful when putting samba stuff into
     ldap).
+  * ud-mailgate: Do not try to do an ldap modify with no changes - now show
+    command to changes@ should work again.
 
   [ Stephen Gran ]
   * Fix deprecation warnings for sha module by using hashlib module instead
@@ -36,7 +38,7 @@ userdir-ldap (0.3.80) UNRELEASED; urgency=low
   * ud-replicate: set correct permissions for web-passwords
   * add freecdb to depends
 
- -- Martin Zobel-Helas <zobel@debian.org>  Sat, 10 Mar 2012 17:44:24 +0100
+ -- Peter Palfrader <weasel@debian.org>  Sat, 10 Mar 2012 19:04:59 +0100
 
 userdir-ldap (0.3.79) unstable; urgency=low
 
