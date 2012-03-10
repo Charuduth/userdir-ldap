@@ -22,6 +22,8 @@ userdir-ldap (0.3.XXX) UNRELEASED; urgency=low
     - Allow sshRSAAuthKey for role accounts.
     - Support ssh key attributes for gitolite export.
     - Add ssh-gitolite support.
+  * debianGroups may have cn attribute (helpful when putting samba stuff into
+    ldap).
 
   [ Stephen Gran ]
   * Fix deprecation warnings for sha module by using hashlib module instead
@@ -33,7 +35,7 @@ userdir-ldap (0.3.XXX) UNRELEASED; urgency=low
   * ud-generate: generate webPasswords
   * ud-replicate: set correct permissions for web-passwords
 
- -- Peter Palfrader <weasel@debian.org>  Sat, 10 Mar 2012 14:49:47 +0100
+ -- Peter Palfrader <weasel@debian.org>  Sat, 10 Mar 2012 15:21:12 +0100
 
 userdir-ldap (0.3.79) unstable; urgency=low
 
