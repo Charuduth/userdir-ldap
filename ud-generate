@@ -1269,11 +1269,15 @@ last = sorted_mods[-1][1]['reqEnd'][0].split('.')[0]
 if 'UD_GENERATEDIR' in os.environ:
    GenerateDir = os.environ['UD_GENERATEDIR']
 
-cache_last_mod = None
+cache_last_mod = 0
 
 try:
    fd = open(os.path.join(GenerateDir, "last_update.trace"), "r")
    cache_last_mod=fd.read().split()
+   try:
+      cache_last_mod = cache_last_mod[0]
+   except IndexError:
+      pass
    fd.close()
 except IOError, e:
    if e.errno == errno.ENOENT:
@@ -1281,7 +1285,7 @@ except IOError, e:
    else:
       raise e
 
-if cache_last_mod is None or cache_last_mod[0] >= last:
+if cache_last_mod >= last:
    fd = open(os.path.join(GenerateDir, "last_update.trace"), "w")
    fd.write("%s\n%s\n" % (last, int(time.time())))
    fd.close()
@@ -1310,15 +1314,15 @@ try:
       sys.stderr.write("Could not acquire lock %s.\n"%(lockf))
       sys.exit(1)
 
+   tracefd = open(os.path.join(GenerateDir, "last_update.trace"), "w")
    generate_all(GenerateDir, l)
+   tracefd.write("%s\n%s\n" % (last, int(time.time())))
+   tracefd.close()
 
 finally:
    if lock is not None:
       lock.release()
 
-fd = open(os.path.join(GenerateDir, "last_update.trace"), "w")
-fd.write("%s\n%s\n" % (last, int(time.time())))
-fd.close()
 
 # vim:set et:
 # vim:set ts=3:
