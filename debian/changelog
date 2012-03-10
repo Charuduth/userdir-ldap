@@ -1,4 +1,4 @@
-userdir-ldap (0.3.XXX) UNRELEASED; urgency=low
+userdir-ldap (0.3.80) UNRELEASED; urgency=low
 
   [ Peter Palfrader ]
   * some ud-echelon fixes,
@@ -34,8 +34,9 @@ userdir-ldap (0.3.XXX) UNRELEASED; urgency=low
   [ Martin Zobel-Helas ]
   * ud-generate: generate webPasswords
   * ud-replicate: set correct permissions for web-passwords
+  * add freecdb to depends
 
- -- Peter Palfrader <weasel@debian.org>  Sat, 10 Mar 2012 15:21:12 +0100
+ -- Martin Zobel-Helas <zobel@debian.org>  Sat, 10 Mar 2012 17:44:24 +0100
 
 userdir-ldap (0.3.79) unstable; urgency=low
 
