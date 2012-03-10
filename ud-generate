@@ -1269,7 +1269,7 @@ last = sorted_mods[-1][1]['reqEnd'][0].split('.')[0]
 if 'UD_GENERATEDIR' in os.environ:
    GenerateDir = os.environ['UD_GENERATEDIR']
 
-cache_last_mod = [0,0]
+cache_last_mod = None
 
 try:
    fd = open(os.path.join(GenerateDir, "last_update.trace"), "r")
@@ -1281,7 +1281,7 @@ except IOError, e:
    else:
       raise e
 
-if cache_last_mod[0] >= last:
+if cache_last_mod is None or cache_last_mod[0] >= last:
    fd = open(os.path.join(GenerateDir, "last_update.trace"), "w")
    fd.write("%s\n%s\n" % (last, int(time.time())))
    fd.close()
