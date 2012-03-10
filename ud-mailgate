@@ -624,8 +624,7 @@ def HandleChange(Reply,DnRecord,Key):
          CommitChanges = 0
          Result = Result + "FinishConfirmSudopassword raised an error (%s) - no changes committed\n"%(e);
 
-   # Modify the record
-   if CommitChanges == 1:
+   if CommitChanges == 1 and len(Attrs) > 0:
       Dn = "uid=" + GetAttr(DnRecord,"uid") + "," + BaseDn;
       l.modify_s(Dn,Attrs);
 
