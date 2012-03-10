@@ -22,12 +22,14 @@ userdir-ldap (0.3.XXX) UNRELEASED; urgency=low
   [ Stephen Gran ]
   * Fix deprecation warnings for sha module by using hashlib module instead
   * ud-fingerserv: update Net::LDAP import
+  * Implement audit logging for ldap
+  * stop running ud-generate if nothing has changed, based on audit logs
 
   [ Martin Zobel-Helas ]
   * ud-generate: generate webPasswords
   * ud-replicate: set correct permissions for web-passwords
 
- -- Martin Zobel-Helas <zobel@debian.org>  Fri, 09 Mar 2012 10:32:44 +0100
+ -- Stephen Gran <sgran@debian.org>  Sat, 10 Mar 2012 08:05:24 +0000
 
 userdir-ldap (0.3.79) unstable; urgency=low
 
