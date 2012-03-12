@@ -28,7 +28,7 @@
 #   along with this program; if not, write to the Free Software
 #   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
-import string, re, time, ldap, getopt, sys, os, pwd, posix, socket, base64, hashlib, shutil, errno, tarfile, grp
+import string, re, time, ldap, optparse, sys, os, pwd, posix, socket, base64, hashlib, shutil, errno, tarfile, grp
 import lockfile
 from userdir_ldap import *
 from userdir_exceptions import *
@@ -1285,15 +1285,31 @@ def getLastBuildTime():
 
 
 
+
+parser = optparse.OptionParser()
+parser.add_option("-g", "--generatedir", dest="generatedir", metavar="DIR",
+  help="Output directory.")
+parser.add_option("-f", "--force", dest="force", action="store_true",
+  help="Force generation, even if not update to LDAP has happened.")
+
+(options, args) = parser.parse_args()
+if len(args) > 0:
+   parser.print_help()
+   sys.exit(1)
+
+
 l = make_ldap_conn()
 
-# override globaldir for testing
-if 'UD_GENERATEDIR' in os.environ:
+if options.generatedir is not None:
+   GenerateDir = os.environ['UD_GENERATEDIR']
+elif 'UD_GENERATEDIR' in os.environ:
    GenerateDir = os.environ['UD_GENERATEDIR']
 
 ldap_last_mod = getLastLDAPChangeTime(l)
 cache_last_mod = getLastBuildTime()
-if cache_last_mod >= ldap_last_mod:
+need_update = ldap_last_mod > cache_last_mod
+
+if not options.force and not need_update:
    fd = open(os.path.join(GenerateDir, "last_update.trace"), "w")
    fd.write("%s\n%s\n" % (ldap_last_mod, int(time.time())))
    fd.close()
