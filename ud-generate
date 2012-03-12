@@ -772,16 +772,13 @@ def GenDNS(accounts, File):
             for z in a["dnsZoneEntry"]:
                Split = z.lower().split()
                if Split[1].lower() == 'in':
-                  for y in range(0, len(Split)):
-                     if Split[y] == "$":
-                        Split[y] = "\n\t"
                   Line = " ".join(Split) + "\n"
                   F.write(Line)
-     
+
                   Host = Split[0] + DNSZone
                   if BSMTPCheck.match(Line) != None:
                      F.write("; Has BSMTP\n")
-     
+
                   # Write some identification information
                   if not RRs.has_key(Host):
                      if Split[2].lower() in ["a", "aaaa"]:
@@ -793,7 +790,7 @@ def GenDNS(accounts, File):
                else:
                   Line = "; Err %s"%(str(Split))
                   F.write(Line)
-     
+
             F.write("\n")
          except Exception, e:
             F.write("; Errors:\n")
