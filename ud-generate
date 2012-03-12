@@ -570,7 +570,9 @@ def GenCDB(accounts, File, key):
    Fdb = None
    try:
       OldMask = os.umask(0022)
-      Fdb = os.popen("cdbmake %s %s.tmp"%(File, File), "w")
+      # nothing else does the fsync stuff, so why do it here?
+      prefix = "/usr/bin/eatmydata " if os.path.exists('/usr/bin/eatmydata') else ''
+      Fdb = os.popen("%scdbmake %s %s.tmp"%(prefix, File, File), "w")
       os.umask(OldMask)
 
       # Write out the email address for each user
