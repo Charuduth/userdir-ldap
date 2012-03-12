@@ -1316,9 +1316,17 @@ def ud_generate():
       if lock is not None:
          lock.close()
 
-if __name__ == "__main__":
-   ud_generate()
 
+if __name__ == "__main__":
+   if 'UD_PROFILE' in os.environ:
+      import cProfile
+      import pstats
+      cProfile.run('ud_generate()', "udg_prof")
+      p = pstats.Stats('udg_prof')
+      ##p.sort_stats('time').print_stats()
+      p.sort_stats('cumulative').print_stats()
+   else:
+      ud_generate()
 
 # vim:set et:
 # vim:set ts=3:
