@@ -27,23 +27,27 @@ class Account:
     def __init__(self, dn, attributes):
         self.dn = dn
         self.attributes = attributes
+        self.cache = {}
 
     def __getitem__(self, key):
+        if key in self.cache:
+            return self.cache[key]
+
         if key in self.attributes:
             if key in self.array_values:
-                return self.attributes[key]
-
-            if not len(self.attributes[key]) == 1:
+                self.cache[key] = self.attributes[key]
+            elif not len(self.attributes[key]) == 1:
                 raise ValueError, 'non-array value has not exactly one value'
-
-            if key in self.int_values:
-                return int(self.attributes[key][0])
+            elif key in self.int_values:
+                self.cache[key] = int(self.attributes[key][0])
             else:
-                return self.attributes[key][0]
+                self.cache[key] = self.attributes[key][0]
         elif key in self.defaults:
-            return self.defaults[key]
+            self.cache[key] = self.defaults[key]
         else:
             raise IndexError, "No such key: %s (dn: %s)"%(key, self.dn)
+
+        return self.cache[key]
 
     def __contains__(self, key):
         return key in self.attributes
