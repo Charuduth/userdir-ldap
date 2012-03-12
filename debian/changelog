@@ -38,6 +38,9 @@ userdir-ldap (0.3.80) UNRELEASED; urgency=low
         that group had a user with that group as their primary group - even
         if that particular user was not exported to this this.  No we no
         longer export empty groups.
+    - speed up ssh tarball generation: No longer write indidividual user's ssh
+      authorized_keys to disk, only to read them later.  Directly create a
+      TarInfo object without referring to any on-disk files.
 
   [ Stephen Gran ]
   * Fix deprecation warnings for sha module by using hashlib module instead
@@ -50,7 +53,7 @@ userdir-ldap (0.3.80) UNRELEASED; urgency=low
   * ud-replicate: set correct permissions for web-passwords
   * add freecdb to depends
 
- -- Peter Palfrader <weasel@debian.org>  Mon, 12 Mar 2012 13:06:08 +0100
+ -- Peter Palfrader <weasel@debian.org>  Mon, 12 Mar 2012 13:54:57 +0100
 
 userdir-ldap (0.3.79) unstable; urgency=low
 

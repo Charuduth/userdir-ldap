@@ -360,7 +360,7 @@ def GenSSHGitolite(accounts, File):
 # Generate the shadow list
 def GenSSHShadow(global_dir, accounts):
    # Fetch all the users
-   userfiles = []
+   userkeys = {}
 
    safe_rmtree(os.path.join(global_dir, 'userkeys'))
    safe_makedirs(os.path.join(global_dir, 'userkeys'))
@@ -368,30 +368,13 @@ def GenSSHShadow(global_dir, accounts):
    for a in accounts:
       if not 'sshRSAAuthKey' in a: continue
 
-      F = None
-      try:
-         OldMask = os.umask(0077)
-         File = os.path.join(global_dir, 'userkeys', a['uid'])
-         F = open(File + ".tmp", "w", 0600)
-         os.umask(OldMask)
-
-         for I in a['sshRSAAuthKey']:
-            MultipleLine = "%s" % I
-            MultipleLine = Sanitize(MultipleLine) + "\n"
-            F.write(MultipleLine)
-
-         Done(File, F, None)
-         userfiles.append(os.path.basename(File))
-
-      # Oops, something unspeakable happened.
-      except IOError:
-         Die(File, F, None)
-         # As neither masterFileName nor masterFile are defined at any point
-         # this will raise a NameError.
-         Die(masterFileName, masterFile, None)
-         raise
-
-   return userfiles
+      contents = []
+      for I in a['sshRSAAuthKey']:
+         MultipleLine = "%s" % I
+         MultipleLine = Sanitize(MultipleLine)
+         contents.append(MultipleLine)
+      userkeys[a['uid']] = contents
+   return userkeys
 
 # Generate the webPassword list
 def GenWebPassword(accounts, File):
@@ -414,12 +397,12 @@ def GenWebPassword(accounts, File):
       Die(File, None, F)
       raise
 
-def GenSSHtarballs(global_dir, userlist, SSHFiles, grouprevmap, target):
+def GenSSHtarballs(global_dir, userlist, ssh_userkeys, grouprevmap, target):
    OldMask = os.umask(0077)
    tf = tarfile.open(name=os.path.join(global_dir, 'ssh-keys-%s.tar.gz' % CurrentHost), mode='w:gz')
    os.umask(OldMask)
-   for f in userlist.keys():
-      if f not in SSHFiles:
+   for f in userlist:
+      if f not in ssh_userkeys:
          continue
       # If we're not exporting their primary group, don't export
       # the key and warn
@@ -440,7 +423,19 @@ def GenSSHtarballs(global_dir, userlist, SSHFiles, grouprevmap, target):
          print "User %s is supposed to have their key exported to host %s but their primary group (gid: %d) isn't in LDAP" % (f, CurrentHost, userlist[f])
          continue
 
-      to = tf.gettarinfo(os.path.join(global_dir, 'userkeys', f), f)
+      contents = ssh_userkeys[f]
+      lines = []
+      for line in contents:
+         if line.startswith("allowed_hosts=") and ' ' in line:
+            machines, line = line.split('=', 1)[1].split(' ', 1)
+            if CurrentHost not in machines.split(','):
+               continue # skip this key
+         lines.append(line)
+      if not lines:
+         continue # no keys for this host
+      contents = "\n".join(lines) + "\n"
+
+      to = tarfile.TarInfo(name=f)
       # These will only be used where the username doesn't
       # exist on the target system for some reason; hence,
       # in those cases, the safest thing is for the file to
@@ -456,19 +451,9 @@ def GenSSHtarballs(global_dir, userlist, SSHFiles, grouprevmap, target):
       to.uname = f
       to.gname = grname
       to.mode  = 0400
-
-      contents = file(os.path.join(global_dir, 'userkeys', f)).read()
-      lines = []
-      for line in contents.splitlines():
-         if line.startswith("allowed_hosts=") and ' ' in line:
-            machines, line = line.split('=', 1)[1].split(' ', 1)
-            if CurrentHost not in machines.split(','):
-               continue # skip this key
-         lines.append(line)
-      if not lines:
-         continue # no keys for this host
-      contents = "\n".join(lines) + "\n"
+      to.mtime = int(time.time())
       to.size = len(contents)
+
       tf.addfile(to, StringIO(contents))
 
    tf.close()
@@ -1110,7 +1095,7 @@ def generate_all(global_dir, ldap_conn):
    GenAllUsers(accounts, global_dir + 'all-accounts.json')
    accounts = filter(lambda a: not a in accounts_disabled, accounts)
 
-   ssh_files = GenSSHShadow(global_dir, accounts)
+   ssh_userkeys = GenSSHShadow(global_dir, accounts)
    GenMarkers(accounts, global_dir + "markers")
    GenSSHKnown(host_attrs, global_dir + "ssh_known_hosts")
    GenHosts(host_attrs, global_dir + "debianhosts")
@@ -1122,9 +1107,9 @@ def generate_all(global_dir, ldap_conn):
    for host in host_attrs:
       if not "hostname" in host[1]:
          continue
-      generate_host(host, global_dir, accounts, ssh_files)
+      generate_host(host, global_dir, accounts, ssh_userkeys)
 
-def generate_host(host, global_dir, accounts, ssh_files):
+def generate_host(host, global_dir, accounts, ssh_userkeys):
    global CurrentHost
 
    CurrentHost = host[1]['hostname'][0]
@@ -1168,7 +1153,7 @@ def generate_host(host, global_dir, accounts, ssh_files):
 
    # Now we know who we're allowing on the machine, export
    # the relevant ssh keys
-   GenSSHtarballs(global_dir, userlist, ssh_files, grouprevmap, os.path.join(OutDir, 'ssh-keys.tar.gz'))
+   GenSSHtarballs(global_dir, userlist, ssh_userkeys, grouprevmap, os.path.join(OutDir, 'ssh-keys.tar.gz'))
 
    if not 'NOPASSWD' in ExtraList:
       GenShadow(accounts, OutDir + "shadow")
