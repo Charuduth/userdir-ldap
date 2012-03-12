@@ -1281,13 +1281,19 @@ def ud_generate():
       parser.print_help()
       sys.exit(1)
 
-
-   l = make_ldap_conn()
-
    if options.generatedir is not None:
       generate_dir = os.environ['UD_GENERATEDIR']
    elif 'UD_GENERATEDIR' in os.environ:
       generate_dir = os.environ['UD_GENERATEDIR']
+
+
+   lockf = os.path.join(generate_dir, 'ud-generate.lock')
+   lock = get_lock( lockf )
+   if lock is None:
+      sys.stderr.write("Could not acquire lock %s.\n"%(lockf))
+      sys.exit(1)
+
+   l = make_ldap_conn()
 
    ldap_last_mod = getLastLDAPChangeTime(l)
    cache_last_mod = getLastBuildTime(generate_dir)
@@ -1298,12 +1304,6 @@ def ud_generate():
       fd.write("%s\n%s\n" % (ldap_last_mod, int(time.time())))
       fd.close()
       sys.exit(0)
-
-   lockf = os.path.join(generate_dir, 'ud-generate.lock')
-   lock = get_lock( lockf )
-   if lock is None:
-      sys.stderr.write("Could not acquire lock %s.\n"%(lockf))
-      sys.exit(1)
 
    tracefd = open(os.path.join(generate_dir, "last_update.trace"), "w")
    generate_all(generate_dir, l)
