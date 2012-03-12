@@ -1232,11 +1232,11 @@ def getLastLDAPChangeTime(l):
 
    return last
 
-def getLastBuildTime():
+def getLastBuildTime(gdir):
    cache_last_mod = 0
 
    try:
-      fd = open(os.path.join(GenerateDir, "last_update.trace"), "r")
+      fd = open(os.path.join(gdir, "last_update.trace"), "r")
       cache_last_mod=fd.read().split()
       try:
          cache_last_mod = cache_last_mod[0]
@@ -1255,7 +1255,6 @@ def getLastBuildTime():
 
 
 def ud_generate():
-   global GenerateDir
    global GroupIDMap
    parser = optparse.OptionParser()
    parser.add_option("-g", "--generatedir", dest="generatedir", metavar="DIR",
@@ -1272,16 +1271,16 @@ def ud_generate():
    l = make_ldap_conn()
 
    if options.generatedir is not None:
-      GenerateDir = os.environ['UD_GENERATEDIR']
+      generate_dir = os.environ['UD_GENERATEDIR']
    elif 'UD_GENERATEDIR' in os.environ:
-      GenerateDir = os.environ['UD_GENERATEDIR']
+      generate_dir = os.environ['UD_GENERATEDIR']
 
    ldap_last_mod = getLastLDAPChangeTime(l)
-   cache_last_mod = getLastBuildTime()
+   cache_last_mod = getLastBuildTime(generate_dir)
    need_update = ldap_last_mod > cache_last_mod
 
    if not options.force and not need_update:
-      fd = open(os.path.join(GenerateDir, "last_update.trace"), "w")
+      fd = open(os.path.join(generate_dir, "last_update.trace"), "w")
       fd.write("%s\n%s\n" % (ldap_last_mod, int(time.time())))
       fd.close()
       sys.exit(0)
@@ -1303,14 +1302,14 @@ def ud_generate():
 
    lock = None
    try:
-      lockf = os.path.join(GenerateDir, 'ud-generate.lock')
+      lockf = os.path.join(generate_dir, 'ud-generate.lock')
       lock = get_lock( lockf )
       if lock is None:
          sys.stderr.write("Could not acquire lock %s.\n"%(lockf))
          sys.exit(1)
 
-      tracefd = open(os.path.join(GenerateDir, "last_update.trace"), "w")
-      generate_all(GenerateDir, l)
+      tracefd = open(os.path.join(generate_dir, "last_update.trace"), "w")
+      generate_all(generate_dir, l)
       tracefd.write("%s\n%s\n" % (ldap_last_mod, int(time.time())))
       tracefd.close()
 
