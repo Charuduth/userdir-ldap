@@ -1299,22 +1299,16 @@ def ud_generate():
       fd.close()
       sys.exit(0)
 
-   lock = None
-   try:
-      lockf = os.path.join(generate_dir, 'ud-generate.lock')
-      lock = get_lock( lockf )
-      if lock is None:
-         sys.stderr.write("Could not acquire lock %s.\n"%(lockf))
-         sys.exit(1)
+   lockf = os.path.join(generate_dir, 'ud-generate.lock')
+   lock = get_lock( lockf )
+   if lock is None:
+      sys.stderr.write("Could not acquire lock %s.\n"%(lockf))
+      sys.exit(1)
 
-      tracefd = open(os.path.join(generate_dir, "last_update.trace"), "w")
-      generate_all(generate_dir, l)
-      tracefd.write("%s\n%s\n" % (ldap_last_mod, int(time.time())))
-      tracefd.close()
-
-   finally:
-      if lock is not None:
-         lock.close()
+   tracefd = open(os.path.join(generate_dir, "last_update.trace"), "w")
+   generate_all(generate_dir, l)
+   tracefd.write("%s\n%s\n" % (ldap_last_mod, int(time.time())))
+   tracefd.close()
 
 
 if __name__ == "__main__":
