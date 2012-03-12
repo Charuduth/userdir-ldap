@@ -53,9 +53,8 @@ if os.getuid() == 0:
 #
 # GLOBAL STATE
 #
-GroupIDMap = {}
-SubGroupMap = {}
-CurrentHost = ""
+GroupIDMap = None
+SubGroupMap = None
 
 
 
@@ -154,18 +153,18 @@ def IsRetired(account):
 #   return account['gidNumber'] == 800
 
 # See if this user is in the group list
-def IsInGroup(account, allowed):
+def IsInGroup(account, allowed, current_host):
   # See if the primary group is in the list
   if str(account['gidNumber']) in allowed: return True
 
   # Check the host based ACL
-  if account.is_allowed_by_hostacl(CurrentHost): return True
+  if account.is_allowed_by_hostacl(current_host): return True
 
   # See if there are supplementary groups
   if not 'supplementaryGid' in account: return False
 
   supgroups=[]
-  addGroups(supgroups, account['supplementaryGid'], account['uid'])
+  addGroups(supgroups, account['supplementaryGid'], account['uid'], current_host)
   for g in supgroups:
      if allowed.has_key(g):
         return True
@@ -285,7 +284,7 @@ def GenShadow(accounts, File):
    Done(File, None, F)
 
 # Generate the sudo passwd file
-def GenShadowSudo(accounts, File, untrusted):
+def GenShadowSudo(accounts, File, untrusted, current_host):
    F = None
    try:
       OldMask = os.umask(0077)
@@ -307,7 +306,7 @@ def GenShadowSudo(accounts, File, untrusted):
                if status != 'confirmed:'+make_passwd_hmac('password-is-confirmed', 'sudo', a['uid'], uuid, hosts, cryptedpass):
                   continue
                for_all = hosts == "*"
-               for_this_host = CurrentHost in hosts.split(',')
+               for_this_host = current_host in hosts.split(',')
                if not (for_all or for_this_host):
                   continue
                # ignore * passwords for untrusted hosts, but copy host specific passwords
@@ -397,9 +396,9 @@ def GenWebPassword(accounts, File):
       Die(File, None, F)
       raise
 
-def GenSSHtarballs(global_dir, userlist, ssh_userkeys, grouprevmap, target):
+def GenSSHtarballs(global_dir, userlist, ssh_userkeys, grouprevmap, target, current_host):
    OldMask = os.umask(0077)
-   tf = tarfile.open(name=os.path.join(global_dir, 'ssh-keys-%s.tar.gz' % CurrentHost), mode='w:gz')
+   tf = tarfile.open(name=os.path.join(global_dir, 'ssh-keys-%s.tar.gz' % current_host), mode='w:gz')
    os.umask(OldMask)
    for f in userlist:
       if f not in ssh_userkeys:
@@ -420,14 +419,14 @@ def GenSSHtarballs(global_dir, userlist, ssh_userkeys, grouprevmap, target):
             pass
 
       if grname is None:
-         print "User %s is supposed to have their key exported to host %s but their primary group (gid: %d) isn't in LDAP" % (f, CurrentHost, userlist[f])
+         print "User %s is supposed to have their key exported to host %s but their primary group (gid: %d) isn't in LDAP" % (f, current_host, userlist[f])
          continue
 
       lines = []
       for line in ssh_userkeys[f]:
          if line.startswith("allowed_hosts=") and ' ' in line:
             machines, line = line.split('=', 1)[1].split(' ', 1)
-            if CurrentHost not in machines.split(','):
+            if current_host not in machines.split(','):
                continue # skip this key
          lines.append(line)
       if not lines:
@@ -456,17 +455,17 @@ def GenSSHtarballs(global_dir, userlist, ssh_userkeys, grouprevmap, target):
       tf.addfile(to, StringIO(contents))
 
    tf.close()
-   os.rename(os.path.join(global_dir, 'ssh-keys-%s.tar.gz' % CurrentHost), target)
+   os.rename(os.path.join(global_dir, 'ssh-keys-%s.tar.gz' % current_host), target)
 
 # add a list of groups to existing groups,
 # including all subgroups thereof, recursively.
 # basically this proceduces the transitive hull of the groups in
 # addgroups.
-def addGroups(existingGroups, newGroups, uid):
+def addGroups(existingGroups, newGroups, uid, current_host):
    for group in newGroups:
       # if it's a <group>@host, split it and verify it's on the current host.
       s = group.split('@', 1)
-      if len(s) == 2 and s[1] != CurrentHost:
+      if len(s) == 2 and s[1] != current_host:
          continue
       group = s[0]
 
@@ -481,10 +480,10 @@ def addGroups(existingGroups, newGroups, uid):
       existingGroups.append(group)
 
       if SubGroupMap.has_key(group):
-         addGroups(existingGroups, SubGroupMap[group], uid)
+         addGroups(existingGroups, SubGroupMap[group], uid, current_host)
 
 # Generate the group list
-def GenGroup(accounts, File):
+def GenGroup(accounts, File, current_host):
    grouprevmap = {}
    F = None
    try:
@@ -492,7 +491,7 @@ def GenGroup(accounts, File):
      
       # Generate the GroupMap
       GroupMap = {}
-      for x in GroupIDMap.keys():
+      for x in GroupIDMap:
          GroupMap[x] = []
       GroupHasPrimaryMembers = {}
 
@@ -502,14 +501,14 @@ def GenGroup(accounts, File):
          if not 'supplementaryGid' in a: continue
 
          supgroups=[]
-         addGroups(supgroups, a['supplementaryGid'], a['uid'])
+         addGroups(supgroups, a['supplementaryGid'], a['uid'], current_host)
          for g in supgroups:
             GroupMap[g].append(a['uid'])
 
       # Output the group file.
       J = 0
       for x in GroupMap.keys():
-         if GroupIDMap.has_key(x) == 0:
+         if not x in GroupIDMap:
             continue
 
          if len(GroupMap[x]) == 0 and GroupIDMap[x] not in GroupHasPrimaryMembers:
@@ -1062,6 +1061,30 @@ def make_ldap_conn():
 
    return l
 
+
+
+def setup_group_maps(l):
+   # Fetch all the groups
+   group_id_map = {}
+   subgroup_map = {}
+   attrs = l.search_s(BaseDn, ldap.SCOPE_ONELEVEL, "gid=*",\
+                     ["gid", "gidNumber", "subGroup"])
+
+   # Generate the subgroup_map and group_id_map
+   for x in attrs:
+      if x[1].has_key("accountStatus") and x[1]['accountStatus'] == "disabled":
+         continue
+      if x[1].has_key("gidNumber") == 0:
+         continue
+      group_id_map[x[1]["gid"][0]] = int(x[1]["gidNumber"][0])
+      if x[1].has_key("subGroup") != 0:
+         subgroup_map.setdefault(x[1]["gid"][0], []).extend(x[1]["subGroup"])
+
+   global SubGroupMap
+   global GroupIDMap
+   SubGroupMap = subgroup_map
+   GroupIDMap = group_id_map
+
 def generate_all(global_dir, ldap_conn):
    accounts = get_accounts(ldap_conn)
    host_attrs = get_hosts(ldap_conn)
@@ -1103,20 +1126,18 @@ def generate_all(global_dir, ldap_conn):
    GenDNS(accounts, global_dir + "dns-zone")
    GenZoneRecords(host_attrs, global_dir + "dns-sshfp")
 
+   setup_group_maps(ldap_conn)
+
    for host in host_attrs:
       if not "hostname" in host[1]:
          continue
       generate_host(host, global_dir, accounts, ssh_userkeys)
 
 def generate_host(host, global_dir, accounts, ssh_userkeys):
-   global CurrentHost
-
-   CurrentHost = host[1]['hostname'][0]
-   OutDir = global_dir + CurrentHost + '/'
-   try:
+   current_host = host[1]['hostname'][0]
+   OutDir = global_dir + current_host + '/'
+   if not os.path.isdir(OutDir):
       os.mkdir(OutDir)
-   except:
-      pass
 
    # Get the group list and convert any named groups to numerics
    GroupList = {}
@@ -1135,7 +1156,7 @@ def generate_host(host, global_dir, accounts, ssh_userkeys):
          ExtraList[extra.upper()] = True
 
    if GroupList != {}:
-      accounts = filter(lambda x: IsInGroup(x, GroupList), accounts)
+      accounts = filter(lambda x: IsInGroup(x, GroupList, current_host), accounts)
 
    DoLink(global_dir, OutDir, "debianhosts")
    DoLink(global_dir, OutDir, "ssh_known_hosts")
@@ -1147,12 +1168,12 @@ def generate_host(host, global_dir, accounts, ssh_userkeys):
    else:
       userlist = GenPasswd(accounts, OutDir + "passwd", HomePrefix, "x")
    sys.stdout.flush()
-   grouprevmap = GenGroup(accounts, OutDir + "group")
-   GenShadowSudo(accounts, OutDir + "sudo-passwd", ('UNTRUSTED' in ExtraList) or ('NOPASSWD' in ExtraList))
+   grouprevmap = GenGroup(accounts, OutDir + "group", current_host)
+   GenShadowSudo(accounts, OutDir + "sudo-passwd", ('UNTRUSTED' in ExtraList) or ('NOPASSWD' in ExtraList), current_host)
 
    # Now we know who we're allowing on the machine, export
    # the relevant ssh keys
-   GenSSHtarballs(global_dir, userlist, ssh_userkeys, grouprevmap, os.path.join(OutDir, 'ssh-keys.tar.gz'))
+   GenSSHtarballs(global_dir, userlist, ssh_userkeys, grouprevmap, os.path.join(OutDir, 'ssh-keys.tar.gz'), current_host)
 
    if not 'NOPASSWD' in ExtraList:
       GenShadow(accounts, OutDir + "shadow")
@@ -1252,10 +1273,7 @@ def getLastBuildTime(gdir):
    return cache_last_mod
 
 
-
-
 def ud_generate():
-   global GroupIDMap
    parser = optparse.OptionParser()
    parser.add_option("-g", "--generatedir", dest="generatedir", metavar="DIR",
      help="Output directory.")
@@ -1284,21 +1302,6 @@ def ud_generate():
       fd.write("%s\n%s\n" % (ldap_last_mod, int(time.time())))
       fd.close()
       sys.exit(0)
-
-   # Fetch all the groups
-   GroupIDMap = {}
-   attrs = l.search_s(BaseDn, ldap.SCOPE_ONELEVEL, "gid=*",\
-                     ["gid", "gidNumber", "subGroup"])
-
-   # Generate the SubGroupMap and GroupIDMap
-   for x in attrs:
-      if x[1].has_key("accountStatus") and x[1]['accountStatus'] == "disabled":
-         continue
-      if x[1].has_key("gidNumber") == 0:
-         continue
-      GroupIDMap[x[1]["gid"][0]] = int(x[1]["gidNumber"][0])
-      if x[1].has_key("subGroup") != 0:
-         SubGroupMap.setdefault(x[1]["gid"][0], []).extend(x[1]["subGroup"])
 
    lock = None
    try:
