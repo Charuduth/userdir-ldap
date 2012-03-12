@@ -1285,6 +1285,8 @@ def ud_generate():
       generate_dir = os.environ['UD_GENERATEDIR']
    elif 'UD_GENERATEDIR' in os.environ:
       generate_dir = os.environ['UD_GENERATEDIR']
+   else:
+      generate_dir = GenerateDir
 
 
    lockf = os.path.join(generate_dir, 'ud-generate.lock')
