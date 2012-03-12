@@ -1286,66 +1286,72 @@ def getLastBuildTime():
 
 
 
-parser = optparse.OptionParser()
-parser.add_option("-g", "--generatedir", dest="generatedir", metavar="DIR",
-  help="Output directory.")
-parser.add_option("-f", "--force", dest="force", action="store_true",
-  help="Force generation, even if not update to LDAP has happened.")
+def ud_generate():
+   global GenerateDir
+   global GroupIDMap
+   parser = optparse.OptionParser()
+   parser.add_option("-g", "--generatedir", dest="generatedir", metavar="DIR",
+     help="Output directory.")
+   parser.add_option("-f", "--force", dest="force", action="store_true",
+     help="Force generation, even if not update to LDAP has happened.")
 
-(options, args) = parser.parse_args()
-if len(args) > 0:
-   parser.print_help()
-   sys.exit(1)
-
-
-l = make_ldap_conn()
-
-if options.generatedir is not None:
-   GenerateDir = os.environ['UD_GENERATEDIR']
-elif 'UD_GENERATEDIR' in os.environ:
-   GenerateDir = os.environ['UD_GENERATEDIR']
-
-ldap_last_mod = getLastLDAPChangeTime(l)
-cache_last_mod = getLastBuildTime()
-need_update = ldap_last_mod > cache_last_mod
-
-if not options.force and not need_update:
-   fd = open(os.path.join(GenerateDir, "last_update.trace"), "w")
-   fd.write("%s\n%s\n" % (ldap_last_mod, int(time.time())))
-   fd.close()
-   sys.exit(0)
-
-# Fetch all the groups
-GroupIDMap = {}
-attrs = l.search_s(BaseDn, ldap.SCOPE_ONELEVEL, "gid=*",\
-                  ["gid", "gidNumber", "subGroup"])
-
-# Generate the SubGroupMap and GroupIDMap
-for x in attrs:
-   if x[1].has_key("accountStatus") and x[1]['accountStatus'] == "disabled":
-      continue
-   if x[1].has_key("gidNumber") == 0:
-      continue
-   GroupIDMap[x[1]["gid"][0]] = int(x[1]["gidNumber"][0])
-   if x[1].has_key("subGroup") != 0:
-      SubGroupMap.setdefault(x[1]["gid"][0], []).extend(x[1]["subGroup"])
-
-lock = None
-try:
-   lockf = os.path.join(GenerateDir, 'ud-generate.lock')
-   lock = get_lock( lockf )
-   if lock is None:
-      sys.stderr.write("Could not acquire lock %s.\n"%(lockf))
+   (options, args) = parser.parse_args()
+   if len(args) > 0:
+      parser.print_help()
       sys.exit(1)
 
-   tracefd = open(os.path.join(GenerateDir, "last_update.trace"), "w")
-   generate_all(GenerateDir, l)
-   tracefd.write("%s\n%s\n" % (ldap_last_mod, int(time.time())))
-   tracefd.close()
 
-finally:
-   if lock is not None:
-      lock.release()
+   l = make_ldap_conn()
+
+   if options.generatedir is not None:
+      GenerateDir = os.environ['UD_GENERATEDIR']
+   elif 'UD_GENERATEDIR' in os.environ:
+      GenerateDir = os.environ['UD_GENERATEDIR']
+
+   ldap_last_mod = getLastLDAPChangeTime(l)
+   cache_last_mod = getLastBuildTime()
+   need_update = ldap_last_mod > cache_last_mod
+
+   if not options.force and not need_update:
+      fd = open(os.path.join(GenerateDir, "last_update.trace"), "w")
+      fd.write("%s\n%s\n" % (ldap_last_mod, int(time.time())))
+      fd.close()
+      sys.exit(0)
+
+   # Fetch all the groups
+   GroupIDMap = {}
+   attrs = l.search_s(BaseDn, ldap.SCOPE_ONELEVEL, "gid=*",\
+                     ["gid", "gidNumber", "subGroup"])
+
+   # Generate the SubGroupMap and GroupIDMap
+   for x in attrs:
+      if x[1].has_key("accountStatus") and x[1]['accountStatus'] == "disabled":
+         continue
+      if x[1].has_key("gidNumber") == 0:
+         continue
+      GroupIDMap[x[1]["gid"][0]] = int(x[1]["gidNumber"][0])
+      if x[1].has_key("subGroup") != 0:
+         SubGroupMap.setdefault(x[1]["gid"][0], []).extend(x[1]["subGroup"])
+
+   lock = None
+   try:
+      lockf = os.path.join(GenerateDir, 'ud-generate.lock')
+      lock = get_lock( lockf )
+      if lock is None:
+         sys.stderr.write("Could not acquire lock %s.\n"%(lockf))
+         sys.exit(1)
+
+      tracefd = open(os.path.join(GenerateDir, "last_update.trace"), "w")
+      generate_all(GenerateDir, l)
+      tracefd.write("%s\n%s\n" % (ldap_last_mod, int(time.time())))
+      tracefd.close()
+
+   finally:
+      if lock is not None:
+         lock.release()
+
+if __name__ == "__main__":
+   ud_generate()
 
 
 # vim:set et:
