@@ -361,9 +361,6 @@ def GenSSHShadow(global_dir, accounts):
    # Fetch all the users
    userkeys = {}
 
-   safe_rmtree(os.path.join(global_dir, 'userkeys'))
-   safe_makedirs(os.path.join(global_dir, 'userkeys'))
-
    for a in accounts:
       if not 'sshRSAAuthKey' in a: continue
 
