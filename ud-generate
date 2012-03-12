@@ -28,8 +28,7 @@
 #   along with this program; if not, write to the Free Software
 #   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
-import string, re, time, ldap, optparse, sys, os, pwd, posix, socket, base64, hashlib, shutil, errno, tarfile, grp
-import lockfile
+import string, re, time, ldap, optparse, sys, os, pwd, posix, socket, base64, hashlib, shutil, errno, tarfile, grp, fcntl
 from userdir_ldap import *
 from userdir_exceptions import *
 import UDLdap
@@ -89,25 +88,23 @@ def safe_rmtree(dir):
       else:
          raise e
 
-def get_lock(fn, wait=5*60, max_age=3600*6):
-   try:
-      stat = os.stat(fn + '.lock')
-      if stat.st_mtime < time.time() - max_age:
-         sys.stderr.write("Removing stale lock %s"%(fn + '.lock'))
-         os.unlink(fn + '.lock')
-   except OSError, error:
-      if error.errno == errno.ENOENT:
+def get_lock(fn, wait=5*60):
+   f = open(fn, "w")
+   sl = 0.1
+   ends = time.time() + wait
+
+   while True:
+      success = False
+      try:
+         fcntl.flock(f.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
+         return f
+      except IOError:
          pass
-      else:
-         raise
-
-   lock = lockfile.FileLock(fn)
-   try:
-      lock.acquire(timeout=wait)
-   except lockfile.LockTimeout:
-      return None
-
-   return lock
+      if time.time() >= ends:
+         return None
+      sl = min(sl*2, 10, ends - time.time())
+      time.sleep(sl)
+   return None
 
 
 def Sanitize(Str):
@@ -1317,7 +1314,7 @@ def ud_generate():
 
    finally:
       if lock is not None:
-         lock.release()
+         lock.close()
 
 if __name__ == "__main__":
    ud_generate()

@@ -46,6 +46,7 @@ userdir-ldap (0.3.80) UNRELEASED; urgency=low
     - UDLdap.py: make a cache for __getitem__() decisions.
     - wrap cdbmake calls in eatmydata.  Nothing else does any fsync stuff,
       so doing it here just costs a lot.
+  * ud-generate: Use a flock() lock instead of python's lockfile class.
 
   [ Stephen Gran ]
   * Fix deprecation warnings for sha module by using hashlib module instead
@@ -58,7 +59,7 @@ userdir-ldap (0.3.80) UNRELEASED; urgency=low
   * ud-replicate: set correct permissions for web-passwords
   * add freecdb to depends
 
- -- Peter Palfrader <weasel@debian.org>  Mon, 12 Mar 2012 15:51:06 +0100
+ -- Peter Palfrader <weasel@debian.org>  Mon, 12 Mar 2012 16:15:13 +0100
 
 userdir-ldap (0.3.79) unstable; urgency=low
 
