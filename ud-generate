@@ -912,7 +912,7 @@ def HostToIP(Host, mapped=True):
    return IPAdresses
 
 # Generate the ssh known hosts file
-def GenSSHKnown(host_attrs, File, mode=None):
+def GenSSHKnown(host_attrs, File, mode=None, lockfilename=None):
    F = None
    try:
       OldMask = os.umask(0022)
@@ -952,7 +952,9 @@ def GenSSHKnown(host_attrs, File, mode=None):
                hosts = HostToIP(x)
                if 'sshdistAuthKeysHost' in x[1]:
                   hosts += x[1]['sshdistAuthKeysHost']
-               Line = 'command="rsync --server --sender -pr . /var/cache/userdir-ldap/hosts/%s",no-port-forwarding,no-X11-forwarding,no-agent-forwarding,from="%s" %s' % (Host, ",".join(hosts), I)
+               clientcommand='rsync --server --sender -pr . /var/cache/userdir-ldap/hosts/%s'%(Host)
+               clientcommand="flock -s %s -c '%s'"%(lockfilename, clientcommand)
+               Line = 'command="%s",no-port-forwarding,no-X11-forwarding,no-agent-forwarding,from="%s" %s' % (clientcommand, ",".join(hosts), I)
             else:
                Line = "%s %s" %(",".join(HostNames + HostToIP(x, False)), I)
             Line = Sanitize(Line) + "\n"
@@ -1098,7 +1100,7 @@ def generate_all(global_dir, ldap_conn):
    GenCDB(accounts, global_dir + "mail-forward.cdb", 'emailForward')
    GenCDB(accounts, global_dir + "mail-contentinspectionaction.cdb", 'mailContentInspectionAction')
    GenPrivate(accounts, global_dir + "debian-private")
-   GenSSHKnown(host_attrs, global_dir+"authorized_keys", 'authorized_keys')
+   GenSSHKnown(host_attrs, global_dir+"authorized_keys", 'authorized_keys', global_dir+'ud-generate.lock')
    GenMailBool(accounts, global_dir + "mail-greylist", "mailGreylisting")
    GenMailBool(accounts, global_dir + "mail-callout", "mailCallout")
    GenMailList(accounts, global_dir + "mail-rbl", "mailRBL")
