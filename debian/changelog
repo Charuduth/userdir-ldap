@@ -27,6 +27,8 @@ userdir-ldap (0.3.80) UNRELEASED; urgency=low
   * ud-mailgate: Do not try to do an ldap modify with no changes - now show
     command to changes@ should work again.
   * ud-generate: No longer expand $ in dnsZoneEntry data to a \n\t.
+  * ud-generate: Move code into getLastBuildTime() and getLastLDAPChangeTime()
+    functions.
 
   [ Stephen Gran ]
   * Fix deprecation warnings for sha module by using hashlib module instead
@@ -39,7 +41,7 @@ userdir-ldap (0.3.80) UNRELEASED; urgency=low
   * ud-replicate: set correct permissions for web-passwords
   * add freecdb to depends
 
- -- Peter Palfrader <weasel@debian.org>  Mon, 12 Mar 2012 11:37:18 +0100
+ -- Peter Palfrader <weasel@debian.org>  Mon, 12 Mar 2012 11:45:44 +0100
 
 userdir-ldap (0.3.79) unstable; urgency=low
 
