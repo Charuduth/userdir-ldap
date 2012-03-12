@@ -423,9 +423,8 @@ def GenSSHtarballs(global_dir, userlist, ssh_userkeys, grouprevmap, target):
          print "User %s is supposed to have their key exported to host %s but their primary group (gid: %d) isn't in LDAP" % (f, CurrentHost, userlist[f])
          continue
 
-      contents = ssh_userkeys[f]
       lines = []
-      for line in contents:
+      for line in ssh_userkeys[f]:
          if line.startswith("allowed_hosts=") and ' ' in line:
             machines, line = line.split('=', 1)[1].split(' ', 1)
             if CurrentHost not in machines.split(','):
