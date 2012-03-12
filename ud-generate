@@ -55,7 +55,6 @@ if os.getuid() == 0:
 #
 GroupIDMap = {}
 SubGroupMap = {}
-Allowed = None
 CurrentHost = ""
 
 
@@ -155,12 +154,9 @@ def IsRetired(account):
 #   return account['gidNumber'] == 800
 
 # See if this user is in the group list
-def IsInGroup(account):
-  if Allowed is None:
-     return True
-
+def IsInGroup(account, allowed):
   # See if the primary group is in the list
-  if str(account['gidNumber']) in Allowed: return True
+  if str(account['gidNumber']) in allowed: return True
 
   # Check the host based ACL
   if account.is_allowed_by_hostacl(CurrentHost): return True
@@ -171,7 +167,7 @@ def IsInGroup(account):
   supgroups=[]
   addGroups(supgroups, account['supplementaryGid'], account['uid'])
   for g in supgroups:
-     if Allowed.has_key(g):
+     if allowed.has_key(g):
         return True
   return False
 
@@ -206,8 +202,6 @@ def GenPasswd(accounts, File, HomePrefix, PwdMarker):
       userlist = {}
       i = 0
       for a in accounts:
-         if not IsInGroup(a): continue
-
          # Do not let people try to buffer overflow some busted passwd parser.
          if len(a['gecos']) > 100 or len(a['loginShell']) > 50: continue
 
@@ -265,9 +259,6 @@ def GenShadow(accounts, File):
 
       i = 0
       for a in accounts:
-         Pass = '*'
-         if not IsInGroup(a): continue
-
          # If the account is locked, mark it as such in shadow
          # See Debian Bug #308229 for why we set it to 1 instead of 0
          if not a.pw_active():     ShadowExpire = '1'
@@ -303,8 +294,6 @@ def GenShadowSudo(accounts, File, untrusted):
 
       for a in accounts:
          Pass = '*'
-         if not IsInGroup(a): continue
-     
          if 'sudoPassword' in a:
             for entry in a['sudoPassword']:
                Match = re.compile('^('+UUID_FORMAT+') (confirmed:[0-9a-f]{40}|unconfirmed) ([a-z0-9.,*]+) ([^ ]+)$').match(entry)
@@ -526,7 +515,6 @@ def GenGroup(accounts, File):
       # Sort them into a list of groups having a set of users
       for a in accounts:
          GroupHasPrimaryMembers[ a['gidNumber'] ] = True
-         if not IsInGroup(a): continue
          if not 'supplementaryGid' in a: continue
 
          supgroups=[]
@@ -568,12 +556,10 @@ def CheckForward(accounts):
    for a in accounts:
       if not 'emailForward' in a: continue
 
-
       delete = False
 
-      if not IsInGroup(a): delete = True
       # Do not allow people to try to buffer overflow busted parsers
-      elif len(a['emailForward']) > 200: delete = True
+      if len(a['emailForward']) > 200: delete = True
       # Check the forwarding address
       elif EmailCheck.match(a['emailForward']) is None: delete = True
 
@@ -1164,10 +1150,8 @@ def generate_host(host, global_dir, accounts, ssh_files):
       for extra in host[1]['exportOptions']:
          ExtraList[extra.upper()] = True
 
-   global Allowed
-   Allowed = GroupList
-   if Allowed == {}:
-      Allowed = None
+   if GroupList != {}:
+      accounts = filter(lambda x: IsInGroup(x, GroupList), accounts)
 
    DoLink(global_dir, OutDir, "debianhosts")
    DoLink(global_dir, OutDir, "ssh_known_hosts")
@@ -1201,9 +1185,9 @@ def generate_host(host, global_dir, accounts, ssh_files):
    DoLink(global_dir, OutDir, "mail-rhsbl")
    DoLink(global_dir, OutDir, "mail-whitelist")
    DoLink(global_dir, OutDir, "all-accounts.json")
-   GenCDB(filter(lambda x: IsInGroup(x), accounts), OutDir + "user-forward.cdb", 'emailForward')
-   GenCDB(filter(lambda x: IsInGroup(x), accounts), OutDir + "batv-tokens.cdb", 'bATVToken')
-   GenCDB(filter(lambda x: IsInGroup(x), accounts), OutDir + "default-mail-options.cdb", 'mailDefaultOptions')
+   GenCDB(accounts, OutDir + "user-forward.cdb", 'emailForward')
+   GenCDB(accounts, OutDir + "batv-tokens.cdb", 'bATVToken')
+   GenCDB(accounts, OutDir + "default-mail-options.cdb", 'mailDefaultOptions')
 
    # Compatibility.
    DoLink(global_dir, OutDir, "forward-alias")

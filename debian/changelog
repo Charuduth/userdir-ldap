@@ -31,6 +31,13 @@ userdir-ldap (0.3.80) UNRELEASED; urgency=low
     functions.
   * ud-generate: Add -f option to build even if cache is current.
   * ud-generate: Move main code into a ud_generate()
+  * ud-generate: speed improvements:
+    - cut down on calls to IsInGroup by doing it once in generate_host()
+      and not having the individual generators run it.
+      o side effect: Up until now we exported empty groups to a host, if
+        that group had a user with that group as their primary group - even
+        if that particular user was not exported to this this.  No we no
+        longer export empty groups.
 
   [ Stephen Gran ]
   * Fix deprecation warnings for sha module by using hashlib module instead
@@ -43,7 +50,7 @@ userdir-ldap (0.3.80) UNRELEASED; urgency=low
   * ud-replicate: set correct permissions for web-passwords
   * add freecdb to depends
 
- -- Peter Palfrader <weasel@debian.org>  Mon, 12 Mar 2012 12:06:20 +0100
+ -- Peter Palfrader <weasel@debian.org>  Mon, 12 Mar 2012 13:06:08 +0100
 
 userdir-ldap (0.3.79) unstable; urgency=low
 
