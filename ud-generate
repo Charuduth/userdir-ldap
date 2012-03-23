@@ -28,8 +28,7 @@
 #   along with this program; if not, write to the Free Software
 #   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
-import string, re, time, ldap, getopt, sys, os, pwd, posix, socket, base64, hashlib, shutil, errno, tarfile, grp
-import lockfile
+import string, re, time, ldap, optparse, sys, os, pwd, posix, socket, base64, hashlib, shutil, errno, tarfile, grp, fcntl
 from userdir_ldap import *
 from userdir_exceptions import *
 import UDLdap
@@ -53,10 +52,8 @@ if os.getuid() == 0:
 #
 # GLOBAL STATE
 #
-GroupIDMap = {}
-SubGroupMap = {}
-Allowed = None
-CurrentHost = ""
+GroupIDMap = None
+SubGroupMap = None
 
 
 
@@ -91,25 +88,23 @@ def safe_rmtree(dir):
       else:
          raise e
 
-def get_lock(fn, wait=5*60, max_age=3600*6):
-   try:
-      stat = os.stat(fn + '.lock')
-      if stat.st_mtime < time.time() - max_age:
-         sys.stderr.write("Removing stale lock %s"%(fn + '.lock'))
-         os.unlink(fn + '.lock')
-   except OSError, error:
-      if error.errno == errno.ENOENT:
+def get_lock(fn, wait=5*60):
+   f = open(fn, "w")
+   sl = 0.1
+   ends = time.time() + wait
+
+   while True:
+      success = False
+      try:
+         fcntl.flock(f.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
+         return f
+      except IOError:
          pass
-      else:
-         raise
-
-   lock = lockfile.FileLock(fn)
-   try:
-      lock.acquire(timeout=wait)
-   except lockfile.LockTimeout:
-      return None
-
-   return lock
+      if time.time() >= ends:
+         return None
+      sl = min(sl*2, 10, ends - time.time())
+      time.sleep(sl)
+   return None
 
 
 def Sanitize(Str):
@@ -155,23 +150,20 @@ def IsRetired(account):
 #   return account['gidNumber'] == 800
 
 # See if this user is in the group list
-def IsInGroup(account):
-  if Allowed is None:
-     return True
-
+def IsInGroup(account, allowed, current_host):
   # See if the primary group is in the list
-  if str(account['gidNumber']) in Allowed: return True
+  if str(account['gidNumber']) in allowed: return True
 
   # Check the host based ACL
-  if account.is_allowed_by_hostacl(CurrentHost): return True
+  if account.is_allowed_by_hostacl(current_host): return True
 
   # See if there are supplementary groups
   if not 'supplementaryGid' in account: return False
 
   supgroups=[]
-  addGroups(supgroups, account['supplementaryGid'], account['uid'])
+  addGroups(supgroups, account['supplementaryGid'], account['uid'], current_host)
   for g in supgroups:
-     if Allowed.has_key(g):
+     if allowed.has_key(g):
         return True
   return False
 
@@ -206,8 +198,6 @@ def GenPasswd(accounts, File, HomePrefix, PwdMarker):
       userlist = {}
       i = 0
       for a in accounts:
-         if not IsInGroup(a): continue
-
          # Do not let people try to buffer overflow some busted passwd parser.
          if len(a['gecos']) > 100 or len(a['loginShell']) > 50: continue
 
@@ -265,9 +255,6 @@ def GenShadow(accounts, File):
 
       i = 0
       for a in accounts:
-         Pass = '*'
-         if not IsInGroup(a): continue
-
          # If the account is locked, mark it as such in shadow
          # See Debian Bug #308229 for why we set it to 1 instead of 0
          if not a.pw_active():     ShadowExpire = '1'
@@ -294,7 +281,7 @@ def GenShadow(accounts, File):
    Done(File, None, F)
 
 # Generate the sudo passwd file
-def GenShadowSudo(accounts, File, untrusted):
+def GenShadowSudo(accounts, File, untrusted, current_host):
    F = None
    try:
       OldMask = os.umask(0077)
@@ -303,8 +290,6 @@ def GenShadowSudo(accounts, File, untrusted):
 
       for a in accounts:
          Pass = '*'
-         if not IsInGroup(a): continue
-     
          if 'sudoPassword' in a:
             for entry in a['sudoPassword']:
                Match = re.compile('^('+UUID_FORMAT+') (confirmed:[0-9a-f]{40}|unconfirmed) ([a-z0-9.,*]+) ([^ ]+)$').match(entry)
@@ -318,7 +303,7 @@ def GenShadowSudo(accounts, File, untrusted):
                if status != 'confirmed:'+make_passwd_hmac('password-is-confirmed', 'sudo', a['uid'], uuid, hosts, cryptedpass):
                   continue
                for_all = hosts == "*"
-               for_this_host = CurrentHost in hosts.split(',')
+               for_this_host = current_host in hosts.split(',')
                if not (for_all or for_this_host):
                   continue
                # ignore * passwords for untrusted hosts, but copy host specific passwords
@@ -371,38 +356,18 @@ def GenSSHGitolite(accounts, File):
 # Generate the shadow list
 def GenSSHShadow(global_dir, accounts):
    # Fetch all the users
-   userfiles = []
-
-   safe_rmtree(os.path.join(global_dir, 'userkeys'))
-   safe_makedirs(os.path.join(global_dir, 'userkeys'))
+   userkeys = {}
 
    for a in accounts:
       if not 'sshRSAAuthKey' in a: continue
 
-      F = None
-      try:
-         OldMask = os.umask(0077)
-         File = os.path.join(global_dir, 'userkeys', a['uid'])
-         F = open(File + ".tmp", "w", 0600)
-         os.umask(OldMask)
-
-         for I in a['sshRSAAuthKey']:
-            MultipleLine = "%s" % I
-            MultipleLine = Sanitize(MultipleLine) + "\n"
-            F.write(MultipleLine)
-
-         Done(File, F, None)
-         userfiles.append(os.path.basename(File))
-
-      # Oops, something unspeakable happened.
-      except IOError:
-         Die(File, F, None)
-         # As neither masterFileName nor masterFile are defined at any point
-         # this will raise a NameError.
-         Die(masterFileName, masterFile, None)
-         raise
-
-   return userfiles
+      contents = []
+      for I in a['sshRSAAuthKey']:
+         MultipleLine = "%s" % I
+         MultipleLine = Sanitize(MultipleLine)
+         contents.append(MultipleLine)
+      userkeys[a['uid']] = contents
+   return userkeys
 
 # Generate the webPassword list
 def GenWebPassword(accounts, File):
@@ -425,12 +390,12 @@ def GenWebPassword(accounts, File):
       Die(File, None, F)
       raise
 
-def GenSSHtarballs(global_dir, userlist, SSHFiles, grouprevmap, target):
+def GenSSHtarballs(global_dir, userlist, ssh_userkeys, grouprevmap, target, current_host):
    OldMask = os.umask(0077)
-   tf = tarfile.open(name=os.path.join(global_dir, 'ssh-keys-%s.tar.gz' % CurrentHost), mode='w:gz')
+   tf = tarfile.open(name=os.path.join(global_dir, 'ssh-keys-%s.tar.gz' % current_host), mode='w:gz')
    os.umask(OldMask)
-   for f in userlist.keys():
-      if f not in SSHFiles:
+   for f in userlist:
+      if f not in ssh_userkeys:
          continue
       # If we're not exporting their primary group, don't export
       # the key and warn
@@ -448,10 +413,21 @@ def GenSSHtarballs(global_dir, userlist, SSHFiles, grouprevmap, target):
             pass
 
       if grname is None:
-         print "User %s is supposed to have their key exported to host %s but their primary group (gid: %d) isn't in LDAP" % (f, CurrentHost, userlist[f])
+         print "User %s is supposed to have their key exported to host %s but their primary group (gid: %d) isn't in LDAP" % (f, current_host, userlist[f])
          continue
 
-      to = tf.gettarinfo(os.path.join(global_dir, 'userkeys', f), f)
+      lines = []
+      for line in ssh_userkeys[f]:
+         if line.startswith("allowed_hosts=") and ' ' in line:
+            machines, line = line.split('=', 1)[1].split(' ', 1)
+            if current_host not in machines.split(','):
+               continue # skip this key
+         lines.append(line)
+      if not lines:
+         continue # no keys for this host
+      contents = "\n".join(lines) + "\n"
+
+      to = tarfile.TarInfo(name=f)
       # These will only be used where the username doesn't
       # exist on the target system for some reason; hence,
       # in those cases, the safest thing is for the file to
@@ -467,33 +443,23 @@ def GenSSHtarballs(global_dir, userlist, SSHFiles, grouprevmap, target):
       to.uname = f
       to.gname = grname
       to.mode  = 0400
-
-      contents = file(os.path.join(global_dir, 'userkeys', f)).read()
-      lines = []
-      for line in contents.splitlines():
-         if line.startswith("allowed_hosts=") and ' ' in line:
-            machines, line = line.split('=', 1)[1].split(' ', 1)
-            if CurrentHost not in machines.split(','):
-               continue # skip this key
-         lines.append(line)
-      if not lines:
-         continue # no keys for this host
-      contents = "\n".join(lines) + "\n"
+      to.mtime = int(time.time())
       to.size = len(contents)
+
       tf.addfile(to, StringIO(contents))
 
    tf.close()
-   os.rename(os.path.join(global_dir, 'ssh-keys-%s.tar.gz' % CurrentHost), target)
+   os.rename(os.path.join(global_dir, 'ssh-keys-%s.tar.gz' % current_host), target)
 
 # add a list of groups to existing groups,
 # including all subgroups thereof, recursively.
 # basically this proceduces the transitive hull of the groups in
 # addgroups.
-def addGroups(existingGroups, newGroups, uid):
+def addGroups(existingGroups, newGroups, uid, current_host):
    for group in newGroups:
       # if it's a <group>@host, split it and verify it's on the current host.
       s = group.split('@', 1)
-      if len(s) == 2 and s[1] != CurrentHost:
+      if len(s) == 2 and s[1] != current_host:
          continue
       group = s[0]
 
@@ -508,10 +474,10 @@ def addGroups(existingGroups, newGroups, uid):
       existingGroups.append(group)
 
       if SubGroupMap.has_key(group):
-         addGroups(existingGroups, SubGroupMap[group], uid)
+         addGroups(existingGroups, SubGroupMap[group], uid, current_host)
 
 # Generate the group list
-def GenGroup(accounts, File):
+def GenGroup(accounts, File, current_host):
    grouprevmap = {}
    F = None
    try:
@@ -519,25 +485,24 @@ def GenGroup(accounts, File):
      
       # Generate the GroupMap
       GroupMap = {}
-      for x in GroupIDMap.keys():
+      for x in GroupIDMap:
          GroupMap[x] = []
       GroupHasPrimaryMembers = {}
 
       # Sort them into a list of groups having a set of users
       for a in accounts:
          GroupHasPrimaryMembers[ a['gidNumber'] ] = True
-         if not IsInGroup(a): continue
          if not 'supplementaryGid' in a: continue
 
          supgroups=[]
-         addGroups(supgroups, a['supplementaryGid'], a['uid'])
+         addGroups(supgroups, a['supplementaryGid'], a['uid'], current_host)
          for g in supgroups:
             GroupMap[g].append(a['uid'])
 
       # Output the group file.
       J = 0
       for x in GroupMap.keys():
-         if GroupIDMap.has_key(x) == 0:
+         if not x in GroupIDMap:
             continue
 
          if len(GroupMap[x]) == 0 and GroupIDMap[x] not in GroupHasPrimaryMembers:
@@ -568,12 +533,10 @@ def CheckForward(accounts):
    for a in accounts:
       if not 'emailForward' in a: continue
 
-
       delete = False
 
-      if not IsInGroup(a): delete = True
       # Do not allow people to try to buffer overflow busted parsers
-      elif len(a['emailForward']) > 200: delete = True
+      if len(a['emailForward']) > 200: delete = True
       # Check the forwarding address
       elif EmailCheck.match(a['emailForward']) is None: delete = True
 
@@ -604,7 +567,9 @@ def GenCDB(accounts, File, key):
    Fdb = None
    try:
       OldMask = os.umask(0022)
-      Fdb = os.popen("cdbmake %s %s.tmp"%(File, File), "w")
+      # nothing else does the fsync stuff, so why do it here?
+      prefix = "/usr/bin/eatmydata " if os.path.exists('/usr/bin/eatmydata') else ''
+      Fdb = os.popen("%scdbmake %s %s.tmp"%(prefix, File, File), "w")
       os.umask(OldMask)
 
       # Write out the email address for each user
@@ -772,16 +737,13 @@ def GenDNS(accounts, File):
             for z in a["dnsZoneEntry"]:
                Split = z.lower().split()
                if Split[1].lower() == 'in':
-                  for y in range(0, len(Split)):
-                     if Split[y] == "$":
-                        Split[y] = "\n\t"
                   Line = " ".join(Split) + "\n"
                   F.write(Line)
-     
+
                   Host = Split[0] + DNSZone
                   if BSMTPCheck.match(Line) != None:
                      F.write("; Has BSMTP\n")
-     
+
                   # Write some identification information
                   if not RRs.has_key(Host):
                      if Split[2].lower() in ["a", "aaaa"]:
@@ -793,7 +755,7 @@ def GenDNS(accounts, File):
                else:
                   Line = "; Err %s"%(str(Split))
                   F.write(Line)
-     
+
             F.write("\n")
          except Exception, e:
             F.write("; Errors:\n")
@@ -950,7 +912,7 @@ def HostToIP(Host, mapped=True):
    return IPAdresses
 
 # Generate the ssh known hosts file
-def GenSSHKnown(host_attrs, File, mode=None):
+def GenSSHKnown(host_attrs, File, mode=None, lockfilename=None):
    F = None
    try:
       OldMask = os.umask(0022)
@@ -990,7 +952,9 @@ def GenSSHKnown(host_attrs, File, mode=None):
                hosts = HostToIP(x)
                if 'sshdistAuthKeysHost' in x[1]:
                   hosts += x[1]['sshdistAuthKeysHost']
-               Line = 'command="rsync --server --sender -pr . /var/cache/userdir-ldap/hosts/%s",no-port-forwarding,no-X11-forwarding,no-agent-forwarding,from="%s" %s' % (Host, ",".join(hosts), I)
+               clientcommand='rsync --server --sender -pr . /var/cache/userdir-ldap/hosts/%s'%(Host)
+               clientcommand="flock -s %s -c '%s'"%(lockfilename, clientcommand)
+               Line = 'command="%s",no-port-forwarding,no-X11-forwarding,no-agent-forwarding,from="%s" %s' % (clientcommand, ",".join(hosts), I)
             else:
                Line = "%s %s" %(",".join(HostNames + HostToIP(x, False)), I)
             Line = Sanitize(Line) + "\n"
@@ -1095,6 +1059,30 @@ def make_ldap_conn():
 
    return l
 
+
+
+def setup_group_maps(l):
+   # Fetch all the groups
+   group_id_map = {}
+   subgroup_map = {}
+   attrs = l.search_s(BaseDn, ldap.SCOPE_ONELEVEL, "gid=*",\
+                     ["gid", "gidNumber", "subGroup"])
+
+   # Generate the subgroup_map and group_id_map
+   for x in attrs:
+      if x[1].has_key("accountStatus") and x[1]['accountStatus'] == "disabled":
+         continue
+      if x[1].has_key("gidNumber") == 0:
+         continue
+      group_id_map[x[1]["gid"][0]] = int(x[1]["gidNumber"][0])
+      if x[1].has_key("subGroup") != 0:
+         subgroup_map.setdefault(x[1]["gid"][0], []).extend(x[1]["subGroup"])
+
+   global SubGroupMap
+   global GroupIDMap
+   SubGroupMap = subgroup_map
+   GroupIDMap = group_id_map
+
 def generate_all(global_dir, ldap_conn):
    accounts = get_accounts(ldap_conn)
    host_attrs = get_hosts(ldap_conn)
@@ -1112,7 +1100,7 @@ def generate_all(global_dir, ldap_conn):
    GenCDB(accounts, global_dir + "mail-forward.cdb", 'emailForward')
    GenCDB(accounts, global_dir + "mail-contentinspectionaction.cdb", 'mailContentInspectionAction')
    GenPrivate(accounts, global_dir + "debian-private")
-   GenSSHKnown(host_attrs, global_dir+"authorized_keys", 'authorized_keys')
+   GenSSHKnown(host_attrs, global_dir+"authorized_keys", 'authorized_keys', global_dir+'ud-generate.lock')
    GenMailBool(accounts, global_dir + "mail-greylist", "mailGreylisting")
    GenMailBool(accounts, global_dir + "mail-callout", "mailCallout")
    GenMailList(accounts, global_dir + "mail-rbl", "mailRBL")
@@ -1127,7 +1115,7 @@ def generate_all(global_dir, ldap_conn):
    GenAllUsers(accounts, global_dir + 'all-accounts.json')
    accounts = filter(lambda a: not a in accounts_disabled, accounts)
 
-   ssh_files = GenSSHShadow(global_dir, accounts)
+   ssh_userkeys = GenSSHShadow(global_dir, accounts)
    GenMarkers(accounts, global_dir + "markers")
    GenSSHKnown(host_attrs, global_dir + "ssh_known_hosts")
    GenHosts(host_attrs, global_dir + "debianhosts")
@@ -1136,20 +1124,18 @@ def generate_all(global_dir, ldap_conn):
    GenDNS(accounts, global_dir + "dns-zone")
    GenZoneRecords(host_attrs, global_dir + "dns-sshfp")
 
+   setup_group_maps(ldap_conn)
+
    for host in host_attrs:
       if not "hostname" in host[1]:
          continue
-      generate_host(host, global_dir, accounts, ssh_files)
+      generate_host(host, global_dir, accounts, ssh_userkeys)
 
-def generate_host(host, global_dir, accounts, ssh_files):
-   global CurrentHost
-
-   CurrentHost = host[1]['hostname'][0]
-   OutDir = global_dir + CurrentHost + '/'
-   try:
+def generate_host(host, global_dir, accounts, ssh_userkeys):
+   current_host = host[1]['hostname'][0]
+   OutDir = global_dir + current_host + '/'
+   if not os.path.isdir(OutDir):
       os.mkdir(OutDir)
-   except:
-      pass
 
    # Get the group list and convert any named groups to numerics
    GroupList = {}
@@ -1167,10 +1153,8 @@ def generate_host(host, global_dir, accounts, ssh_files):
       for extra in host[1]['exportOptions']:
          ExtraList[extra.upper()] = True
 
-   global Allowed
-   Allowed = GroupList
-   if Allowed == {}:
-      Allowed = None
+   if GroupList != {}:
+      accounts = filter(lambda x: IsInGroup(x, GroupList, current_host), accounts)
 
    DoLink(global_dir, OutDir, "debianhosts")
    DoLink(global_dir, OutDir, "ssh_known_hosts")
@@ -1182,12 +1166,12 @@ def generate_host(host, global_dir, accounts, ssh_files):
    else:
       userlist = GenPasswd(accounts, OutDir + "passwd", HomePrefix, "x")
    sys.stdout.flush()
-   grouprevmap = GenGroup(accounts, OutDir + "group")
-   GenShadowSudo(accounts, OutDir + "sudo-passwd", ('UNTRUSTED' in ExtraList) or ('NOPASSWD' in ExtraList))
+   grouprevmap = GenGroup(accounts, OutDir + "group", current_host)
+   GenShadowSudo(accounts, OutDir + "sudo-passwd", ('UNTRUSTED' in ExtraList) or ('NOPASSWD' in ExtraList), current_host)
 
    # Now we know who we're allowing on the machine, export
    # the relevant ssh keys
-   GenSSHtarballs(global_dir, userlist, ssh_files, grouprevmap, os.path.join(OutDir, 'ssh-keys.tar.gz'))
+   GenSSHtarballs(global_dir, userlist, ssh_userkeys, grouprevmap, os.path.join(OutDir, 'ssh-keys.tar.gz'), current_host)
 
    if not 'NOPASSWD' in ExtraList:
       GenShadow(accounts, OutDir + "shadow")
@@ -1204,9 +1188,9 @@ def generate_host(host, global_dir, accounts, ssh_files):
    DoLink(global_dir, OutDir, "mail-rhsbl")
    DoLink(global_dir, OutDir, "mail-whitelist")
    DoLink(global_dir, OutDir, "all-accounts.json")
-   GenCDB(filter(lambda x: IsInGroup(x), accounts), OutDir + "user-forward.cdb", 'emailForward')
-   GenCDB(filter(lambda x: IsInGroup(x), accounts), OutDir + "batv-tokens.cdb", 'bATVToken')
-   GenCDB(filter(lambda x: IsInGroup(x), accounts), OutDir + "default-mail-options.cdb", 'mailDefaultOptions')
+   GenCDB(accounts, OutDir + "user-forward.cdb", 'emailForward')
+   GenCDB(accounts, OutDir + "batv-tokens.cdb", 'bATVToken')
+   GenCDB(accounts, OutDir + "default-mail-options.cdb", 'mailDefaultOptions')
 
    # Compatibility.
    DoLink(global_dir, OutDir, "forward-alias")
@@ -1251,78 +1235,96 @@ def generate_host(host, global_dir, accounts, ssh_files):
             pass
    DoLink(global_dir, OutDir, "last_update.trace")
 
-l = make_ldap_conn()
 
-mods = l.search_s('cn=log',
-      ldap.SCOPE_ONELEVEL,
-      '(&(&(!(reqMod=activity-from*))(!(reqMod=activity-pgp*)))(|(reqType=add)(reqType=delete)(reqType=modify)(reqType=modrdn)))',
-      ['reqEnd'])
+def getLastLDAPChangeTime(l):
+   mods = l.search_s('cn=log',
+         ldap.SCOPE_ONELEVEL,
+         '(&(&(!(reqMod=activity-from*))(!(reqMod=activity-pgp*)))(|(reqType=add)(reqType=delete)(reqType=modify)(reqType=modrdn)))',
+         ['reqEnd'])
 
-last = 0
+   last = 0
 
-# Sort the list by reqEnd
-sorted_mods = sorted(mods, key=lambda mod: mod[1]['reqEnd'][0].split('.')[0])
-# Take the last element in the array
-last = sorted_mods[-1][1]['reqEnd'][0].split('.')[0]
+   # Sort the list by reqEnd
+   sorted_mods = sorted(mods, key=lambda mod: mod[1]['reqEnd'][0].split('.')[0])
+   # Take the last element in the array
+   last = sorted_mods[-1][1]['reqEnd'][0].split('.')[0]
 
-# override globaldir for testing
-if 'UD_GENERATEDIR' in os.environ:
-   GenerateDir = os.environ['UD_GENERATEDIR']
+   return last
 
-cache_last_mod = 0
+def getLastBuildTime(gdir):
+   cache_last_mod = 0
 
-try:
-   fd = open(os.path.join(GenerateDir, "last_update.trace"), "r")
-   cache_last_mod=fd.read().split()
    try:
-      cache_last_mod = cache_last_mod[0]
-   except IndexError:
-      pass
-   fd.close()
-except IOError, e:
-   if e.errno == errno.ENOENT:
-      pass
+      fd = open(os.path.join(gdir, "last_update.trace"), "r")
+      cache_last_mod=fd.read().split()
+      try:
+         cache_last_mod = cache_last_mod[0]
+      except IndexError:
+         pass
+      fd.close()
+   except IOError, e:
+      if e.errno == errno.ENOENT:
+         pass
+      else:
+         raise e
+
+   return cache_last_mod
+
+
+def ud_generate():
+   parser = optparse.OptionParser()
+   parser.add_option("-g", "--generatedir", dest="generatedir", metavar="DIR",
+     help="Output directory.")
+   parser.add_option("-f", "--force", dest="force", action="store_true",
+     help="Force generation, even if not update to LDAP has happened.")
+
+   (options, args) = parser.parse_args()
+   if len(args) > 0:
+      parser.print_help()
+      sys.exit(1)
+
+   if options.generatedir is not None:
+      generate_dir = os.environ['UD_GENERATEDIR']
+   elif 'UD_GENERATEDIR' in os.environ:
+      generate_dir = os.environ['UD_GENERATEDIR']
    else:
-      raise e
+      generate_dir = GenerateDir
 
-if cache_last_mod >= last:
-   fd = open(os.path.join(GenerateDir, "last_update.trace"), "w")
-   fd.write("%s\n%s\n" % (last, int(time.time())))
-   fd.close()
-   sys.exit(0)
 
-# Fetch all the groups
-GroupIDMap = {}
-attrs = l.search_s(BaseDn, ldap.SCOPE_ONELEVEL, "gid=*",\
-                  ["gid", "gidNumber", "subGroup"])
-
-# Generate the SubGroupMap and GroupIDMap
-for x in attrs:
-   if x[1].has_key("accountStatus") and x[1]['accountStatus'] == "disabled":
-      continue
-   if x[1].has_key("gidNumber") == 0:
-      continue
-   GroupIDMap[x[1]["gid"][0]] = int(x[1]["gidNumber"][0])
-   if x[1].has_key("subGroup") != 0:
-      SubGroupMap.setdefault(x[1]["gid"][0], []).extend(x[1]["subGroup"])
-
-lock = None
-try:
-   lockf = os.path.join(GenerateDir, 'ud-generate.lock')
+   lockf = os.path.join(generate_dir, 'ud-generate.lock')
    lock = get_lock( lockf )
    if lock is None:
       sys.stderr.write("Could not acquire lock %s.\n"%(lockf))
       sys.exit(1)
 
-   tracefd = open(os.path.join(GenerateDir, "last_update.trace"), "w")
-   generate_all(GenerateDir, l)
-   tracefd.write("%s\n%s\n" % (last, int(time.time())))
+   l = make_ldap_conn()
+
+   ldap_last_mod = getLastLDAPChangeTime(l)
+   cache_last_mod = getLastBuildTime(generate_dir)
+   need_update = ldap_last_mod > cache_last_mod
+
+   if not options.force and not need_update:
+      fd = open(os.path.join(generate_dir, "last_update.trace"), "w")
+      fd.write("%s\n%s\n" % (ldap_last_mod, int(time.time())))
+      fd.close()
+      sys.exit(0)
+
+   tracefd = open(os.path.join(generate_dir, "last_update.trace"), "w")
+   generate_all(generate_dir, l)
+   tracefd.write("%s\n%s\n" % (ldap_last_mod, int(time.time())))
    tracefd.close()
 
-finally:
-   if lock is not None:
-      lock.release()
 
+if __name__ == "__main__":
+   if 'UD_PROFILE' in os.environ:
+      import cProfile
+      import pstats
+      cProfile.run('ud_generate()', "udg_prof")
+      p = pstats.Stats('udg_prof')
+      ##p.sort_stats('time').print_stats()
+      p.sort_stats('cumulative').print_stats()
+   else:
+      ud_generate()
 
 # vim:set et:
 # vim:set ts=3:
