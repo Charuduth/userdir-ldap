@@ -130,6 +130,7 @@
 #   .13 - whitelist
 #   .14 - bATVToken
 #   .15 - mailDefaultOptions
+#   .16 - mailPreserveSuffixSeparatorRidiculousName
 
 # Public attribute types
 attributetype ( 1.3.6.1.4.1.9586.100.4.2.1 
@@ -504,6 +505,12 @@ attributetype ( 1.3.6.1.4.1.9586.100.4.4.15
 	EQUALITY booleanMatch
 	SYNTAX 1.3.6.1.4.1.1466.115.121.1.7 SINGLE-VALUE )
 
+attributetype ( 1.3.6.1.4.1.9586.100.4.4.16
+	NAME 'mailPreserveSuffixSeparatorRidiculousName'
+	DESC 'Whether or not to preserve the suffix serparator'
+	EQUALITY booleanMatch
+	SYNTAX 1.3.6.1.4.1.1466.115.121.1.7 SINGLE-VALUE )
+
 attributetype ( 1.3.6.1.4.1.9586.100.4.2.38
 	NAME 'mailContentInspectionAction'
 	DESC 'what to do on content inspection hits'
@@ -551,7 +558,7 @@ objectclass ( 1.3.6.1.4.1.9586.100.4.3.1
 	      onVacation $ privateSub $ sshRSAAuthKey $ supplementaryGid $
 	      access $ gender $ birthDate $ mailCallout $ mailGreylisting $
               mailRBL $ mailRHSBL $ mailWhitelist $ VoIP $ mailContentInspectionAction $
-              bATVToken $ mailDefaultOptions
+              bATVToken $ mailDefaultOptions $ mailPreserveSuffixSeparatorRidiculousName
 	) )
 
 objectclass ( 1.3.6.1.4.1.9586.100.4.3.2
@@ -573,5 +580,5 @@ objectclass ( 1.3.6.1.4.1.9586.100.4.3.3
 	MAY ( emailForward $ supplementaryGid $ allowedHost $ labeledURI $
 	      mailCallout $ mailGreylisting $ mailRBL $ mailRHSBL $
 	      mailWhitelist $ dnsZoneEntry $ mailContentInspectionAction $
-              bATVToken $ mailDefaultOptions $ sshRSAAuthKey
+              bATVToken $ mailDefaultOptions $ sshRSAAuthKey $ mailPreserveSuffixSeparatorRidiculousName
 	) )
