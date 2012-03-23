@@ -61,8 +61,11 @@ userdir-ldap (0.3.80) UNRELEASED; urgency=low
   * ud-generate: generate webPasswords
   * ud-replicate: set correct permissions for web-passwords
   * add freecdb to depends
+  * userdir-ldap.schema
+    - add webPasswords
+    - add mailPreserveSuffixSeperator
 
- -- Peter Palfrader <weasel@debian.org>  Mon, 12 Mar 2012 16:56:11 +0100
+ -- Martin Zobel-Helas <zobel@debian.org>  Fri, 23 Mar 2012 19:19:16 +0100
 
 userdir-ldap (0.3.79) unstable; urgency=low
 
