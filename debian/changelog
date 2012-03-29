@@ -50,6 +50,7 @@ userdir-ldap (0.3.80) UNRELEASED; urgency=low
   * ud-generate: The ssh authorized_keys file for the sshdist user now wraps
     the rsync call in an flock wrapper that acquires a shared lock on
     ud-generate's lock.  This prevents syncing while ud-generate runs.
+  * ud-lock: support supplying a status to set instead of 'retiring'.
 
   [ Stephen Gran ]
   * Fix deprecation warnings for sha module by using hashlib module instead
@@ -65,7 +66,7 @@ userdir-ldap (0.3.80) UNRELEASED; urgency=low
     - add webPasswords
     - add mailPreserveSuffixSeperator
 
- -- Martin Zobel-Helas <zobel@debian.org>  Fri, 23 Mar 2012 19:19:16 +0100
+ -- Peter Palfrader <weasel@debian.org>  Thu, 29 Mar 2012 23:44:56 +0200
 
 userdir-ldap (0.3.79) unstable; urgency=low
 

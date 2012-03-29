@@ -47,7 +47,7 @@ def connect(user):
        sys.exit(1)
     return l
 
-def do_one_user(lc, user, ticket):
+def do_one_user(lc, user, ticket, status):
     try:
         u = UDLdap.Account.from_search(lc, BaseDn, user)
     except IndexError, e:
@@ -57,12 +57,12 @@ def do_one_user(lc, user, ticket):
         sys.stderr.write('%s: Account is not active, skipping.  (details: %s)\n'%(user, u.verbose_status()))
         return
 
-    print '%s: Setting to retiring:'%(user)
+    print '%s: Setting to %s:'%(user, status)
     set = {}
     set['userPassword'] = '{crypt}*LK*'
     set['shadowLastChange'] = str(int(time.time()/24/60/60))
     set['shadowExpire'] = '1'
-    set['accountStatus'] = 'retiring %s'%(time.strftime('%Y-%m-%d'))
+    set['accountStatus'] = '%s %s'%(status, time.strftime('%Y-%m-%d'))
     if not ticket is None:
         set['accountComment'] = "RT#%s"%(ticket)
 
@@ -93,6 +93,9 @@ parser.add_option("-n", "--no-do", action="store_true",
   help="Do not actually change anything.")
 parser.add_option("-r", "--rt-ticket", dest="ticket", metavar="ticket#",
   help="Ticket number for accountComment.")
+parser.add_option("-s", "--status", dest="status", metavar="status",
+  default='retiring',
+  help="Set status to <status> (default: retiring).")
 
 (options, args) = parser.parse_args()
 
@@ -101,7 +104,7 @@ if options.no_do:
 
 lc = connect(options.admin)
 for user in args:
-    do_one_user(lc, user, options.ticket)
+    do_one_user(lc, user, options.ticket, options.status)
 
 
 # vim:set et:
