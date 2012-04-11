@@ -1251,15 +1251,26 @@ def getLastLDAPChangeTime(l):
 
    return last
 
+def getLastKeyringChangeTime():
+   krmod = 0
+   for k in Keyrings:
+      mt = os.path.getmtime(k)
+      if mt > krmod:
+         krmod = mt
+
+   return krmod
+
 def getLastBuildTime(gdir):
-   cache_last_mod = 0
+   cache_last_ldap_mod = 0
+   cache_last_unix_mod = 0
 
    try:
       fd = open(os.path.join(gdir, "last_update.trace"), "r")
       cache_last_mod=fd.read().split()
       try:
-         cache_last_mod = cache_last_mod[0]
-      except IndexError:
+         cache_last_ldap_mod = cache_last_mod[0]
+         cache_last_unix_mod = int(cache_last_mod[1])
+      except IndexError, ValueError:
          pass
       fd.close()
    except IOError, e:
@@ -1268,8 +1279,7 @@ def getLastBuildTime(gdir):
       else:
          raise e
 
-   return cache_last_mod
-
+   return (cache_last_ldap_mod, cache_last_unix_mod)
 
 def ud_generate():
    parser = optparse.OptionParser()
@@ -1299,19 +1309,22 @@ def ud_generate():
 
    l = make_ldap_conn()
 
+   time_started = int(time.time())
    ldap_last_mod = getLastLDAPChangeTime(l)
-   cache_last_mod = getLastBuildTime(generate_dir)
-   need_update = ldap_last_mod > cache_last_mod
+   unix_last_mod = getLastKeyringChangeTime()
+   cache_last_ldap_mod, cache_last_unix_mod = getLastBuildTime(generate_dir)
+
+   need_update = (ldap_last_mod > cache_last_ldap_mod) or (unix_last_mod > cache_last_unix_mod)
 
    if not options.force and not need_update:
       fd = open(os.path.join(generate_dir, "last_update.trace"), "w")
-      fd.write("%s\n%s\n" % (ldap_last_mod, int(time.time())))
+      fd.write("%s\n%s\n" % (ldap_last_mod, time_started))
       fd.close()
       sys.exit(0)
 
    tracefd = open(os.path.join(generate_dir, "last_update.trace"), "w")
    generate_all(generate_dir, l)
-   tracefd.write("%s\n%s\n" % (ldap_last_mod, int(time.time())))
+   tracefd.write("%s\n%s\n" % (ldap_last_mod, time_started))
    tracefd.close()
 
 
