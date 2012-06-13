@@ -390,6 +390,27 @@ def GenWebPassword(accounts, File):
       Die(File, None, F)
       raise
 
+# Generate the voipPassword list
+def GenVoipPassword(accounts, File):
+   F = None
+   try:
+      OldMask = os.umask(0077)
+      F = open(File, "w", 0600)
+      os.umask(OldMask)
+
+      for a in accounts:
+         if not 'voipPassword' in a: continue
+         if not a.pw_active(): continue
+
+         Pass = str(a['voipPassword'])
+         Line = "<user id=\"%s\">\n <params>\n  <param name=\"password\" value=\"%s\"/>\n <params />\n</user>" % (a['uid'], Pass)
+         Line = Sanitize(Line) + "\n"
+         F.write("%s" % (Line))
+
+   except:
+      Die(File, None, F)
+      raise
+
 def GenSSHtarballs(global_dir, userlist, ssh_userkeys, grouprevmap, target, current_host):
    OldMask = os.umask(0077)
    tf = tarfile.open(name=os.path.join(global_dir, 'ssh-keys-%s.tar.gz' % current_host), mode='w:gz')
@@ -1021,7 +1042,7 @@ def get_accounts(ldap_conn):
                     "keyFingerPrint", "privateSub", "mailDisableMessage",\
                     "mailGreylisting", "mailCallout", "mailRBL", "mailRHSBL",\
                     "mailWhitelist", "sudoPassword", "objectClass", "accountStatus",\
-                    "mailContentInspectionAction", "webPassword"])
+                    "mailContentInspectionAction", "webPassword", "voipPassword"])
 
    if passwd_attrs is None:
       raise UDEmptyList, "No Users"
@@ -1107,6 +1128,7 @@ def generate_all(global_dir, ldap_conn):
    GenMailList(accounts, global_dir + "mail-rhsbl", "mailRHSBL")
    GenMailList(accounts, global_dir + "mail-whitelist", "mailWhitelist")
    GenWebPassword(accounts, global_dir + "web-passwords")
+   GenVoipPassword(accounts, global_dir + "voip-passwords")
    GenKeyrings(global_dir)
 
    # Compatibility.
