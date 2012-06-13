@@ -32,6 +32,9 @@ import string, re, time, ldap, optparse, sys, os, pwd, posix, socket, base64, ha
 from userdir_ldap import *
 from userdir_exceptions import *
 import UDLdap
+from xml.etree.ElementTree import Element, SubElement, Comment
+from xml.etree import ElementTree
+from xml.dom import minidom
 try:
    from cStringIO import StringIO
 except ImportError:
@@ -69,6 +72,12 @@ DNSZone = ".debian.net"
 Keyrings = ConfModule.sync_keyrings.split(":")
 GitoliteSSHRestrictions = getattr(ConfModule, "gitolitesshrestrictions", None)
 
+def prettify(elem):
+   """Return a pretty-printed XML string for the Element.
+   """
+   rough_string = ElementTree.tostring(elem, 'utf-8')
+   reparsed = minidom.parseString(rough_string)
+   return reparsed.toprettyxml(indent="  ")
 
 def safe_makedirs(dir):
    try:
@@ -398,14 +407,26 @@ def GenVoipPassword(accounts, File):
       F = open(File, "w", 0600)
       os.umask(OldMask)
 
+      root = Element('domain')
+      root.attrib['name'] = "$${sip_profile}"
+
       for a in accounts:
          if not 'voipPassword' in a: continue
          if not a.pw_active(): continue
 
          Pass = str(a['voipPassword'])
-         Line = "<user id=\"%s\">\n <params>\n  <param name=\"password\" value=\"%s\"/>\n <params />\n</user>" % (a['uid'], Pass)
-         Line = Sanitize(Line) + "\n"
-         F.write("%s" % (Line))
+         user = Element('user')
+         user.attrib['id'] = "%s" % (a['uid'])
+         root.append(user)
+         params = Element('params')
+         user.append(params)
+         param = Element('param')
+         params.append(param)
+         param.attrib['name'] = "a1-hash"
+         param.attrib['value'] = "%s" % (Pass)
+
+      F.write("%s" % (prettify(root)))
+
 
    except:
       Die(File, None, F)
@@ -1236,6 +1257,9 @@ def generate_host(host, global_dir, accounts, ssh_userkeys):
    if 'WEB-PASSWORDS' in ExtraList:
       DoLink(global_dir, OutDir, "web-passwords")
 
+   if 'VOIP-PASSWORDS' in ExtraList:
+      DoLink(global_dir, OutDir, "voip-passwords")
+
    if 'KEYRING' in ExtraList:
       for k in Keyrings:
          bn = os.path.basename(k)
@@ -1273,15 +1297,26 @@ def getLastLDAPChangeTime(l):
 
    return last
 
+def getLastKeyringChangeTime():
+   krmod = 0
+   for k in Keyrings:
+      mt = os.path.getmtime(k)
+      if mt > krmod:
+         krmod = mt
+
+   return krmod
+
 def getLastBuildTime(gdir):
-   cache_last_mod = 0
+   cache_last_ldap_mod = 0
+   cache_last_unix_mod = 0
 
    try:
       fd = open(os.path.join(gdir, "last_update.trace"), "r")
       cache_last_mod=fd.read().split()
       try:
-         cache_last_mod = cache_last_mod[0]
-      except IndexError:
+         cache_last_ldap_mod = cache_last_mod[0]
+         cache_last_unix_mod = int(cache_last_mod[1])
+      except IndexError, ValueError:
          pass
       fd.close()
    except IOError, e:
@@ -1290,8 +1325,7 @@ def getLastBuildTime(gdir):
       else:
          raise e
 
-   return cache_last_mod
-
+   return (cache_last_ldap_mod, cache_last_unix_mod)
 
 def ud_generate():
    parser = optparse.OptionParser()
@@ -1321,19 +1355,22 @@ def ud_generate():
 
    l = make_ldap_conn()
 
+   time_started = int(time.time())
    ldap_last_mod = getLastLDAPChangeTime(l)
-   cache_last_mod = getLastBuildTime(generate_dir)
-   need_update = ldap_last_mod > cache_last_mod
+   unix_last_mod = getLastKeyringChangeTime()
+   cache_last_ldap_mod, cache_last_unix_mod = getLastBuildTime(generate_dir)
+
+   need_update = (ldap_last_mod > cache_last_ldap_mod) or (unix_last_mod > cache_last_unix_mod)
 
    if not options.force and not need_update:
       fd = open(os.path.join(generate_dir, "last_update.trace"), "w")
-      fd.write("%s\n%s\n" % (ldap_last_mod, int(time.time())))
+      fd.write("%s\n%s\n" % (ldap_last_mod, time_started))
       fd.close()
       sys.exit(0)
 
    tracefd = open(os.path.join(generate_dir, "last_update.trace"), "w")
    generate_all(generate_dir, l)
-   tracefd.write("%s\n%s\n" % (ldap_last_mod, int(time.time())))
+   tracefd.write("%s\n%s\n" % (ldap_last_mod, time_started))
    tracefd.close()
 
 
