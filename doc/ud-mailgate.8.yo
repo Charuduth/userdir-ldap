@@ -36,7 +36,7 @@ record. In future this address might 'freshen' the record to indicate the
 user is alive. Any PGP signed message will produce a reply.
 
 manpagesection(NEW PASSWORD)
-If a user looses their password they can request that a new one be generated 
+If a user loses their password they can request that a new one be generated 
 for them. This is done by sending the phrase "Please change my Debian 
 password" to chpasswd@db.debian.org. The phrase is required to prevent the 
 daemon from triggering on arbitary signed email. The best way to invoke this
