@@ -407,8 +407,7 @@ def GenVoipPassword(accounts, File):
       F = open(File, "w", 0600)
       os.umask(OldMask)
 
-      root = Element('domain')
-      root.attrib['name'] = "$${sip_profile}"
+      root = Element('include')
 
       for a in accounts:
          if not 'voipPassword' in a: continue
@@ -424,6 +423,12 @@ def GenVoipPassword(accounts, File):
          params.append(param)
          param.attrib['name'] = "a1-hash"
          param.attrib['value'] = "%s" % (Pass)
+         variables = Element('variables')
+         user.append(variables)
+         variable = Element('variable')
+         variable.attrib['name'] = "toll_allow"
+         variable.attrib['value'] = "domestic,international,local"
+         variables.append(variable)
 
       F.write("%s" % (prettify(root)))
 
