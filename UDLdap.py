@@ -87,6 +87,9 @@ class Account:
     def is_active_user(self):
         return self['accountStatus'] == 'active' and self.numkeys() != 0
 
+    def is_guest_account(self):
+        return self['gidNumber'] == 60000
+
     def latitude_dec(self, anonymized=False):
         return userdir_ldap.DecDegree(self['latitude'], anonymized)
     def longitude_dec(self, anonymized=False):

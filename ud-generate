@@ -665,6 +665,7 @@ def GenPrivate(accounts, File):
       # Write out the position for each user
       for a in accounts:
          if not a.is_active_user(): continue
+         if a.is_guest_account(): continue
          if not 'privateSub' in a: continue
          try:
             Line = "%s"%(a['privateSub'])
@@ -778,6 +779,7 @@ def GenDNS(accounts, File):
       for a in accounts:
          if not 'dnsZoneEntry' in a: continue
          if not a.is_active_user() and not isRoleAccount(a): continue
+         if a.is_guest_account(): continue
 
          try:
             F.write("; %s\n"%(a.email_address()))
