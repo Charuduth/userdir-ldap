@@ -55,7 +55,8 @@ userdir-ldap (0.3.80) UNRELEASED; urgency=low
     ldap has not.
   * userdir-ldap-slapd.conf.in: explicitly list readable attributes.
     End with 'by * none'.
-
+  * ud-generate: Allow more than one email address in userForward.  Quite
+    useful for role accounts.
 
   [ Stephen Gran ]
   * Fix deprecation warnings for sha module by using hashlib module instead
