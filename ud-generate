@@ -1339,7 +1339,7 @@ def ud_generate():
    parser.add_option("-g", "--generatedir", dest="generatedir", metavar="DIR",
      help="Output directory.")
    parser.add_option("-f", "--force", dest="force", action="store_true",
-     help="Force generation, even if not update to LDAP has happened.")
+     help="Force generation, even if no update to LDAP has happened.")
 
    (options, args) = parser.parse_args()
    if len(args) > 0:
