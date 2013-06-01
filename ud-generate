@@ -172,7 +172,7 @@ def IsInGroup(account, allowed, current_host):
   supgroups=[]
   addGroups(supgroups, account['supplementaryGid'], account['uid'], current_host)
   for g in supgroups:
-     if allowed.has_key(g):
+     if g in allowed:
         return True
   return False
 
