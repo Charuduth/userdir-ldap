@@ -1260,6 +1260,12 @@ def generate_host(host, global_dir, all_accounts, ssh_userkeys):
 
    if 'GITOLITE' in ExtraList:
       DoLink(global_dir, OutDir, "ssh-gitolite")
+   if 'exportOptions' in host[1]:
+      for entry in host[1]['exportOptions']:
+         v = entry.split('=',1)
+         if v[0] != 'GITOLITE' or len(v) != 2: continue
+         gitolite_accounts = filter(lambda x: IsInGroup(x, [v[1]], current_host), all_accounts)
+         GenSSHGitolite(gitolite_accounts, OutDir + "ssh-gitolite-%s"%(v[1],))
 
    if 'WEB-PASSWORDS' in ExtraList:
       DoLink(global_dir, OutDir, "web-passwords")
