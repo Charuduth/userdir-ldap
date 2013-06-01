@@ -1181,7 +1181,7 @@ def generate_all(global_dir, ldap_conn):
          continue
       generate_host(host, global_dir, accounts, ssh_userkeys)
 
-def generate_host(host, global_dir, accounts, ssh_userkeys):
+def generate_host(host, global_dir, all_accounts, ssh_userkeys):
    current_host = host[1]['hostname'][0]
    OutDir = global_dir + current_host + '/'
    if not os.path.isdir(OutDir):
@@ -1204,7 +1204,7 @@ def generate_host(host, global_dir, accounts, ssh_userkeys):
          ExtraList[extra.upper()] = True
 
    if GroupList != {}:
-      accounts = filter(lambda x: IsInGroup(x, GroupList, current_host), accounts)
+      accounts = filter(lambda x: IsInGroup(x, GroupList, current_host), all_accounts)
 
    DoLink(global_dir, OutDir, "debianhosts")
    DoLink(global_dir, OutDir, "ssh_known_hosts")
