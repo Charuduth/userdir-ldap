@@ -71,6 +71,7 @@ isSSHFP = re.compile("^\s*IN\s+SSHFP")
 DNSZone = ".debian.net"
 Keyrings = ConfModule.sync_keyrings.split(":")
 GitoliteSSHRestrictions = getattr(ConfModule, "gitolitesshrestrictions", None)
+MX_remap = json.loads(ConfModule.MX_remap)
 
 def prettify(elem):
    """Return a pretty-printed XML string for the Element.
@@ -855,7 +856,11 @@ def ExtractDNSInfo(x):
 
    if x[1].has_key("mXRecord"):
       for I in x[1]["mXRecord"]:
-         DNSInfo.append("%sIN\tMX\t%s" % (TTLprefix, I))
+         if I in MX_remap:
+            for e in MX_remap[I]:
+               DNSInfo.append("%sIN\tMX\t%s" % (TTLprefix, e))
+         else:
+            DNSInfo.append("%sIN\tMX\t%s" % (TTLprefix, I))
 
    return DNSInfo
 
