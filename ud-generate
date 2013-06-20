@@ -65,7 +65,6 @@ UUID_FORMAT = '[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}'
 EmailCheck = re.compile("^([^ <>@]+@[^ ,<>@]+)(,\s*([^ <>@]+@[^ ,<>@]+))*$")
 BSMTPCheck = re.compile(".*mx 0 (master)\.debian\.org\..*",re.DOTALL)
 PurposeHostField = re.compile(r".*\[\[([\*\-]?[a-z0-9.\-]*)(?:\|.*)?\]\]")
-IsV6Addr = re.compile("^[a-fA-F0-9:]+$")
 IsDebianHost = re.compile(ConfModule.dns_hostmatch)
 isSSHFP = re.compile("^\s*IN\s+SSHFP")
 DNSZone = ".debian.net"
@@ -819,6 +818,13 @@ def GenDNS(accounts, File):
       raise
    Done(File, F, None)
 
+def is_ipv6_addr(i):
+   try:
+      socket.inet_pton(socket.AF_INET6, i)
+   except socket.error:
+      return False
+   return True
+
 def ExtractDNSInfo(x):
 
    TTLprefix="\t"
@@ -828,7 +834,7 @@ def ExtractDNSInfo(x):
    DNSInfo = []
    if x[1].has_key("ipHostNumber"):
       for I in x[1]["ipHostNumber"]:
-         if IsV6Addr.match(I) != None:
+         if is_ipv6_addr(I):
             DNSInfo.append("%sIN\tAAAA\t%s" % (TTLprefix, I))
          else:
             DNSInfo.append("%sIN\tA\t%s" % (TTLprefix, I))
@@ -960,7 +966,7 @@ def HostToIP(Host, mapped=True):
    if Host[1].has_key("ipHostNumber"):
       for addr in Host[1]["ipHostNumber"]:
          IPAdresses.append(addr)
-         if IsV6Addr.match(addr) is None and mapped == "True":
+         if not is_ipv6_addr(addr) and mapped == "True":
             IPAdresses.append("::ffff:"+addr)
 
    return IPAdresses
