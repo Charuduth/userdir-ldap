@@ -60,6 +60,7 @@ userdir-ldap (0.3.80) UNRELEASED; urgency=low
   * ud-generate: Support writing gitolite config for just one user-group.
   * ud-generate: Support MX remapping.
   * ud-generate: Fix ipv6 check.
+  * ud-generate: Fix unix mtime triggers.
 
   [ Stephen Gran ]
   * Fix deprecation warnings for sha module by using hashlib module instead
