@@ -61,6 +61,7 @@ SubGroupMap = None
 
 
 UUID_FORMAT = '[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}'
+MAX_UD_AGE = 3600*24
 
 EmailCheck = re.compile("^([^ <>@]+@[^ ,<>@]+)(,\s*([^ <>@]+@[^ ,<>@]+))*$")
 BSMTPCheck = re.compile(".*mx 0 (master)\.debian\.org\..*",re.DOTALL)
@@ -1328,11 +1329,12 @@ def getLastKeyringChangeTime():
       if mt > krmod:
          krmod = mt
 
-   return krmod
+   return int(krmod)
 
 def getLastBuildTime(gdir):
    cache_last_ldap_mod = 0
    cache_last_unix_mod = 0
+   cache_last_run = 0
 
    try:
       fd = open(os.path.join(gdir, "last_update.trace"), "r")
@@ -1340,6 +1342,7 @@ def getLastBuildTime(gdir):
       try:
          cache_last_ldap_mod = cache_last_mod[0]
          cache_last_unix_mod = int(cache_last_mod[1])
+         cache_last_run = int(cache_last_mod[2])
       except IndexError, ValueError:
          pass
       fd.close()
@@ -1349,7 +1352,7 @@ def getLastBuildTime(gdir):
       else:
          raise e
 
-   return (cache_last_ldap_mod, cache_last_unix_mod)
+   return (cache_last_ldap_mod, cache_last_unix_mod, cache_last_run)
 
 def ud_generate():
    parser = optparse.OptionParser()
@@ -1382,19 +1385,19 @@ def ud_generate():
    time_started = int(time.time())
    ldap_last_mod = getLastLDAPChangeTime(l)
    unix_last_mod = getLastKeyringChangeTime()
-   cache_last_ldap_mod, cache_last_unix_mod = getLastBuildTime(generate_dir)
+   cache_last_ldap_mod, cache_last_unix_mod, last_run = getLastBuildTime(generate_dir)
 
-   need_update = (ldap_last_mod > cache_last_ldap_mod) or (unix_last_mod > cache_last_unix_mod)
+   need_update = (ldap_last_mod > cache_last_ldap_mod) or (unix_last_mod > cache_last_unix_mod) or (time_started - last_run > MAX_UD_AGE)
 
    if not options.force and not need_update:
       fd = open(os.path.join(generate_dir, "last_update.trace"), "w")
-      fd.write("%s\n%s\n" % (ldap_last_mod, time_started))
+      fd.write("%s\n%s\n%s\n" % (ldap_last_mod, unix_last_mod, last_run))
       fd.close()
       sys.exit(0)
 
    tracefd = open(os.path.join(generate_dir, "last_update.trace"), "w")
    generate_all(generate_dir, l)
-   tracefd.write("%s\n%s\n" % (ldap_last_mod, time_started))
+   tracefd.write("%s\n%s\n%s\n" % (ldap_last_mod, unix_last_mod, time_started))
    tracefd.close()
 
 
