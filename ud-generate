@@ -71,6 +71,7 @@ isSSHFP = re.compile("^\s*IN\s+SSHFP")
 DNSZone = ".debian.net"
 Keyrings = ConfModule.sync_keyrings.split(":")
 GitoliteSSHRestrictions = getattr(ConfModule, "gitolitesshrestrictions", None)
+GitoliteExportHosts = re.compile(getattr(ConfModule, "gitoliteexporthosts", "."))
 MX_remap = json.loads(ConfModule.MX_remap)
 
 def prettify(elem):
@@ -336,7 +337,7 @@ def GenShadowSudo(accounts, File, untrusted, current_host):
    Done(File, F, None)
 
 # Generate the sudo passwd file
-def GenSSHGitolite(accounts, File):
+def GenSSHGitolite(accounts, hosts, File):
    F = None
    try:
       OldMask = os.umask(0022)
@@ -354,6 +355,15 @@ def GenSSHGitolite(accounts, File):
                   line = "%s %s"%(prefix, I)
                else:
                   line = "%s,%s"%(prefix, I)
+               line = Sanitize(line) + "\n"
+               F.write(line)
+
+         for dn, attrs in hosts:
+            if not 'sshRSAHostKey' in attrs: continue
+            hostname = "host-" + attrs['hostname'][0]
+            prefix = GitoliteSSHRestrictions.replace('@@USER@@', hostname)
+            for I in attrs["sshRSAHostKey"]:
+               line = "%s %s"%(prefix, I)
                line = Sanitize(line) + "\n"
                F.write(line)
 
@@ -1181,7 +1191,7 @@ def generate_all(global_dir, ldap_conn):
    GenMarkers(accounts, global_dir + "markers")
    GenSSHKnown(host_attrs, global_dir + "ssh_known_hosts")
    GenHosts(host_attrs, global_dir + "debianhosts")
-   GenSSHGitolite(accounts, global_dir + "ssh-gitolite")
+   GenSSHGitolite(accounts, host_attrs, global_dir + "ssh-gitolite")
 
    GenDNS(accounts, global_dir + "dns-zone")
    GenZoneRecords(host_attrs, global_dir + "dns-sshfp")
@@ -1191,9 +1201,9 @@ def generate_all(global_dir, ldap_conn):
    for host in host_attrs:
       if not "hostname" in host[1]:
          continue
-      generate_host(host, global_dir, accounts, ssh_userkeys)
+      generate_host(host, global_dir, accounts, host_attrs, ssh_userkeys)
 
-def generate_host(host, global_dir, all_accounts, ssh_userkeys):
+def generate_host(host, global_dir, all_accounts, all_hosts, ssh_userkeys):
    current_host = host[1]['hostname'][0]
    OutDir = global_dir + current_host + '/'
    if not os.path.isdir(OutDir):
@@ -1277,7 +1287,8 @@ def generate_host(host, global_dir, all_accounts, ssh_userkeys):
          v = entry.split('=',1)
          if v[0] != 'GITOLITE' or len(v) != 2: continue
          gitolite_accounts = filter(lambda x: IsInGroup(x, [v[1]], current_host), all_accounts)
-         GenSSHGitolite(gitolite_accounts, OutDir + "ssh-gitolite-%s"%(v[1],))
+         gitolite_hosts = filter(lambda x: GitoliteExportHosts.match(x[1]["hostname"][0]), all_hosts)
+         GenSSHGitolite(gitolite_accounts, gitolite_hosts, OutDir + "ssh-gitolite-%s"%(v[1],))
 
    if 'WEB-PASSWORDS' in ExtraList:
       DoLink(global_dir, OutDir, "web-passwords")
