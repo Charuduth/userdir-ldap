@@ -647,17 +647,15 @@ def GenCDB(accounts, File, key):
 
 def GenDBM(accounts, File, key):
    Fdb = None
+   OldMask = os.umask(0022)
+   fn = os.path.join(File).encode('ascii', 'ignore')
    try:
-      OldMask = os.umask(0022)
-      # nothing else does the fsync stuff, so why do it here?
-      fn = os.path.join(prefix,File).encode('ascii', 'ignore')
-      fntmp = os.path.join(prefix,File + '.tmp').encode('ascii', 'ignore')
-      try:
-          posix.remove(fntmp)
-      except:
-          pass
+      posix.remove(fn)
+   except:
+      pass
 
-      Fdb = dbm.open(fntmp, "c")
+   try:
+      Fdb = dbm.open(fn + ".tmp", "c")
       os.umask(OldMask)
 
       # Write out the email address for each user
@@ -668,11 +666,10 @@ def GenDBM(accounts, File, key):
          Fdb[user] = value
 
       Fdb.close()
-      posix.rename(fntmp,fn)
-   # Oops, something unspeakable happened.
    except:
-      Fdb.close()
+      Die(File, F, None)
       raise
+   Done(File, F, None)
 
 # Generate the anon XEarth marker file
 def GenMarkers(accounts, File):
@@ -1198,9 +1195,9 @@ def generate_all(global_dir, ldap_conn):
 
    GenMailDisable(accounts, global_dir + "mail-disable")
    GenCDB(accounts, global_dir + "mail-forward.cdb", 'emailForward')
-   GenDBM(accounts, global_dir + "mail-forward.dbm", 'emailForward')
+   GenDBM(accounts, global_dir + "mail-forward", 'emailForward')
    GenCDB(accounts, global_dir + "mail-contentinspectionaction.cdb", 'mailContentInspectionAction')
-   GenDBM(accounts, global_dir + "mail-contentinspectionaction.dbm", 'mailContentInspectionAction')
+   GenDBM(accounts, global_dir + "mail-contentinspectionaction", 'mailContentInspectionAction')
    GenPrivate(accounts, global_dir + "debian-private")
    GenSSHKnown(host_attrs, global_dir+"authorized_keys", 'authorized_keys', global_dir+'ud-generate.lock')
    GenMailBool(accounts, global_dir + "mail-greylist", "mailGreylisting")
@@ -1283,9 +1280,9 @@ def generate_host(host, global_dir, all_accounts, all_hosts, ssh_userkeys):
    if not 'NOMARKERS' in ExtraList:
       DoLink(global_dir, OutDir, "markers")
    DoLink(global_dir, OutDir, "mail-forward.cdb")
-   DoLink(global_dir, OutDir, "mail-forward.dbm")
+   DoLink(global_dir, OutDir, "mail-forward.db")
    DoLink(global_dir, OutDir, "mail-contentinspectionaction.cdb")
-   DoLink(global_dir, OutDir, "mail-contentinspectionaction.dbm")
+   DoLink(global_dir, OutDir, "mail-contentinspectionaction.db")
    DoLink(global_dir, OutDir, "mail-disable")
    DoLink(global_dir, OutDir, "mail-greylist")
    DoLink(global_dir, OutDir, "mail-callout")
@@ -1294,11 +1291,11 @@ def generate_host(host, global_dir, all_accounts, all_hosts, ssh_userkeys):
    DoLink(global_dir, OutDir, "mail-whitelist")
    DoLink(global_dir, OutDir, "all-accounts.json")
    GenCDB(accounts, OutDir + "user-forward.cdb", 'emailForward')
-   GenDBM(accounts, OutDir + "user-forward.dbm", 'emailForward')
+   GenDBM(accounts, OutDir + "user-forward", 'emailForward')
    GenCDB(accounts, OutDir + "batv-tokens.cdb", 'bATVToken')
-   GenDBM(accounts, OutDir + "batv-tokens.dbm", 'bATVToken')
+   GenDBM(accounts, OutDir + "batv-tokens", 'bATVToken')
    GenCDB(accounts, OutDir + "default-mail-options.cdb", 'mailDefaultOptions')
-   GenDBM(accounts, OutDir + "default-mail-options.dbm", 'mailDefaultOptions')
+   GenDBM(accounts, OutDir + "default-mail-options", 'mailDefaultOptions')
 
    # Compatibility.
    DoLink(global_dir, OutDir, "forward-alias")
