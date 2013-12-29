@@ -668,10 +668,10 @@ def GenDBM(accounts, File, key):
       Fdb.close()
    except:
       # python-dbm names the files Fdb.db.db so we want to them to be Fdb.db
-      Die(File, Fdb + ".db", None)
+      os.remove(File + ".db")
       raise
    # python-dbm names the files Fdb.db.db so we want to them to be Fdb.db
-   Done(File, Fdb + ".db", None)
+   os.rename (File + ".db", File)
 
 # Generate the anon XEarth marker file
 def GenMarkers(accounts, File):
