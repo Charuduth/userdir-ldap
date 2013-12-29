@@ -655,7 +655,7 @@ def GenDBM(accounts, File, key):
       pass
 
    try:
-      Fdb = dbm.open(fn + ".tmp", "c")
+      Fdb = dbm.open(fn, "c")
       os.umask(OldMask)
 
       # Write out the email address for each user
@@ -667,9 +667,11 @@ def GenDBM(accounts, File, key):
 
       Fdb.close()
    except:
-      Die(File, Fdb, None)
+      # python-dbm names the files Fdb.db.db so we want to them to be Fdb.db
+      Die(File, Fdb + ".db", None)
       raise
-   Done(File, Fdb, None)
+   # python-dbm names the files Fdb.db.db so we want to them to be Fdb.db
+   Done(File, Fdb + ".db", None)
 
 # Generate the anon XEarth marker file
 def GenMarkers(accounts, File):
@@ -1195,9 +1197,9 @@ def generate_all(global_dir, ldap_conn):
 
    GenMailDisable(accounts, global_dir + "mail-disable")
    GenCDB(accounts, global_dir + "mail-forward.cdb", 'emailForward')
-   GenDBM(accounts, global_dir + "mail-forward", 'emailForward')
+   GenDBM(accounts, global_dir + "mail-forward.db", 'emailForward')
    GenCDB(accounts, global_dir + "mail-contentinspectionaction.cdb", 'mailContentInspectionAction')
-   GenDBM(accounts, global_dir + "mail-contentinspectionaction", 'mailContentInspectionAction')
+   GenDBM(accounts, global_dir + "mail-contentinspectionaction.db", 'mailContentInspectionAction')
    GenPrivate(accounts, global_dir + "debian-private")
    GenSSHKnown(host_attrs, global_dir+"authorized_keys", 'authorized_keys', global_dir+'ud-generate.lock')
    GenMailBool(accounts, global_dir + "mail-greylist", "mailGreylisting")
@@ -1291,11 +1293,11 @@ def generate_host(host, global_dir, all_accounts, all_hosts, ssh_userkeys):
    DoLink(global_dir, OutDir, "mail-whitelist")
    DoLink(global_dir, OutDir, "all-accounts.json")
    GenCDB(accounts, OutDir + "user-forward.cdb", 'emailForward')
-   GenDBM(accounts, OutDir + "user-forward", 'emailForward')
+   GenDBM(accounts, OutDir + "user-forward.db", 'emailForward')
    GenCDB(accounts, OutDir + "batv-tokens.cdb", 'bATVToken')
-   GenDBM(accounts, OutDir + "batv-tokens", 'bATVToken')
+   GenDBM(accounts, OutDir + "batv-tokens.db", 'bATVToken')
    GenCDB(accounts, OutDir + "default-mail-options.cdb", 'mailDefaultOptions')
-   GenDBM(accounts, OutDir + "default-mail-options", 'mailDefaultOptions')
+   GenDBM(accounts, OutDir + "default-mail-options.db", 'mailDefaultOptions')
 
    # Compatibility.
    DoLink(global_dir, OutDir, "forward-alias")
