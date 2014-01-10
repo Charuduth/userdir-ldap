@@ -181,5 +181,5 @@ if [ -e /var/lib/misc/thishost/dns-zone ]; then
 fi
 
 if [ "${rebuild_zones}" -gt 0 ]; then
-  sudo -u dnsadm /srv/dns.debian.org/bin/update-zones
+  sudo -u dnsadm /srv/dns.debian.org/bin/update
 fi
