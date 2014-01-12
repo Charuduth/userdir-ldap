@@ -418,31 +418,18 @@ def GenVoipPassword(accounts, File):
       F = open(File, "w", 0600)
       os.umask(OldMask)
 
-      root = Element('include')
-
       for a in accounts:
          if not 'voipPassword' in a: continue
          if not a.pw_active(): continue
 
          Pass = str(a['voipPassword'])
-         user = Element('user')
-         user.attrib['id'] = "%s" % (a['uid'])
-         root.append(user)
-         params = Element('params')
-         user.append(params)
-         param = Element('param')
-         params.append(param)
-         param.attrib['name'] = "a1-hash"
-         param.attrib['value'] = "%s" % (Pass)
-         variables = Element('variables')
-         user.append(variables)
-         variable = Element('variable')
-         variable.attrib['name'] = "toll_allow"
-         variable.attrib['value'] = "domestic,international,local"
-         variables.append(variable)
+         realm = 'sip.debian.org'
 
-      F.write("%s" % (prettify(root)))
-
+         HA1 = "%s:%s%:%s" : (a['uid'], realm, Pass)
+         hashlib.md5(HA1).hexdigest()
+         Line = "%s:%s:%s:AUTHORIZED" % (a['uid'], realm, Pass)
+         Line = Sanitize(Line) + "\n"
+         F.write("%s" % (Line))
 
    except:
       Die(File, None, F)
