@@ -425,9 +425,9 @@ def GenVoipPassword(accounts, File):
          Pass = str(a['voipPassword'])
          realm = 'sip.debian.org'
 
-         HA1 = "%s:%s%:%s" : (a['uid'], realm, Pass)
-         hashlib.md5(HA1).hexdigest()
-         Line = "%s:%s:%s:AUTHORIZED" % (a['uid'], realm, Pass)
+         A1 = "%s:%s%:%s" : (a['uid'], realm, Pass)
+         HA1 = hashlib.md5(A1).hexdigest()
+         Line = "%s:%s:%s:AUTHORIZED" % (a['uid'], HA1, Pass)
          Line = Sanitize(Line) + "\n"
          F.write("%s" % (Line))
 
