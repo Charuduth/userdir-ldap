@@ -422,12 +422,7 @@ def GenVoipPassword(accounts, File):
          if not 'voipPassword' in a: continue
          if not a.pw_active(): continue
 
-         Pass = str(a['voipPassword'])
-         realm = 'sip.debian.org'
-
-         A1 = "%s:%s:%s" % (a['uid'], realm, Pass)
-         HA1 = hashlib.md5(A1).hexdigest()
-         Line = "%s:%s:%s:AUTHORIZED" % (a['uid'], HA1, realm)
+         Line = "%s@debian.org:%s:sip.debian.org:AUTHORIZED" % (a['uid'], str(a['voipPassword']))
          Line = Sanitize(Line) + "\n"
          F.write("%s" % (Line))
 
