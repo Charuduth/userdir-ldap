@@ -28,6 +28,9 @@
 #   along with this program; if not, write to the Free Software
 #   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
+from dsa_mq.connection import Connection
+from dsa_mq.config import Config
+
 import string, re, time, ldap, optparse, sys, os, pwd, posix, socket, base64, hashlib, shutil, errno, tarfile, grp, fcntl, dbm
 from userdir_ldap import *
 from userdir_exceptions import *
@@ -1382,12 +1385,37 @@ def getLastBuildTime(gdir):
 
    return (cache_last_ldap_mod, cache_last_unix_mod, cache_last_run)
 
+def mq_notify(options):
+   options.section = 'dsa-udgenerate'
+   options.config = '/etc/dsa/pubsub.conf'
+
+   config = Config(options)
+   conf = {
+      'rabbit_userid': config.username,
+      'rabbit_password': config.password,
+      'rabbit_virtual_host': config.vhost,
+      'rabbit_hosts': ['pubsub02.debian.org', 'pubsub01.debian.org'],
+      'use_ssl': False
+   }
+   conn = None
+   try:
+      conn = Connection(conf=conf)
+      conn.topic_send(config.topic,
+            'update',
+            exchange_name=config.exchange,
+            timeout=5)
+   finally:
+      if conn:
+         conn.close()
+
 def ud_generate():
    parser = optparse.OptionParser()
    parser.add_option("-g", "--generatedir", dest="generatedir", metavar="DIR",
      help="Output directory.")
    parser.add_option("-f", "--force", dest="force", action="store_true",
      help="Force generation, even if no update to LDAP has happened.")
+   parser.add_option("-m", "--mq", action="store_true", default=False,
+     help="Send update trigger over MQ")
 
    (options, args) = parser.parse_args()
    if len(args) > 0:
@@ -1427,6 +1455,8 @@ def ud_generate():
    generate_all(generate_dir, l)
    tracefd.write("%s\n%s\n%s\n" % (ldap_last_mod, unix_last_mod, time_started))
    tracefd.close()
+   if options.mq:
+      mq_notify(options)
 
 
 if __name__ == "__main__":
