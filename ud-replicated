@@ -84,7 +84,7 @@ def do_replicate(message):
             LOG.error('%s failed:', ' '.join(command))
         else:
             LOG.debug('%s finished with ret: 0' % ' '.join(command))
-	finally:
+        finally:
             os.environ['TERM'] = old_term
     LOG.debug(message)
 
