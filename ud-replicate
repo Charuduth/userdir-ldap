@@ -167,21 +167,19 @@ if [ -d "/etc/postfix" -a -f "$HOST/forward-alias" ]; then
 	/usr/sbin/postmap hash:/etc/postfix/debian < /etc/postfix/debian || true
 fi
 
-rndc_reload=0
+rebuild_zones=0
 if [ -e /var/lib/misc/thishost/dns-sshfp ]; then
-  if ! cmp -s /var/lib/misc/thishost/dns-sshfp $tempfile; then
-    /git/HOOKS/write_zonefile "$EMAILAPPEND"
-    rndc_reload=1
+  if ! cmp -s /var/lib/misc/thishost/dns-sshfp "$tempfile"; then
+    rebuild_zones=1
   fi
 fi
 
 if [ -e /var/lib/misc/thishost/dns-zone ]; then
-  if ! cmp -s /var/lib/misc/thishost/dns-zone $tempfile2; then
-    /git/HOOKS/write_zonefile debian.net
-    rndc_reload=1
+  if ! cmp -s /var/lib/misc/thishost/dns-zone "$tempfile2"; then
+    rebuild_zones=1
   fi
 fi
 
-if [ "${rndc_reload}" -gt 0 ]; then
-  rndc reload
+if [ "${rebuild_zones}" -gt 0 ]; then
+  sudo -u dnsadm /srv/dns.debian.org/bin/update
 fi

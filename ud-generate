@@ -28,7 +28,7 @@
 #   along with this program; if not, write to the Free Software
 #   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
-import string, re, time, ldap, optparse, sys, os, pwd, posix, socket, base64, hashlib, shutil, errno, tarfile, grp, fcntl
+import string, re, time, ldap, optparse, sys, os, pwd, posix, socket, base64, hashlib, shutil, errno, tarfile, grp, fcntl, dbm
 from userdir_ldap import *
 from userdir_exceptions import *
 import UDLdap
@@ -418,31 +418,13 @@ def GenVoipPassword(accounts, File):
       F = open(File, "w", 0600)
       os.umask(OldMask)
 
-      root = Element('include')
-
       for a in accounts:
          if not 'voipPassword' in a: continue
          if not a.pw_active(): continue
 
-         Pass = str(a['voipPassword'])
-         user = Element('user')
-         user.attrib['id'] = "%s" % (a['uid'])
-         root.append(user)
-         params = Element('params')
-         user.append(params)
-         param = Element('param')
-         params.append(param)
-         param.attrib['name'] = "a1-hash"
-         param.attrib['value'] = "%s" % (Pass)
-         variables = Element('variables')
-         user.append(variables)
-         variable = Element('variable')
-         variable.attrib['name'] = "toll_allow"
-         variable.attrib['value'] = "domestic,international,local"
-         variables.append(variable)
-
-      F.write("%s" % (prettify(root)))
-
+         Line = "%s@debian.org:%s:sip.debian.org:AUTHORIZED" % (a['uid'], str(a['voipPassword']))
+         Line = Sanitize(Line) + "\n"
+         F.write("%s" % (Line))
 
    except:
       Die(File, None, F)
@@ -644,6 +626,34 @@ def GenCDB(accounts, File, key):
       raise
    if Fdb.close() != None:
       raise "cdbmake gave an error"
+
+def GenDBM(accounts, File, key):
+   Fdb = None
+   OldMask = os.umask(0022)
+   fn = os.path.join(File).encode('ascii', 'ignore')
+   try:
+      posix.remove(fn)
+   except:
+      pass
+
+   try:
+      Fdb = dbm.open(fn, "c")
+      os.umask(OldMask)
+
+      # Write out the email address for each user
+      for a in accounts:
+         if not key in a: continue
+         value = a[key]
+         user = a['uid']
+         Fdb[user] = value
+
+      Fdb.close()
+   except:
+      # python-dbm names the files Fdb.db.db so we want to them to be Fdb.db
+      os.remove(File + ".db")
+      raise
+   # python-dbm names the files Fdb.db.db so we want to them to be Fdb.db
+   os.rename (File + ".db", File)
 
 # Generate the anon XEarth marker file
 def GenMarkers(accounts, File):
@@ -1169,7 +1179,9 @@ def generate_all(global_dir, ldap_conn):
 
    GenMailDisable(accounts, global_dir + "mail-disable")
    GenCDB(accounts, global_dir + "mail-forward.cdb", 'emailForward')
+   GenDBM(accounts, global_dir + "mail-forward.db", 'emailForward')
    GenCDB(accounts, global_dir + "mail-contentinspectionaction.cdb", 'mailContentInspectionAction')
+   GenDBM(accounts, global_dir + "mail-contentinspectionaction.db", 'mailContentInspectionAction')
    GenPrivate(accounts, global_dir + "debian-private")
    GenSSHKnown(host_attrs, global_dir+"authorized_keys", 'authorized_keys', global_dir+'ud-generate.lock')
    GenMailBool(accounts, global_dir + "mail-greylist", "mailGreylisting")
@@ -1252,7 +1264,9 @@ def generate_host(host, global_dir, all_accounts, all_hosts, ssh_userkeys):
    if not 'NOMARKERS' in ExtraList:
       DoLink(global_dir, OutDir, "markers")
    DoLink(global_dir, OutDir, "mail-forward.cdb")
+   DoLink(global_dir, OutDir, "mail-forward.db")
    DoLink(global_dir, OutDir, "mail-contentinspectionaction.cdb")
+   DoLink(global_dir, OutDir, "mail-contentinspectionaction.db")
    DoLink(global_dir, OutDir, "mail-disable")
    DoLink(global_dir, OutDir, "mail-greylist")
    DoLink(global_dir, OutDir, "mail-callout")
@@ -1261,8 +1275,11 @@ def generate_host(host, global_dir, all_accounts, all_hosts, ssh_userkeys):
    DoLink(global_dir, OutDir, "mail-whitelist")
    DoLink(global_dir, OutDir, "all-accounts.json")
    GenCDB(accounts, OutDir + "user-forward.cdb", 'emailForward')
+   GenDBM(accounts, OutDir + "user-forward.db", 'emailForward')
    GenCDB(accounts, OutDir + "batv-tokens.cdb", 'bATVToken')
+   GenDBM(accounts, OutDir + "batv-tokens.db", 'bATVToken')
    GenCDB(accounts, OutDir + "default-mail-options.cdb", 'mailDefaultOptions')
+   GenDBM(accounts, OutDir + "default-mail-options.db", 'mailDefaultOptions')
 
    # Compatibility.
    DoLink(global_dir, OutDir, "forward-alias")
