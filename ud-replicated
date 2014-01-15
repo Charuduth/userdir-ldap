@@ -1,0 +1,111 @@
+#!/usr/bin/python
+#
+# Copyright (c) 2014 Stephen Gran <sgran@debian.org>
+#
+# Run ud-replicate on a trigger
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+# THE SOFTWARE.
+
+from dsa_mq.connection import Connection
+from dsa_mq.config import Config
+
+import logging
+import logging.handlers
+import optparse
+import os
+import platform
+import subprocess
+import sys
+import time
+
+parser = optparse.OptionParser()
+parser.add_option("-D", "--dryrun",
+                  action="store_true", default=False,
+                  help="Dry run mode")
+
+parser.add_option("-d", "--debug",
+                  action="store_true", default=False,
+                  help="Enable debug output")
+
+(options, args) = parser.parse_args()
+options.section = 'dsa-udreplicate'
+options.config = '/etc/dsa/pubsub.conf'
+config = Config(options)
+mq_conf  = {
+    'rabbit_userid': config.username,
+    'rabbit_password': config.password,
+    'rabbit_virtual_host': config.vhost,
+    'rabbit_hosts': ['pubsub02.debian.org', 'pubsub01.debian.org'],
+    'use_ssl': False
+}
+
+lvl = logging.INFO
+if config.debug:
+    lvl = logging.DEBUG
+
+FORMAT='%(asctime)s ud-replicated: %(levelname)s %(message)s'
+SFORMAT='ud-replicated[%(process)s]: %(message)s'
+logging.basicConfig(format=FORMAT, level=lvl)
+LOG = logging.getLogger(__name__)
+syslog_handler = logging.handlers.SysLogHandler(address = '/dev/log')
+formatter = logging.Formatter(SFORMAT)
+syslog_handler.setFormatter(formatter)
+LOG.addHandler(syslog_handler)
+
+def do_replicate(message):
+    last_update = time.time()
+    LOG.debug("Got message at %s" % last_update)
+
+    command = ['/usr/bin/ud-replicate']
+    if options.dryrun:
+        LOG.debug("Would have run %s" % command)
+    else:
+        old_term = os.environ.get('TERM')
+        os.environ['TERM'] = 'dumb'
+        try:
+            subprocess.check_call(command)
+        except:
+            LOG.error('%s failed:', ' '.join(command))
+        else:
+            LOG.debug('%s finished with ret: 0' % ' '.join(command))
+	finally:
+            os.environ['TERM'] = old_term
+    LOG.debug(message)
+
+def main():
+    conn = Connection(conf=mq_conf)
+    conn.declare_topic_consumer(config.topic,
+                                callback=do_replicate,
+                                queue_name=config.queue,
+                                exchange_name=config.exchange,
+                                ack_on_error=False)
+
+    try:
+        conn.consume()
+    except KeyboardInterrupt:
+        pass
+    except Exception as e:
+        LOG.error(e)
+    finally:
+        conn.close()
+        sys.exit(0)
+
+if __name__ == '__main__':
+    do_replicate('startup complete')
+    main()
