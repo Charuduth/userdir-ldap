@@ -54,7 +54,7 @@ access to attrs=privateSub
 	by * break
 
 # allow users write access to an explicit subset of their fields
-access to attrs=c,l,loginShell,ircNick,labeledURI,icqUIN,jabberJID,onVacation,birthDate,mailDisableMessage,gender,emailforward,mailCallout,mailGreylisting,mailRBL,mailRHSBL,mailWhitelist,mailContentInspectionAction,mailDefaultOptions,facsimileTelephoneNumber,telephoneNumber,postalAddress,postalCode,loginShell,onVacation,latitude,longitude,VoIP,userPassword,sudoPassword,webPassword,voipPassword,bATVToken
+access to attrs=c,l,loginShell,ircNick,labeledURI,icqUIN,jabberJID,onVacation,birthDate,mailDisableMessage,gender,emailforward,mailCallout,mailGreylisting,mailRBL,mailRHSBL,mailWhitelist,mailContentInspectionAction,mailDefaultOptions,facsimileTelephoneNumber,telephoneNumber,postalAddress,postalCode,loginShell,onVacation,latitude,longitude,VoIP,userPassword,sudoPassword,webPassword,rtcPassword,bATVToken
 	by self write
 	by * break
 
@@ -64,7 +64,7 @@ access to attrs=c,l,loginShell,ircNick,labeledURI,icqUIN,jabberJID,onVacation,bi
 ##
 
 # allow authn/z by anyone
-access to attrs=userPassword,sudoPassword,webPassword,voipPassword,bATVToken
+access to attrs=userPassword,sudoPassword,webPassword,rtcPassword,bATVToken
 	by * compare
 
 # readable only by self

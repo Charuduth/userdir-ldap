@@ -109,7 +109,7 @@
 #   .41 - sshdistAuthKeysHost
 #   .42 - dnsTTL
 #   .43 - webPassword
-#   .44 - voipPassword
+#   .44 - rtcPassword
 #
 # .3 - experimental LDAP objectClasses
 #   .1 - debianDeveloper
@@ -409,8 +409,8 @@ attributetype ( 1.3.6.1.4.1.9586.100.4.2.43
 	SYNTAX 1.3.6.1.4.1.1466.115.121.1.40 )
 
 attributetype ( 1.3.6.1.4.1.9586.100.4.2.44
-	NAME 'voipPassword'
-	DESC 'password for voip.debian.org'
+	NAME 'rtcPassword'
+	DESC 'rtc password for SIP/XMPP'
 	EQUALITY octetStringMatch
 	SYNTAX 1.3.6.1.4.1.1466.115.121.1.40 )
 

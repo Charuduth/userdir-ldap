@@ -1,4 +1,4 @@
-userdir-ldap (0.3.80) UNRELEASED; urgency=low
+userdir-ldap (0.3.80+nmu1) UNRELEASED; urgency=low
 
   [ Peter Palfrader ]
   * some ud-echelon fixes,
@@ -82,7 +82,11 @@ userdir-ldap (0.3.80) UNRELEASED; urgency=low
   [ Tollef Fog Heen ]
   * Export SSH host keys for gitolite, subject to a regex filter.
 
- -- Peter Palfrader <weasel@debian.org>  Mon, 14 May 2012 18:45:07 +0200
+  [ Luca Filipozzi ]
+  * rename voipPassword to rtcPassword in schema
+  * update code to match
+
+ -- Luca Filipozzi <lfilipoz@emyr.net>  Thu, 16 Jan 2014 22:52:47 +0000
 
 userdir-ldap (0.3.79) unstable; urgency=low
 
