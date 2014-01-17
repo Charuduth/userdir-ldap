@@ -183,3 +183,9 @@ fi
 if [ "${rebuild_zones}" -gt 0 ]; then
   sudo -u dnsadm /srv/dns.debian.org/bin/update
 fi
+
+if [ -d "/etc/freeradius" -a -e "$HOST/rtc-passwords" ]; then
+	install -o root -g freerad -m 440 $HOST/rtc-passwords /var/local/rtc-passwords
+	service freeradius reload
+	service resiprocate-turn-server reload
+fi
