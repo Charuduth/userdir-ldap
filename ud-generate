@@ -1450,6 +1450,7 @@ def ud_generate():
       generate_all(generate_dir, l)
       if options.mq:
          mq_notify(options)
+      last_run = int(time.time())
    fd.write("%s\n%s\n%s\n" % (ldap_last_mod, unix_last_mod, last_run))
    fd.close()
    sys.exit(0)
