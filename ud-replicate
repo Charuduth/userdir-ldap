@@ -185,10 +185,10 @@ if [ "${rebuild_zones}" -gt 0 ]; then
 fi
 
 if [ -d "/etc/freeradius" -a -e "$HOST/rtc-passwords" ]; then
-	install -o freerad -g freerad -m 440 $HOST/rtc-passwords /var/local/rtc-passwords.freerad
+	install -o freerad -g freerad -m 400 $HOST/rtc-passwords /var/local/rtc-passwords.freerad
 	service freeradius reload
 fi
 if [ -d "/etc/reTurn" -a -e "$HOST/rtc-passwords" ]; then
-	install -o return -g return -m 440 $HOST/rtc-passwords /var/local/rtc-passwords.return
+	install -o return -g return -m 400 $HOST/rtc-passwords /var/local/rtc-passwords.return
 	service resiprocate-turn-server reload
 fi
