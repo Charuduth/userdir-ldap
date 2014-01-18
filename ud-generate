@@ -1445,18 +1445,14 @@ def ud_generate():
 
    need_update = (ldap_last_mod > cache_last_ldap_mod) or (unix_last_mod > cache_last_unix_mod) or (time_started - last_run > MAX_UD_AGE)
 
-   if not options.force and not need_update:
-      fd = open(os.path.join(generate_dir, "last_update.trace"), "w")
-      fd.write("%s\n%s\n%s\n" % (ldap_last_mod, unix_last_mod, last_run))
-      fd.close()
-      sys.exit(0)
-
-   tracefd = open(os.path.join(generate_dir, "last_update.trace"), "w")
-   generate_all(generate_dir, l)
-   tracefd.write("%s\n%s\n%s\n" % (ldap_last_mod, unix_last_mod, time_started))
-   tracefd.close()
-   if options.mq:
-      mq_notify(options)
+   fd = open(os.path.join(generate_dir, "last_update.trace"), "w")
+   if need_update or options.force:
+      generate_all(generate_dir, l)
+      if options.mq:
+         mq_notify(options)
+   fd.write("%s\n%s\n%s\n" % (ldap_last_mod, unix_last_mod, last_run))
+   fd.close()
+   sys.exit(0)
 
 
 if __name__ == "__main__":
