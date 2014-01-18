@@ -63,7 +63,10 @@ FORMAT='%(asctime)s ud-replicated: %(levelname)s %(message)s'
 SFORMAT='ud-replicated[%(process)s]: %(message)s'
 logging.basicConfig(format=FORMAT, level=lvl)
 LOG = logging.getLogger(__name__)
-syslog_handler = logging.handlers.SysLogHandler(address = '/dev/log')
+logsock = '/dev/log'
+if os.path.exists('/var/run/log'): # Kfreebsd randomly different
+    logsock = '/var/run/log'
+syslog_handler = logging.handlers.SysLogHandler(address = logsock)
 formatter = logging.Formatter(SFORMAT)
 syslog_handler.setFormatter(formatter)
 LOG.addHandler(syslog_handler)

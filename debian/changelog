@@ -1,6 +1,6 @@
 userdir-ldap (0.3.82) UNRELEASED; urgency=low
 
-  * Start new release
+  * KFreeBSD uses a different syslog socket just because
 
  -- Stephen Gran <sgran@debian.org>  Sat, 18 Jan 2014 10:46:50 +0000
 
