@@ -1,4 +1,4 @@
-userdir-ldap (0.3.80+nmu1) UNRELEASED; urgency=low
+userdir-ldap (0.3.80+nmu1) unstable; urgency=low
 
   [ Peter Palfrader ]
   * some ud-echelon fixes,
@@ -67,6 +67,7 @@ userdir-ldap (0.3.80+nmu1) UNRELEASED; urgency=low
   * ud-fingerserv: update Net::LDAP import
   * Implement audit logging for ldap
   * stop running ud-generate if nothing has changed, based on audit logs
+  * Change to trigger based replication
 
   [ Martin Zobel-Helas ]
   * ud-generate: generate webPasswords
