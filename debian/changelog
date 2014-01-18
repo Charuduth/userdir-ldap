@@ -1,4 +1,10 @@
-userdir-ldap (0.3.80+nmu1) unstable; urgency=low
+userdir-ldap (0.3.81) unstable; urgency=low
+
+  * Gratuitous version bump
+
+ -- Stephen Gran <sgran@debian.org>  Sat, 18 Jan 2014 10:37:40 +0000
+
+userdir-ldap (0.3.80) unstable; urgency=low
 
   [ Peter Palfrader ]
   * some ud-echelon fixes,

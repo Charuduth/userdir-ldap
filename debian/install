@@ -17,6 +17,7 @@ ud-generate usr/bin
 ud-passchk usr/bin
 ud-useradd usr/bin
 ud-replicate usr/bin
+ud-replicated usr/bin
 ud-xearth usr/bin
 ud-fingerserv usr/bin
 ud-echelon usr/bin
