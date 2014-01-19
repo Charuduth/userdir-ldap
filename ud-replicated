@@ -71,9 +71,14 @@ formatter = logging.Formatter(SFORMAT)
 syslog_handler.setFormatter(formatter)
 LOG.addHandler(syslog_handler)
 
+last_run = 0
+
 def do_replicate(message):
-    last_update = time.time()
-    LOG.debug("Got message at %s" % last_update)
+    global last_run
+    last_update = int(time.time())
+    LOG.debug("Got message at %s: %s" % (last_update, message['message']))
+    if last_run > message.get('timestamp', 0):
+        return
 
     command = ['/usr/bin/ud-replicate']
     if options.dryrun:
@@ -89,7 +94,7 @@ def do_replicate(message):
             LOG.debug('%s finished with ret: 0' % ' '.join(command))
         finally:
             os.environ['TERM'] = old_term
-    LOG.debug(message)
+    last_run = int(time.time())
 
 def main():
     conn = Connection(conf=mq_conf)
