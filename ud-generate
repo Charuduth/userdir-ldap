@@ -1385,7 +1385,7 @@ def getLastBuildTime(gdir):
 
    return (cache_last_ldap_mod, cache_last_unix_mod, cache_last_run)
 
-def mq_notify(options):
+def mq_notify(options, message):
    options.section = 'dsa-udgenerate'
    options.config = '/etc/dsa/pubsub.conf'
 
@@ -1397,11 +1397,16 @@ def mq_notify(options):
       'rabbit_hosts': ['pubsub02.debian.org', 'pubsub01.debian.org'],
       'use_ssl': False
    }
+
+   msg = {
+      'message': message,
+      timestamp: int(time.time())
+   }
    conn = None
    try:
       conn = Connection(conf=conf)
       conn.topic_send(config.topic,
-            'update',
+            json.dumps(msg),
             exchange_name=config.exchange,
             timeout=5)
    finally:
@@ -1447,9 +1452,10 @@ def ud_generate():
 
    fd = open(os.path.join(generate_dir, "last_update.trace"), "w")
    if need_update or options.force:
+      msg = 'Update forced' if options.force else 'Update needed'
       generate_all(generate_dir, l)
       if options.mq:
-         mq_notify(options)
+         mq_notify(options, msg)
       last_run = int(time.time())
    fd.write("%s\n%s\n%s\n" % (ldap_last_mod, unix_last_mod, last_run))
    fd.close()
