@@ -1,8 +1,12 @@
 userdir-ldap (0.3.82) UNRELEASED; urgency=low
 
+  [ Stephen Gran ]
   * KFreeBSD uses a different syslog socket just because
 
- -- Stephen Gran <sgran@debian.org>  Sat, 18 Jan 2014 10:46:50 +0000
+  [ Peter Palfrader ]
+  * sigcheck: Import userdir_ldap so CheckLDAP() can find connectLDAP().
+
+ -- Peter Palfrader <weasel@debian.org>  Mon, 20 Jan 2014 23:18:17 +0100
 
 userdir-ldap (0.3.81) unstable; urgency=low
 

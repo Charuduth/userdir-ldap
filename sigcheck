@@ -49,13 +49,14 @@ def verbmsg(msg):
 # Match the key fingerprint against an LDAP directory
 def CheckLDAP(FingerPrint):
    import ldap;
+   import userdir_ldap;
    
    # Connect to the ldap server
    global ErrTyp, ErrMsg;
    ErrType = EX_TEMPFAIL;
    ErrMsg = "An error occurred while performing the LDAP lookup:";
    global l;
-   l = connectLDAP(LDAPServer);
+   l = userdir_ldap.connectLDAP(LDAPServer);
    l.simple_bind_s("","");
 
    # Search for the matching key fingerprint
