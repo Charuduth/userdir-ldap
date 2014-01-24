@@ -1105,7 +1105,8 @@ def get_accounts(ldap_conn):
                     "keyFingerPrint", "privateSub", "mailDisableMessage",\
                     "mailGreylisting", "mailCallout", "mailRBL", "mailRHSBL",\
                     "mailWhitelist", "sudoPassword", "objectClass", "accountStatus",\
-                    "mailContentInspectionAction", "webPassword", "rtcPassword"])
+                    "mailContentInspectionAction", "webPassword", "rtcPassword",\
+                    "bATVToken"])
 
    if passwd_attrs is None:
       raise UDEmptyList, "No Users"
