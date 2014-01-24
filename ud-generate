@@ -1401,7 +1401,7 @@ def mq_notify(options, message):
 
    msg = {
       'message': message,
-      timestamp: int(time.time())
+      'timestamp': int(time.time())
    }
    conn = None
    try:
