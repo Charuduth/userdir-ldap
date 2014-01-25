@@ -76,8 +76,8 @@ last_run = 0
 def do_replicate(message):
     global last_run
     last_update = int(time.time())
-    LOG.debug("Got message at %s: %s" % (last_update, message['message']))
-    if last_run > message.get('timestamp', 0):
+    LOG.debug("Got message at %s: %s" % (last_update, message.get('message', message)))
+    if last_run > message.get('timestamp', last_update):
         return
 
     command = ['/usr/bin/ud-replicate']
@@ -94,7 +94,7 @@ def do_replicate(message):
             LOG.debug('%s finished with ret: 0' % ' '.join(command))
         finally:
             os.environ['TERM'] = old_term
-    last_run = int(time.time())
+    last_run = last_update
 
 def main():
     conn = Connection(conf=mq_conf)
