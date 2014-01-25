@@ -2,6 +2,7 @@ userdir-ldap (0.3.82) UNRELEASED; urgency=low
 
   [ Stephen Gran ]
   * KFreeBSD uses a different syslog socket just because
+  * Change cron job to weekly
 
   [ Peter Palfrader ]
   * sigcheck: Import userdir_ldap so CheckLDAP() can find connectLDAP().
