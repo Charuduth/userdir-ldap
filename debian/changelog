@@ -1,4 +1,4 @@
-userdir-ldap (0.3.82) UNRELEASED; urgency=low
+userdir-ldap (0.3.82) unstable; urgency=low
 
   [ Stephen Gran ]
   * KFreeBSD uses a different syslog socket just because

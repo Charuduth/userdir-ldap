@@ -76,8 +76,13 @@ last_run = 0
 def do_replicate(message):
     global last_run
     last_update = int(time.time())
-    LOG.debug("Got message at %s: %s" % (last_update, message.get('message', message)))
-    if last_run > message.get('timestamp', last_update):
+    timestamp   = last_update
+
+    if isinstance(message, dict):
+        timestamp = message.get('timestamp', last_update)
+        message   = message.get('message', 'update required')
+    LOG.debug("Got message at %s: %s" % (last_update, message))
+    if last_run > timestamp, last_update):
         return
 
     command = ['/usr/bin/ud-replicate']
@@ -115,5 +120,7 @@ def main():
         sys.exit(0)
 
 if __name__ == '__main__':
-    do_replicate('startup complete')
+    do_replicate(
+        {'timestamp': time.time(),
+        'message': 'startup complete'})
     main()
