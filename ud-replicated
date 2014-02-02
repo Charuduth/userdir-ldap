@@ -25,6 +25,7 @@
 from dsa_mq.connection import Connection
 from dsa_mq.config import Config
 
+import json
 import logging
 import logging.handlers
 import optparse
@@ -77,6 +78,10 @@ def do_replicate(message):
     global last_run
     last_update = int(time.time())
     timestamp   = last_update
+    try:
+        message = json.loads(message)
+    except ValueError:
+        pass
 
     if isinstance(message, dict):
         timestamp = message.get('timestamp', last_update)
@@ -120,7 +125,7 @@ def main():
         sys.exit(0)
 
 if __name__ == '__main__':
-    do_replicate(
+    do_replicate(json.dumps(
         {'timestamp': time.time(),
-        'message': 'startup complete'})
+        'message': 'startup complete'}))
     main()
