@@ -615,7 +615,7 @@ def HandleChange(Reply,DnRecord,Key):
    # Connect to the ldap server
    l = connect_to_ldap_and_check_if_locked(DnRecord)
 
-   if CommitChanges == 1 and len(Attrs) > 0: # only if we are still good to go
+   if CommitChanges == 1 and len(SudoPasswd) > 0: # only if we are still good to go
       try:
          Res = FinishConfirmSudopassword(l, GetAttr(DnRecord,"uid"), Attrs)
          if not Res is None:
