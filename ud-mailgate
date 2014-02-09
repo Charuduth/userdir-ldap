@@ -36,7 +36,6 @@ mailRHSBL = {}
 mailWhitelist = {}
 SeenList = {}
 DNS = {}
-SudoPasswd = {}
 ValidHostNames = [] # will be initialized in later
 
 SSHFingerprint = re.compile('^(\d+) ([0-9a-f\:]{47}) (.+)$')
@@ -490,7 +489,7 @@ def DoRBL(Str,Attrs):
    return "%s replaced with %s" % (Key,Host)
 
 # Handle a ConfirmSudoPassword request
-def DoConfirmSudopassword(Str):
+def DoConfirmSudopassword(Str, SudoPasswd):
    Match = re.compile('^confirm sudopassword ('+UUID_FORMAT+') ([a-z0-9.,*]+) ([0-9a-f]{40})$').match(Str)
    if Match == None:
       return None
@@ -499,12 +498,10 @@ def DoConfirmSudopassword(Str):
    hosts = Match.group(2)
    hmac = Match.group(3)
 
-   global SudoPasswd
    SudoPasswd[uuid] = (hosts, hmac)
    return "got confirm for sudo password %s on host(s) %s, auth code %s" % (uuid,hosts, hmac)
 
-def FinishConfirmSudopassword(l, uid, Attrs):
-   global SudoPasswd
+def FinishConfirmSudopassword(l, uid, Attrs, SudoPasswd):
    result = "\n"
 
    if len(SudoPasswd) == 0:
@@ -582,6 +579,7 @@ def HandleChange(Reply,DnRecord,Key):
 
    Result = "";
    Attrs = [];
+   SudoPasswd = {}
    Show = 0;
    CommitChanges = 1
    for Line in Lines: 
@@ -599,7 +597,7 @@ def HandleChange(Reply,DnRecord,Key):
             badkeys = LoadBadSSH()
             Res = DoPosition(Line,Attrs) or DoDNS(Line,Attrs,DnRecord) or \
                   DoArbChange(Line,Attrs) or DoSSH(Line,Attrs,badkeys,GetAttr(DnRecord,"uid")) or \
-                  DoDel(Line,Attrs) or DoRBL(Line,Attrs) or DoConfirmSudopassword(Line)
+                  DoDel(Line,Attrs) or DoRBL(Line,Attrs) or DoConfirmSudopassword(Line, SudoPasswd)
       except:
          Res = None;
          Result = Result + "==> %s: %s\n" %(sys.exc_type,sys.exc_value);
@@ -617,7 +615,7 @@ def HandleChange(Reply,DnRecord,Key):
 
    if CommitChanges == 1 and len(SudoPasswd) > 0: # only if we are still good to go
       try:
-         Res = FinishConfirmSudopassword(l, GetAttr(DnRecord,"uid"), Attrs)
+         Res = FinishConfirmSudopassword(l, GetAttr(DnRecord,"uid"), Attrs, SudoPasswd)
          if not Res is None:
             Result = Result + Res + "\n";
       except Error, e:
