@@ -1,6 +1,10 @@
 userdir-ldap (0.3.83) UNRELEASED; urgency=low
 
+  [ Stephen Gran ]
   * Correct thinkos
+
+  [ Peter Palfrader ]
+  * ud-mailgate: fix sudopassword confirm handling.
 
  -- Stephen Gran <sgran@debian.org>  Sat, 01 Feb 2014 13:31:10 +0000
 
