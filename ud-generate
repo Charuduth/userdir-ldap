@@ -1420,8 +1420,6 @@ def ud_generate():
      help="Output directory.")
    parser.add_option("-f", "--force", dest="force", action="store_true",
      help="Force generation, even if no update to LDAP has happened.")
-   parser.add_option("-m", "--mq", action="store_true", default=False,
-     help="Send update trigger over MQ")
 
    (options, args) = parser.parse_args()
    if len(args) > 0:
@@ -1455,8 +1453,7 @@ def ud_generate():
    if need_update or options.force:
       msg = 'Update forced' if options.force else 'Update needed'
       generate_all(generate_dir, l)
-      if options.mq:
-         mq_notify(options, msg)
+      mq_notify(options, msg)
       last_run = int(time.time())
    fd.write("%s\n%s\n%s\n" % (ldap_last_mod, unix_last_mod, last_run))
    fd.close()
