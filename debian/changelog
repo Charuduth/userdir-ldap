@@ -1,7 +1,9 @@
 userdir-ldap (0.3.83) UNRELEASED; urgency=low
 
   [ Stephen Gran ]
-  * Correct thinkos
+  * ud-generate:
+    + Correct thinkos
+    + notification is now the default
 
   [ Peter Palfrader ]
   * ud-mailgate: fix sudopassword confirm handling.
