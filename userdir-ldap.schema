@@ -551,7 +551,7 @@ objectclass ( 1.3.6.1.4.1.9586.100.4.1.1
 	DESC 'Abstraction of an account with POSIX attributes and UTF8 support'
 	SUP top AUXILIARY
 	MUST ( cn $ uid $ uidNumber $ gidNumber )
-	MAY ( userPassword $ loginShell $ gecos $ homeDirectory $ description $ mailDisableMessage $ sudoPassword $ webPassword $ voipPassword ) )
+	MAY ( userPassword $ loginShell $ gecos $ homeDirectory $ description $ mailDisableMessage $ sudoPassword $ webPassword $ rtcPassword ) )
 
 objectclass ( 1.3.6.1.4.1.9586.100.4.1.2
 	NAME 'debianGroup'
