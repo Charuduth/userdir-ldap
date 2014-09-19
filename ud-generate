@@ -74,6 +74,7 @@ isSSHFP = re.compile("^\s*IN\s+SSHFP")
 DNSZone = ".debian.net"
 Keyrings = ConfModule.sync_keyrings.split(":")
 GitoliteSSHRestrictions = getattr(ConfModule, "gitolitesshrestrictions", None)
+GitoliteSSHCommand = getattr(ConfModule, "gitolitesshcommand", None)
 GitoliteExportHosts = re.compile(getattr(ConfModule, "gitoliteexporthosts", "."))
 MX_remap = json.loads(ConfModule.MX_remap)
 
@@ -340,8 +341,10 @@ def GenShadowSudo(accounts, File, untrusted, current_host):
    Done(File, F, None)
 
 # Generate the sudo passwd file
-def GenSSHGitolite(accounts, hosts, File):
+def GenSSHGitolite(accounts, hosts, File, sshcommand=None, current_host=None):
    F = None
+   if sshcommand is None:
+      sshcommand = GitoliteSSHCommand
    try:
       OldMask = os.umask(0022)
       F = open(File + ".tmp", "w", 0600)
@@ -352,19 +355,30 @@ def GenSSHGitolite(accounts, hosts, File):
             if not 'sshRSAAuthKey' in a: continue
 
             User = a['uid']
-            prefix = GitoliteSSHRestrictions.replace('@@USER@@', User)
+            prefix = GitoliteSSHRestrictions
+            prefix = prefix.replace('@@COMMAND@@', sshcommand)
+            prefix = prefix.replace('@@USER@@', User)
             for I in a["sshRSAAuthKey"]:
+               if I.startswith("allowed_hosts=") and ' ' in line:
+                  if current_host is None:
+                     continue
+                  machines, I = I.split('=', 1)[1].split(' ', 1)
+                  if current_host not in machines.split(','):
+                     continue # skip this key
+
                if I.startswith('ssh-'):
                   line = "%s %s"%(prefix, I)
                else:
-                  line = "%s,%s"%(prefix, I)
+                  continue # do not allow keys with other restrictions that might conflict
                line = Sanitize(line) + "\n"
                F.write(line)
 
          for dn, attrs in hosts:
             if not 'sshRSAHostKey' in attrs: continue
             hostname = "host-" + attrs['hostname'][0]
-            prefix = GitoliteSSHRestrictions.replace('@@USER@@', hostname)
+            prefix = GitoliteSSHRestrictions
+            prefix = prefix.replace('@@COMMAND@@', sshcommand)
+            prefix = prefix.replace('@@USER@@', hostname)
             for I in attrs["sshRSAHostKey"]:
                line = "%s %s"%(prefix, I)
                line = Sanitize(line) + "\n"
@@ -1307,9 +1321,18 @@ def generate_host(host, global_dir, all_accounts, all_hosts, ssh_userkeys):
       for entry in host[1]['exportOptions']:
          v = entry.split('=',1)
          if v[0] != 'GITOLITE' or len(v) != 2: continue
-         gitolite_accounts = filter(lambda x: IsInGroup(x, [v[1]], current_host), all_accounts)
-         gitolite_hosts = filter(lambda x: GitoliteExportHosts.match(x[1]["hostname"][0]), all_hosts)
-         GenSSHGitolite(gitolite_accounts, gitolite_hosts, OutDir + "ssh-gitolite-%s"%(v[1],))
+         options = v[1].split(',')
+         group = options.pop(0);
+         gitolite_accounts = filter(lambda x: IsInGroup(x, [group], current_host), all_accounts)
+         if not 'nohosts' in options:
+            gitolite_hosts = filter(lambda x: GitoliteExportHosts.match(x[1]["hostname"][0]), all_hosts)
+         else:
+            gitolite_hosts = []
+         command = None
+         for opt in options:
+            if opt.startswith('sshcmd='):
+               command = opt.split('=',1)[1]
+         GenSSHGitolite(gitolite_accounts, gitolite_hosts, OutDir + "ssh-gitolite-%s"%(group,), sshcommand=command, current_host=current_host)
 
    if 'WEB-PASSWORDS' in ExtraList:
       DoLink(global_dir, OutDir, "web-passwords")
