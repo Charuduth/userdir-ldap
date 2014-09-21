@@ -8,14 +8,15 @@ userdir-ldap (0.3.83) UNRELEASED; urgency=low
   [ Peter Palfrader ]
   * ud-mailgate:
     - fix sudopassword confirm handling.
-    - allow dashes in hostnames.
+    - sudopassword: allow dashes in hostnames.
   * ud-generate: update gitolite authkeys generation
     - skip ssh keys with non-local allowed_hosts
     - skip all keys with other restrictions
     - make including keys for hosts optional (on by default)
     - support overriding the command we restrict to
+    - sudopassword: allow dashes in hostnames.
 
- -- Peter Palfrader <weasel@debian.org>  Sun, 21 Sep 2014 14:50:59 +0200
+ -- Peter Palfrader <weasel@debian.org>  Sun, 21 Sep 2014 15:20:05 +0200
 
 userdir-ldap (0.3.82) unstable; urgency=low
 

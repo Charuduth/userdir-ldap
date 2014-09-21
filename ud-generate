@@ -307,7 +307,7 @@ def GenShadowSudo(accounts, File, untrusted, current_host):
          Pass = '*'
          if 'sudoPassword' in a:
             for entry in a['sudoPassword']:
-               Match = re.compile('^('+UUID_FORMAT+') (confirmed:[0-9a-f]{40}|unconfirmed) ([a-z0-9.,*]+) ([^ ]+)$').match(entry)
+               Match = re.compile('^('+UUID_FORMAT+') (confirmed:[0-9a-f]{40}|unconfirmed) ([a-z0-9.,*-]+) ([^ ]+)$').match(entry)
                if Match == None:
                   continue
                uuid = Match.group(1)
