@@ -15,8 +15,10 @@ userdir-ldap (0.3.83) UNRELEASED; urgency=low
     - make including keys for hosts optional (on by default)
     - support overriding the command we restrict to
     - sudopassword: allow dashes in hostnames.
+  * ud-replicated:
+    - only use /var/run/log if it's a socket.
 
- -- Peter Palfrader <weasel@debian.org>  Sun, 21 Sep 2014 15:20:05 +0200
+ -- Peter Palfrader <weasel@debian.org>  Fri, 05 Dec 2014 23:34:22 +0100
 
 userdir-ldap (0.3.82) unstable; urgency=low
 
