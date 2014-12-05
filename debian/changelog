@@ -1,4 +1,4 @@
-userdir-ldap (0.3.83) UNRELEASED; urgency=low
+userdir-ldap (0.3.83) unstable; urgency=low
 
   [ Stephen Gran ]
   * ud-generate:
@@ -18,7 +18,7 @@ userdir-ldap (0.3.83) UNRELEASED; urgency=low
   * ud-replicated:
     - only use /var/run/log if it's a socket.
 
- -- Peter Palfrader <weasel@debian.org>  Fri, 05 Dec 2014 23:34:22 +0100
+ -- Peter Palfrader <weasel@debian.org>  Fri, 05 Dec 2014 23:37:45 +0100
 
 userdir-ldap (0.3.82) unstable; urgency=low
 
