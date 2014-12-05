@@ -88,7 +88,7 @@ def do_replicate(message):
         timestamp = message.get('timestamp', last_update)
         message   = message.get('message', 'update required')
     LOG.debug("Got message at %s: %s" % (last_update, message))
-    if last_run > timestamp, last_update):
+    if last_run > timestamp:
         return
 
     command = ['/usr/bin/ud-replicate']
