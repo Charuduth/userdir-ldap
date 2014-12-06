@@ -1,3 +1,9 @@
+userdir-ldap (0.3.86) UNRELEASED; urgency=medium
+
+  * 
+
+ -- Peter Palfrader <weasel@debian.org>  Sat, 06 Dec 2014 10:25:30 +0100
+
 userdir-ldap (0.3.85) unstable; urgency=low
 
   [ Stephen Gran ]
