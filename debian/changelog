@@ -1,4 +1,4 @@
-userdir-ldap (0.3.83) unstable; urgency=low
+userdir-ldap (0.3.85) unstable; urgency=low
 
   [ Stephen Gran ]
   * ud-generate:
@@ -17,8 +17,9 @@ userdir-ldap (0.3.83) unstable; urgency=low
     - sudopassword: allow dashes in hostnames.
   * ud-replicated:
     - only use /var/run/log if it's a socket.
+  * High version number to supersede locally built, non-tracked versions.
 
- -- Peter Palfrader <weasel@debian.org>  Fri, 05 Dec 2014 23:37:45 +0100
+ -- Peter Palfrader <weasel@debian.org>  Sat, 06 Dec 2014 09:59:12 +0100
 
 userdir-ldap (0.3.82) unstable; urgency=low
 
