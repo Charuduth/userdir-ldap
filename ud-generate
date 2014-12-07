@@ -886,10 +886,14 @@ def ExtractDNSInfo(x):
             Algorithm = 1
          if Split[0] == 'ssh-dss':
             Algorithm = 2
+         if Split[0] == 'ssh-ed25519':
+            Algorithm = 4
          if Algorithm == None:
             continue
          Fingerprint = hashlib.new('sha1', base64.decodestring(Split[1])).hexdigest()
          DNSInfo.append("%sIN\tSSHFP\t%u 1 %s" % (TTLprefix, Algorithm, Fingerprint))
+         Fingerprint = hashlib.new('sha256', base64.decodestring(Split[1])).hexdigest()
+         DNSInfo.append("%sIN\tSSHFP\t%u 2 %s" % (TTLprefix, Algorithm, Fingerprint))
 
    if 'architecture' in x[1]:
       Arch = GetAttr(x, "architecture")

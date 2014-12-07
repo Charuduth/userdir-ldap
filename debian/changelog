@@ -1,8 +1,8 @@
 userdir-ldap (0.3.86) UNRELEASED; urgency=medium
 
-  * 
+  * ud-generate: support ssh-ed25519 keys for SSHFP records.
 
- -- Peter Palfrader <weasel@debian.org>  Sat, 06 Dec 2014 10:25:30 +0100
+ -- Peter Palfrader <weasel@debian.org>  Sun, 07 Dec 2014 10:47:17 +0100
 
 userdir-ldap (0.3.85) unstable; urgency=low
 
