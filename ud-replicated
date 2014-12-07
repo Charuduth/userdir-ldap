@@ -104,7 +104,8 @@ def do_replicate(message):
         else:
             LOG.debug('%s finished with ret: 0' % ' '.join(command))
         finally:
-            os.environ['TERM'] = old_term
+            if old_term is not None:
+                os.environ['TERM'] = old_term
     last_run = last_update
 
 def main():
