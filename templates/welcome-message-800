@@ -60,9 +60,7 @@ SSH fingerprints for all Debian machines can be looked up at
 downloaded from <URL:https://db.debian.org/debian_known_hosts>.
 
 Debian secures some of its websites using SSL. The SSL certificates
-used are signed by the intermediate CA ca.debian.org. ca.debian.org
-itself is signed by SPI CA which is part of the Debian package
-ca-certificates.
+used are signed by a current commercial certificate authority.
 
 To give you a quick overview here is a list of the most important
 machines from the project you can access.  There is the main archive
