@@ -22,10 +22,10 @@ minutes.  If you applied for Debian Developer with uploading rights,
 you should be able to upload packages already.
 
 Email sent to <__LOGIN__@debian.org> will be forwarded to <__EMAIL__>,
-to change this visit <URL:http://db.debian.org/forward.html>.
+to change this visit <URL:https://db.debian.org/forward.html>.
 The Debian mail setup allows various per-user settings, like enabling
 greylisting, sender-verify-callouts and per-user dns blocklists.
-Please refer to <URL:http://db.debian.org/doc-mail.html> on how to change
+Please refer to <URL:https://db.debian.org/doc-mail.html> on how to change
 these settings.  Some may also be exposed via the web interface behind
 <URL:https://db.debian.org/login.html>.
 
@@ -34,9 +34,9 @@ PGP key and appended to this message.  It cannot be used to log into
 our machines; see the paragraph on SSH keys below.
 
 You now have access to various project machines, for a list of them take
-a look at <URL:http://db.debian.org/machines.cgi>.
+a look at <URL:https://db.debian.org/machines.cgi>.
 Please remember that you accepted the Debian Machine Usage Policy in
-your NM process (available at <URL:http://www.debian.org/devel/dmup>).
+your NM process (available at <URL:https://www.debian.org/devel/dmup>).
 
 If you need additional software installed on one of the machines (in the
 host system) please contact debian-admin@lists.debian.org, but keep in
@@ -46,17 +46,17 @@ On porter machines, the chroot environments can be entered with the
 'schroot' command, depending on setup; take a look at the list of
 machines to know which are our porterboxes.  You can install build
 dependencies yourself once you instantiated a session.  Please
-consult <URL:http://dsa.debian.org/doc/schroot/> for more information
+consult <URL:https://dsa.debian.org/doc/schroot/> for more information
 and ask your fellow DDs if you need any help.
 
 You need to use ssh to log into the machines; telnet and rlogin are
 disabled for security reasons.  On debian.org servers the only ssh
 authentication method available is publickey.  The LDAP directory is
 able to share RSA ssh keys among machines, please see
-<URL:http://db.debian.org/doc-mail.html>.  Please be aware of the
+<URL:https://db.debian.org/doc-mail.html>.  Please be aware of the
 security implications of using RSA authentication and ssh agents.  The
 SSH fingerprints for all Debian machines can be looked up at
-<URL:http://db.debian.org/machines.cgi> or a known_hosts file can be
+<URL:https://db.debian.org/machines.cgi> or a known_hosts file can be
 downloaded from <URL:https://db.debian.org/debian_known_hosts>.
 
 Debian secures some of its websites using SSL. The SSL certificates
@@ -76,14 +76,14 @@ process.
 The project main shell server is located at paradis.debian.org.  This
 machine is also reachable as people.debian.org.  If you want your own
 Debian related site to appear behind
-<URL:http://people.debian.org/~__LOGIN__/> then put it at this
+<URL:https://people.debian.org/~__LOGIN__/> then put it at this
 machine in the directory ~/public_html/.
 
 The machine hosting most of our VCS repositories
 ({svn,bzr,git,arch,hg}.debian.org) is alioth.debian.org. It's handled
 by a separate team (admin@alioth.debian.org) as it allows login by
 non-Debian developers. You probably already have a *-guest account
-there.  Please refer to http://wiki.debian.org/AliothFAQ to learn
+there.  Please refer to https://wiki.debian.org/AliothFAQ to learn
 anything you need to know, including how to activate your account and
 how to request the removal of your old -guest account.
 
@@ -100,7 +100,7 @@ find out more about you.  Many of the fields are only visible to other
 registered Debian developers.  This is also the only way to change your
 password.  The passwd program does not work.
 
-You can refer to http://wiki.debian.org/MigrateToDDAccount to find
+You can refer to https://wiki.debian.org/MigrateToDDAccount to find
 additional notes to help you migrate your previous information to your
 new account.
 
@@ -110,16 +110,16 @@ doesn't mean to stop reading and checking them whenever you do packaging
 or other Debian related work.
 
   o The Debian Social Contract
-    <URL:http://www.debian.org/social_contract.html>
+    <URL:https://www.debian.org/social_contract.html>
 
   o The Debian Policy Manual
-    <URL:http://www.debian.org/doc/debian-policy/>
+    <URL:https://www.debian.org/doc/debian-policy/>
 
   o The Debian Developer's reference
-    <URL:http://www.debian.org/doc/developers-reference/>
+    <URL:https://www.debian.org/doc/developers-reference/>
 
 You can find much more information useful to developers at
-<URL:http://www.debian.org/devel/>.
+<URL:https://www.debian.org/devel/>.
 
 Also, please subscribe to the mailing list debian-devel-announce, if you
 haven't done so already.  All Debian developers are required to read
@@ -141,12 +141,12 @@ and other developer-related issues.  Those who prefer one-on-one help
 can also post to the list, and an experienced developer may volunteer
 to help you.  You can get online help on IRC, too, if you join the
 channel #debian-devel or #debian-mentors on irc.debian.org.  Take a look
-at the support section on <URL:http://www.debian.org/> in order to find
+at the support section on <URL:https://www.debian.org/> in order to find
 out more information.
 
 If you have some spare time and want to contribute it to Debian you
 may wish to take a look at the "Work-Needing and Prospective Packages",
-(WNPP) that can be found at <URL:http://www.debian.org/devel/wnpp/>.
+(WNPP) that can be found at <URL:https://www.debian.org/devel/wnpp/>.
 
 Welcome to the project!
 

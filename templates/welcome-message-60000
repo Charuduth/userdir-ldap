@@ -14,7 +14,7 @@ An account has been created for you on the Debian machine cluster. You can
 use this account to help make software run properly on the Debian
 distribution. The username for this account is '__LOGIN__'.
 
-See <URL:http://db.debian.org/machines.cgi> for a list of machines that are
+See <URL:https://db.debian.org/machines.cgi> for a list of machines that are
 available.  The list of which machines you can access is user-dependent.
 To find out which machines you have access to try running
     ldapsearch -LLL -b dc=debian,dc=org -x -h db.debian.org \
@@ -24,13 +24,13 @@ On porter machines, the chroot environments can be entered with the
 'schroot' command, depending on setup; take a look at the list of
 machines to know which are our porterboxes.  You can install build
 dependencies yourself once you instantiated a session.  Please
-consult <URL:http://dsa.debian.org/doc/schroot/> for more information
+consult <URL:https://dsa.debian.org/doc/schroot/> for more information
 and ask your mentors if you need any help.
 
 You should use ssh to log into the machines. See the host details on
 db.debian.org for the ssh hostkey fingerprints for the servers you
 access.  Our LDAP directory is able to share ssh RSA keys among
-machines, please see <URL:http://db.debian.org/doc-mail.html> for
+machines, please see <URL:https://db.debian.org/doc-mail.html> for
 general documentation and for how to add ssh keys to the LDAP. Please be
 aware of the security implications of using RSA authentication and ssh
 agents.

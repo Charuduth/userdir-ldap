@@ -40,7 +40,7 @@ you have one, and your GnuPG key (using `gpg --edit-key "YOUR USER ID"')
 and send it to <keyring-maint@debian.org>.
 
 You can find more information useful to developers at
-<URL:http://www.debian.org/devel/> (in particular, see the subsection
+<URL:https://www.debian.org/devel/> (in particular, see the subsection
 titled "Debian Developer's reference").
 
 We suggest that you subscribe to debian-mentors@lists.debian.org.
@@ -54,13 +54,13 @@ section on www.debian.org in order to find out more information.
 You should have read these documents before working on your packages.
 
   o The Debian Social Contract
-    <URL:http://www.debian.org/social_contract.html>
+    <URL:https://www.debian.org/social_contract.html>
 
   o The Debian Policy Manual
-    <URL:http://www.debian.org/doc/debian-policy/>
+    <URL:https://www.debian.org/doc/debian-policy/>
 
   o The Debian Packaging Manual
-    <URL:http://www.debian.org/doc/packaging-manuals/packaging.html>
+    <URL:https://www.debian.org/doc/packaging-manuals/packaging.html>
 
 If you have some spare time and want to contribute it to Debian you
 may wish to take a look at the "Work-Needing and Prospective Packages
