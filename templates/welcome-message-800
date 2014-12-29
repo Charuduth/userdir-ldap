@@ -71,9 +71,8 @@ point that some place else when the archive system is down for
 maintenance etc.).  A tool like dput or dupload can aid this
 process.
 
-The project main shell server is located at paradis.debian.org.  This
-machine is also reachable as people.debian.org.  If you want your own
-Debian related site to appear behind
+The project main shell server is located at people.debian.org.
+If you want your own Debian related site to appear behind
 <URL:https://people.debian.org/~__LOGIN__/> then put it at this
 machine in the directory ~/public_html/.
 
