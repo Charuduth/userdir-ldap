@@ -73,7 +73,7 @@ access to attrs=sshrsaauthkey
 	by * none
 
 # debian.org readable, authenticated user readable
-access to attrs=activity-pgp,activity-from,dnsZoneEntry,c,l,loginShell,onVacation,birthDate,mailDisableMessage,gender,emailforward,mailCallout,mailGreylisting,mailRBL,mailRHSBL,mailWhitelist,mailContentInspectionAction,mailDefaultOptions
+access to attrs=activity-pgp,activity-from,c,l,loginShell,onVacation,birthDate,mailDisableMessage,gender,emailforward,mailCallout,mailGreylisting,mailRBL,mailRHSBL,mailWhitelist,mailContentInspectionAction,mailDefaultOptions
 	by peername.ip=127.0.0.1 read
 	by domain=alioth.debian.org none
 	by domain.subtree=@@DOMAIN@@ read
@@ -86,7 +86,7 @@ access to attrs=facsimileTelephoneNumber,telephoneNumber,postalAddress,postalCod
 	by * none
 
 # rest is globally readable
-access to attrs=access,accountComment,accountStatus,admin,allowedGroups,allowedHost,architecture,bandwidth,cn,comment,dc,description,disk,distribution,dnsTTL,exportOptions,gecos,gid,gidNumber,homeDirectory,host,hostname,icqUin,ipHostNumber,ircNick,jabberJID,keyFingerPrint,labeledURI,mXRecord,machine,member,memory,mn,objectClass,ou,physicalHost,purpose,shadowExpire,shadowLastChange,shadowMax,shadowMin,shadowWarning,sn,sponsor,sponsor-admin,sshRSAHostKey,status,subGroup,supplementaryGid,uid,uidNumber
+access to attrs=access,accountComment,accountStatus,admin,allowedGroups,allowedHost,architecture,bandwidth,cn,comment,dc,description,disk,distribution,dnsTTL,dnsZoneEntry,exportOptions,gecos,gid,gidNumber,homeDirectory,host,hostname,icqUin,ipHostNumber,ircNick,jabberJID,keyFingerPrint,labeledURI,mXRecord,machine,member,memory,mn,objectClass,ou,physicalHost,purpose,shadowExpire,shadowLastChange,shadowMax,shadowMin,shadowWarning,sn,sponsor,sponsor-admin,sshRSAHostKey,status,subGroup,supplementaryGid,uid,uidNumber
 	by * read
 
 access to *
