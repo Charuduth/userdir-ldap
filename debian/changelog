@@ -1,8 +1,9 @@
 userdir-ldap (0.3.87) UNRELEASED; urgency=medium
 
-  * 
+  * userdir-ldap-slapd.conf.in: Rhonda points out dnsZoneEntry should not be
+    world readable
 
- -- Peter Palfrader <weasel@debian.org>  Sun, 07 Dec 2014 16:43:59 +0100
+ -- Peter Palfrader <weasel@debian.org>  Fri, 17 Apr 2015 20:34:18 +0200
 
 userdir-ldap (0.3.86) unstable; urgency=medium
 
