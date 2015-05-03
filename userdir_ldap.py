@@ -84,7 +84,7 @@ GroupObjectClasses = ("top", "debianGroup")
 # SSH Key splitting. The result is:
 # (options,size,modulous,exponent,comment)
 SSHAuthSplit = re.compile('^(.* )?(\d+) (\d+) (\d+) ?(.+)$');
-SSH2AuthSplit = re.compile('^(.* )?ssh-(dss|rsa) ([a-zA-Z0-9=/+]+) ?(.+)$');
+SSH2AuthSplit = re.compile('^(.* )?ssh-(dss|rsa|ecdsa-sha2-nistp(?:256|384|521)|ed25519) ([a-zA-Z0-9=/+]+) ?(.+)$');
 #'^([^\d](?:[^ "]+(?:".*")?)*)? ?(\d+) (\d+) (\d+) (.+)$');
 
 AddressSplit = re.compile("(.*).*<([^@]*)@([^>]*)>");
