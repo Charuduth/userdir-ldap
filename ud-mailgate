@@ -323,10 +323,10 @@ def DoSSH(Str, Attrs, badkeys, uid):
    Match = SSHFingerprint.match(output)
    g = Match.groups()
 
-   if int(g[0]) < 1024 and (typekey != "ed25519"):
+   if int(g[0]) < 2048 and (typekey != "ed25519"):
       try:
          # Body
-         Subst["__ERROR__"] = "SSH keysize %s is below limit 1024" % (g[0])
+         Subst["__ERROR__"] = "SSH keysize %s is below limit 2048" % (g[0])
          ErrReply = TemplateSubst(Subst,open(TemplatesDir+"admin-info","r").read())
 
          Child = os.popen("/usr/sbin/sendmail -t","w")
@@ -338,7 +338,7 @@ def DoSSH(Str, Attrs, badkeys, uid):
          sys.exit(EX_TEMPFAIL)
 
       # And now break and stop processing input, which sends a reply to the user.
-      raise UDFormatError, "SSH keys must have at least 1024 bits, processing halted, NOTHING MODIFIED AT ALL"
+      raise UDFormatError, "SSH keys must have at least 2048 bits, processing halted, NOTHING MODIFIED AT ALL"
    elif g[1] in badkeys:
       try:
          # Body
