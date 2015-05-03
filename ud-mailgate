@@ -323,7 +323,7 @@ def DoSSH(Str, Attrs, badkeys, uid):
    Match = SSHFingerprint.match(output)
    g = Match.groups()
 
-   if int(g[0]) < 1024:
+   if int(g[0]) < 1024 and (typekey != "ed25519"):
       try:
          # Body
          Subst["__ERROR__"] = "SSH keysize %s is below limit 1024" % (g[0])
