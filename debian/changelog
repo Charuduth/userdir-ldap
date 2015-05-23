@@ -1,8 +1,9 @@
 userdir-ldap (0.3.87) UNRELEASED; urgency=medium
 
   * remove dnsZoneEntry from restricted attributes to match config on db.d.o
+  * ssh keys: Also accept ed25519 keys.  RSA keys must be at least 2k.
 
- -- Peter Palfrader <weasel@debian.org>  Fri, 17 Apr 2015 20:42:12 +0200
+ -- Peter Palfrader <weasel@debian.org>  Sat, 23 May 2015 10:20:13 +0200
 
 userdir-ldap (0.3.86) unstable; urgency=medium
 
