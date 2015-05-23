@@ -323,10 +323,17 @@ def DoSSH(Str, Attrs, badkeys, uid):
    Match = SSHFingerprint.match(output)
    g = Match.groups()
 
-   if int(g[0]) < 2048 and (typekey != "ed25519"):
+   if typekey == "ssh-rsa":
+      key_size_ok = (g[0]) >= 2048)
+   elif typekey == "ed25519":
+     key_size_ok = True
+   else:
+     key_size_ok = False
+
+   if not key_size_ok:
       try:
          # Body
-         Subst["__ERROR__"] = "SSH keysize %s is below limit 2048" % (g[0])
+         Subst["__ERROR__"] = "SSH key fails formal criteria.  We only accept RSA keys (>= 2048 bits) or ed25519 keys." % (g[0])
          ErrReply = TemplateSubst(Subst,open(TemplatesDir+"admin-info","r").read())
 
          Child = os.popen("/usr/sbin/sendmail -t","w")
@@ -338,7 +345,7 @@ def DoSSH(Str, Attrs, badkeys, uid):
          sys.exit(EX_TEMPFAIL)
 
       # And now break and stop processing input, which sends a reply to the user.
-      raise UDFormatError, "SSH keys must have at least 2048 bits, processing halted, NOTHING MODIFIED AT ALL"
+      raise UDFormatError, "SSH key fails formal criteria, NOTHING MODIFIED AT ALL"
    elif g[1] in badkeys:
       try:
          # Body
@@ -356,14 +363,11 @@ def DoSSH(Str, Attrs, badkeys, uid):
       # And now break and stop processing input, which sends a reply to the user.
       raise UDFormatError, "Submitted SSH Key known to be bad and insecure, processing halted, NOTHING MODIFIED AT ALL"
 
-   if (typekey == "dss"):
-      return "DSA keys not accepted anymore"
-
    global SeenKey;
    if SeenKey:
      Attrs.append((ldap.MOD_ADD,"sshRSAAuthKey",Str));
      return "SSH Key added "+FormatSSHAuth(Str);
-      
+
    Attrs.append((ldap.MOD_REPLACE,"sshRSAAuthKey",Str));
    SeenKey = 1;
    return "SSH Keys replaced with "+FormatSSHAuth(Str);
