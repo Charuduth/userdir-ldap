@@ -324,7 +324,7 @@ def DoSSH(Str, Attrs, badkeys, uid):
    g = Match.groups()
 
    if typekey == "ssh-rsa":
-      key_size_ok = (g[0]) >= 2048)
+      key_size_ok = (g[0] >= 2048)
    elif typekey == "ed25519":
      key_size_ok = True
    else:
