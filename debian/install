@@ -25,6 +25,7 @@ ud-groupadd usr/bin
 ud-host usr/bin
 ud-zoneupdate usr/bin
 ud-roleadd usr/bin
+ud-guest-upgrade usr/bin
 sigcheck usr/bin
 userdir-ldap.conf etc/userdir-ldap/
 templates/ etc/userdir-ldap/

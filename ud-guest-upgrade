@@ -1,0 +1,85 @@
+#!/usr/bin/python
+
+# Copyright (c) 2015 Peter Palfrader <peter@palfrader.org>
+#
+# Permission is hereby granted, free of charge, to any person obtaining
+# a copy of this software and associated documentation files (the
+# "Software"), to deal in the Software without restriction, including
+# without limitation the rights to use, copy, modify, merge, publish,
+# distribute, sublicense, and/or sell copies of the Software, and to
+# permit persons to whom the Software is furnished to do so, subject to
+# the following conditions:
+#
+# The above copyright notice and this permission notice shall be
+# included in all copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+# EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+# MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+# NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE
+# LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
+# OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+# WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+import argparse
+import os, pwd, sys
+from userdir_ldap import *;
+from string import Template
+
+parser = argparse.ArgumentParser(description='Upgrade a guest account.')
+parser.add_argument('uid', metavar='UID',
+                   help="user's uid to be upgraded")
+args = parser.parse_args()
+uid = args.uid
+
+l = connectLDAP()
+
+x = l.search_s(BaseBaseDn,ldap.SCOPE_SUBTREE, "uid="+uid, [])
+if len(x) == 0:
+    print >>sys.stderr, "No hit."
+    sys.exit(1)
+elif len(x) > 1:
+    print >>sys.stderr, "More than one hit!?"
+    sys.exit(1)
+
+
+dn = x[0][0]
+attrs = x[0][1]
+
+keys = attrs.keys()
+keys.sort()
+print >> sys.stderr, "Current info:"
+print >> sys.stderr, dn
+for a in keys:
+    for i in attrs[a]:
+        print >> sys.stderr, "  {:<16}: {}".format(a, i)
+
+if 'supplementaryGid' not in attrs or 'guest' not in attrs['supplementaryGid']:
+    print >>sys.stderr, "Account is not a guest-account,"
+    sys.exit(1)
+
+print >> sys.stderr
+print >> sys.stderr
+print "dn:", dn
+print "changetype: modify"
+print "delete: allowedHost"
+print "-"
+print "delete: shadowExpire"
+print "-"
+print "replace: supplementaryGid"
+for gid in attrs['supplementaryGid']:
+    if gid == "guest": gid = "Debian"
+    print "supplementaryGid:", gid
+print "-"
+print "add: privateSub"
+print "privateSub:", uid+"@debian.org"
+print "-"
+print
+
+print >> sys.stderr
+print >> sys.stderr, "Maybe paste (or pipe) this into"
+print >> sys.stderr, "ldapmodify -ZZ -x -D uid=$USER,ou=users,dc=debian,dc=org -W -h db.debian.org"
+
+# vim:set et:
+# vim:set ts=4:
+# vim:set shiftwidth=4:
