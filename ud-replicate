@@ -192,3 +192,7 @@ if [ -d "/etc/reTurn" -a -e "$HOST/rtc-passwords" ]; then
 	install -o return -g return -m 400 $HOST/rtc-passwords /var/local/rtc-passwords.return
 	service resiprocate-turn-server reload
 fi
+if [ -d "/etc/prosody" -a -e "$HOST/rtc-passwords" ]; then
+	install -o prosody -g prosody -m 400 $HOST/rtc-passwords /var/local/rtc-passwords.prosody
+	service prosody reload
+fi
