@@ -4,95 +4,26 @@ MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 8bit
 Subject: New ud-ldap account for __ENCODED_REALNAME__
-Cc: new-maintainer@debian.org
-Reply-To: new-maintainer@debian.org
+Cc: nm@debian.org, debian-admin@debian.org
+Reply-To: nm@debian.org
 Date: __DATE__
-User-Agent: nm-create script run by __WHOAMI__
-MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
+User-Agent: ud-useradd script run by __WHOAMI__
 
 [ This is a long (automatically-generated) mail, but it contains
    important information, please read it all carefully. ]
 
 Dear __REALNAME__!
 
-An account has been created for you on master.debian.org and
-va.debian.org with username '__LOGIN__'.  The password for this
-account can be found encrypted with your PGP key and appended to this
-message.
+An account has been created for you on the debian.org infrastructure
+with username '__LOGIN__'.
 
-You have been subscribed to the debian-private mailing list as
-<__PRIVATE__> (you should receive seperate confirmation of this from
-smartlist).  Please respect the privacy of that list and don't forward
-mail from it elsewhere.  E-mail to <__LOGIN__@debian.org> will be
-forwarded to <__EMAIL__>.  To change this, edit the file '.qmail' in
-your home directory on master to point to the new address (don't
-forget the '&' character at the beginning of the line).  Please
-subscribe to debian-devel-announce, if you haven't done so already.
-
-We strongly suggest that you use your __LOGIN__@debian.org address for
-the maintainer field in your packages, because that one will be valid
-as long as you are a Debian developer, even if you change jobs, leave
-university or change Internet Service providers.  If you do so, please 
-add that address to your PGP key (using `pgp -ke "YOUR USER ID"'), if
-you have one, and your GnuPG key (using `gpg --edit-key "YOUR USER ID"')
-and send it to <keyring-maint@debian.org>.
-
-You can find more information useful to developers at
-<URL:https://www.debian.org/devel/> (in particular, see the subsection
-titled "Debian Developer's reference").
-
-We suggest that you subscribe to debian-mentors@lists.debian.org.
-This list is for new maintainers who seek help with initial packaging
-and other developer-related issues.  Those who prefer one-on-one help
-can also post to the list, and an experienced developer may volunteer
-to help you.  You can get online help on IRC, too, if you join the
-channel #debian-devel on irc.debian.org.  Take a look at the support
-section on www.debian.org in order to find out more information.
-
-You should have read these documents before working on your packages.
-
-  o The Debian Social Contract
-    <URL:https://www.debian.org/social_contract.html>
-
-  o The Debian Policy Manual
-    <URL:https://www.debian.org/doc/debian-policy/>
-
-  o The Debian Packaging Manual
-    <URL:https://www.debian.org/doc/packaging-manuals/packaging.html>
-
-If you have some spare time and want to contribute it to Debian you
-may wish to take a look at the "Work-Needing and Prospective Packages
-for Debian GNU/Linux" also known as WNPP that can be found at
-<URL:ftp://ftp.debian.org/doc/package-developer/prospective-packages.html>
-
-If you plan to make a Debian package from a not yet packaged piece of
-software you *must* announce your intention on the debian-devel mailing
-list to make sure nobody else is working on them.
-
-The machine master.debian.org is our main archive server.  Every
-uploaded package finds it's way there (except for Packages covered by
-US crypto laws which go to non-us.debian.org) eventually.  That
-machine is also the home of our web pages and our bug tracking system.
-The second machine va.debian.org is supposed to take over some of the
-work master does.
-
-Both machines were sponsored by companies (Novare Inc. for master and
-VA Linux Systems for va).  Please don't over-stress them and use your
-accounts carefully.
-
-You should use ssh to log into the machines instead of regular telnet
-or rlogin.  We have installed ~/.ssh directories and authorized_keys
-files with appropriate permissions on both machines.  If you want to
-ssh to them without typing the password, run ssh-keygen on your
-machine and add the contents of ~/.ssh/identity.pub into the
-authorized_keys files in ~/.ssh on master and va.  But please be aware
-of the security implications of doing this.
-
-Welcome to the project!
+For some reason you are getting this generic welcome message instead
+of one with information more relevant to your specific account details.
+Please let DSA know of this and maybe they can help figure out why
+that is.
 
 -- 
+Debian System Administrators on behalf of
 The Debian New Maintainer Team
 
 __PASSWORD__
