@@ -7,7 +7,7 @@ Subject: New Debian developer __ENCODED_REALNAME__
 Cc: nm@debian.org, debian-admin@debian.org
 Reply-To: nm@debian.org
 Date: __DATE__
-User-Agent: nm-create script run by __WHOAMI__
+User-Agent: ud-useradd script run by __WHOAMI__
 
 [ This is a long mail with important information, so please read it all
   carefully. ]

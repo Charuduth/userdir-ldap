@@ -6,7 +6,7 @@ Subject: Debian Guest Account for __ENCODED_REALNAME__
 Cc: debian-admin@lists.debian.org
 Reply-To: debian-admin@lists.debian.org
 Date: __DATE__
-User-Agent: Script run by __WHOAMI__
+User-Agent: ud-useradd script run by __WHOAMI__
 
 Dear __REALNAME__!
 

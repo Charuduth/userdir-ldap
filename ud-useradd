@@ -390,7 +390,7 @@ if Update == 1 and ForceMail == 0:
 
 # Send the Welcome message
 print "Sending Welcome Email"
-templatepath = TemplatesDir + "/welcome-message-%d" % int(gidNumber)
+templatepath = TemplatesDir + "/welcome-message-%s" % supplementaryGid
 if not os.path.exists(templatepath):
    templatepath = TemplatesDir + "/welcome-message"
 Reply = TemplateSubst(Subst,open(templatepath, "r").read())
