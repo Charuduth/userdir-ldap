@@ -4,7 +4,7 @@ MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 8bit
 Subject: New Debian developer __ENCODED_REALNAME__
-Cc: nm@debian.org, debian-admin@debian.org
+Cc: nm@debian.org, debian-admin@lists.debian.org
 Reply-To: nm@debian.org
 Date: __DATE__
 User-Agent: ud-useradd script run by __WHOAMI__
