@@ -161,9 +161,6 @@ def IsRetired(account):
 
    return False
 
-#def IsGidDebian(account):
-#   return account['gidNumber'] == 800
-
 # See if this user is in the group list
 def IsInGroup(account, allowed, current_host):
   # See if the primary group is in the list
@@ -1195,7 +1192,6 @@ def generate_all(global_dir, ldap_conn):
    accounts_disabled = GenDisabledAccounts(accounts, global_dir + "disabled-accounts")
 
    accounts = filter(lambda x: not IsRetired(x), accounts)
-   #accounts_DDs = filter(lambda x: IsGidDebian(x), accounts)
 
    CheckForward(accounts)
 

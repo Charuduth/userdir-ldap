@@ -40,7 +40,6 @@ AdminUser = ConfModule.adminuser;
 GenerateDir = ConfModule.generatedir;
 AllowedGroupsPreload = ConfModule.allowedgroupspreload;
 HomePrefix = ConfModule.homeprefix;
-DefaultGID = ConfModule.defaultgid;
 TemplatesDir = ConfModule.templatesdir;
 PassDir = ConfModule.passdir;
 Ech_ErrorLog = ConfModule.ech_errorlog;

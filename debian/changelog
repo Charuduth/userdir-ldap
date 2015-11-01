@@ -1,9 +1,13 @@
 userdir-ldap (0.3.87) UNRELEASED; urgency=medium
 
+  [ Peter Palfrader ]
   * remove dnsZoneEntry from restricted attributes to match config on db.d.o
   * ssh keys: Also accept ed25519 keys.  RSA keys must be at least 2k.
   * ud-useradd: now does usergroups by default.
   * ud-guest-upgrade: add.
+
+  [ Paul Wise ]
+  * Update ud-ldapshow and cleanup cruft around the usergroups changes
 
  -- Peter Palfrader <weasel@debian.org>  Wed, 28 Oct 2015 22:03:42 +0100
 

@@ -76,7 +76,7 @@ if arguments[0] == "keymap":
            print "%s: %s" % (EmailAddress(x),I);
 
 if arguments[0] == "devcount":
-   Attrs = l.search_s(BaseDn,ldap.SCOPE_ONELEVEL,"(&(keyFingerPrint=*)(gidNumber=800))",\
+   Attrs = l.search_s(BaseDn,ldap.SCOPE_ONELEVEL,"(&(keyFingerPrint=*)(supplementaryGid=Debian))",\
            ["uid"]);
    Count = 0;
    for x in Attrs:
@@ -85,7 +85,7 @@ if arguments[0] == "devcount":
 
 if arguments[0] == "echelon":
    Attrs = l.search_s(BaseDn,ldap.SCOPE_ONELEVEL,\
-   "(&(|(activity-pgp=*)(activity-from=*))(&(keyFingerPrint=*)(gidNumber=800)))",\
+   "(&(|(activity-pgp=*)(activity-from=*))(&(keyFingerPrint=*)(supplementaryGid=Debian)))",\
            ["activity-pgp","activity-from"]);
    Count = 0;
    PGPCount = 0;
@@ -97,7 +97,7 @@ if arguments[0] == "echelon":
 
 if arguments[0] == "missing":
    Attrs = l.search_s(BaseDn,ldap.SCOPE_ONELEVEL,\
-   "(&(!(|(activity-pgp=*)(activity-from=*)))(&(keyFingerPrint=*)(gidNumber=800)))",\
+   "(&(!(|(activity-pgp=*)(activity-from=*)))(&(keyFingerPrint=*)(supplementaryGid=Debian)))",\
            ["uid","cn","sn","mn"]);
    Attrs.sort();
    for x in Attrs:
