@@ -1,0 +1,129 @@
+#!/usr/bin/python
+
+# Copyright (c) 2015 Peter Palfrader <peter@palfrader.org>
+#
+# Permission is hereby granted, free of charge, to any person obtaining
+# a copy of this software and associated documentation files (the
+# "Software"), to deal in the Software without restriction, including
+# without limitation the rights to use, copy, modify, merge, publish,
+# distribute, sublicense, and/or sell copies of the Software, and to
+# permit persons to whom the Software is furnished to do so, subject to
+# the following conditions:
+#
+# The above copyright notice and this permission notice shall be
+# included in all copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+# EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+# MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+# NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE
+# LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
+# OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+# WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+import argparse
+import os, pwd, sys
+import datetime
+from userdir_ldap import *;
+from string import Template
+
+
+def days(i):
+    return datetime.timedelta(days=i)
+
+parser = argparse.ArgumentParser(description='Query/Extend a guest account.')
+parser.add_argument('uid', metavar='UID',
+                   help="user's uid to be extended")
+parser.add_argument('-x', '--extend', metavar='DAYS',
+                   type=int,
+                   const=90, nargs='?',
+                   help="days to be extended")
+args = parser.parse_args()
+uid = args.uid
+
+l = connectLDAP()
+
+x = l.search_s(BaseBaseDn,ldap.SCOPE_SUBTREE, "uid="+uid, [])
+if len(x) == 0:
+    print >>sys.stderr, "No hit."
+    sys.exit(1)
+elif len(x) > 1:
+    print >>sys.stderr, "More than one hit!?"
+    sys.exit(1)
+
+
+dn = x[0][0]
+attrs = x[0][1]
+
+keys = attrs.keys()
+keys.sort()
+print >> sys.stderr, "Current info:"
+print >> sys.stderr, dn
+for a in keys:
+    for i in attrs[a]:
+        print >> sys.stderr, "  {:<16}: {}".format(a, i)
+
+if 'supplementaryGid' not in attrs or 'guest' not in attrs['supplementaryGid']:
+    print >>sys.stderr, "Account is not a guest-account,"
+    sys.exit(1)
+if 'shadowExpire' not in attrs:
+    print >>sys.stderr, "Account does not expire."
+    sys.exit(1)
+
+epoch = datetime.date(1970, 1, 1)
+shadowExpire = epoch + days(int(attrs['shadowExpire'][0]))
+allowedHost = {}
+if 'allowedHost' in attrs:
+    for entry in attrs['allowedHost']:
+        list = entry.split(None,1)
+        if len(list) == 1: continue
+        (h, expire) = list
+        try:
+            parsed = datetime.datetime.strptime(expire, '%Y%m%d')
+        except ValueError:
+            print >>sys.stderr, "Cannot parse expiry date in '%s' in hostACL entry."%(entry, )
+        allowedHost[h] = parsed
+
+
+print >>sys.stderr
+print >>sys.stderr, "Unix account expires on %s."%(shadowExpire,)
+print >>sys.stderr, "Allowed hosts: "
+for h in sorted(allowedHost):
+    print >>sys.stderr, " %s: %s"%(h, allowedHost[h].strftime('%Y-%m-%d'))
+
+if args.extend is None:
+    print >>sys.stderr
+    print >>sys.stderr, "Use -x to extend account."
+    sys.exit(0)
+
+print >>sys.stderr, "Extending for %d days"%(args.extend)
+
+today = datetime.date.today()
+until = today + days(args.extend)
+
+print >> sys.stderr
+print >> sys.stderr
+print "dn:", dn
+print "changetype: modify"
+
+print "replace: shadowLastChange"
+print "shadowLastChange: %d"%( (today - epoch).days )
+print "-"
+
+print "replace: shadowExpire"
+print "shadowExpire: %d"%( (until - epoch).days )
+print "-"
+
+print "replace: allowedHost"
+for h in sorted(allowedHost):
+    print "allowedHost: %s %s"%(h, until.strftime('%Y%m%d'))
+print "-"
+print
+
+print >> sys.stderr
+print >> sys.stderr, "Maybe paste (or pipe) this into"
+print >> sys.stderr, "ldapmodify -ZZ -x -D uid=$USER,ou=users,dc=debian,dc=org -W -h db.debian.org"
+
+# vim:set et:
+# vim:set ts=4:
+# vim:set shiftwidth=4:

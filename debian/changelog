@@ -5,11 +5,12 @@ userdir-ldap (0.3.87) UNRELEASED; urgency=medium
   * ssh keys: Also accept ed25519 keys.  RSA keys must be at least 2k.
   * ud-useradd: now does usergroups by default.
   * ud-guest-upgrade: add.
+  * ud-guest-extend: add
 
   [ Paul Wise ]
   * Update ud-ldapshow and cleanup cruft around the usergroups changes
 
- -- Peter Palfrader <weasel@debian.org>  Wed, 28 Oct 2015 22:03:42 +0100
+ -- Peter Palfrader <weasel@debian.org>  Thu, 05 Nov 2015 10:22:13 +0100
 
 userdir-ldap (0.3.86) unstable; urgency=medium
 
