@@ -74,7 +74,7 @@ if [ -e /var/lib/misc/thishost/dns-zone ]; then
   cp /var/lib/misc/thishost/dns-zone $tempfile2
 fi
 
-rsync ${verbose} --delete-after --times -e 'ssh -i /etc/ssh/ssh_host_rsa_key -o BatchMode=yes' -rp "${udhost}/var/cache/userdir-ldap/hosts/$HOST" .
+rsync ${verbose} --delete-after --times -e 'ssh -i /etc/ssh/ssh_host_rsa_key -o ControlPath=/var/run/.ud-replicate.ssh.socket -o ControlMaster=auto -o ControlPersist=2h -o BatchMode=yes' -rp "${udhost}/var/cache/userdir-ldap/hosts/$HOST" .
 
 makedb "$HOST/passwd.tdb" -o passwd.db.t
 if [ -s "$HOST/shadow.tdb" ]
