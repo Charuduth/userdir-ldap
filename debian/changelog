@@ -8,11 +8,12 @@ userdir-ldap (0.3.87) UNRELEASED; urgency=medium
   * ud-guest-extend: add
   * ud-replicate: only install/reload RTC files when they have changed.
   * ud-replicate: use persistent ssh connections.
+  * ud-generate: get RTC domain/realm from config file.
 
   [ Paul Wise ]
   * Update ud-ldapshow and cleanup cruft around the usergroups changes
 
- -- Peter Palfrader <weasel@debian.org>  Thu, 19 Nov 2015 09:52:43 +0100
+ -- Peter Palfrader <weasel@debian.org>  Fri, 05 Feb 2016 19:15:21 +0100
 
 userdir-ldap (0.3.86) unstable; urgency=medium
 
