@@ -26,6 +26,8 @@ import os, pwd, sys
 from userdir_ldap import *;
 from string import Template
 
+DefaultGroup = getattr(ConfModule, "defaultgroup", 'users')
+
 parser = argparse.ArgumentParser(description='Upgrade a guest account.')
 parser.add_argument('uid', metavar='UID',
                    help="user's uid to be upgraded")
@@ -68,7 +70,7 @@ print "delete: shadowExpire"
 print "-"
 print "replace: supplementaryGid"
 for gid in attrs['supplementaryGid']:
-    if gid == "guest": gid = "Debian"
+    if gid == "guest": gid = DefaultGroup
     print "supplementaryGid:", gid
 print "-"
 print "add: privateSub"
