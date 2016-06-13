@@ -900,7 +900,7 @@ def ExtractDNSInfo(x):
       Mach = ""
       if x[1].has_key("machine"):
          Mach = " " + GetAttr(x, "machine")
-      DNSInfo.append("%sIN\tHINFO\t\"%s%s\" \"%s\"" % (TTLprefix, Arch, Mach, "Debian GNU/Linux"))
+      DNSInfo.append("%sIN\tHINFO\t\"%s%s\" \"%s\"" % (TTLprefix, Arch, Mach, "Debian"))
 
    if x[1].has_key("mXRecord"):
       for I in x[1]["mXRecord"]:
