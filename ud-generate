@@ -437,6 +437,7 @@ def GenRtcPassword(accounts, File):
       os.umask(OldMask)
 
       for a in accounts:
+         if a.is_guest_account(): continue
          if not 'rtcPassword' in a: continue
          if not a.pw_active(): continue
 
