@@ -88,7 +88,7 @@ class Account:
         return self['accountStatus'] == 'active' and self.numkeys() != 0
 
     def is_guest_account(self):
-        return supplementaryGid in self and 'guest' in self['supplementaryGid']
+        return 'supplementaryGid' in self and 'guest' in self['supplementaryGid']
 
     def latitude_dec(self, anonymized=False):
         return userdir_ldap.DecDegree(self['latitude'], anonymized)
