@@ -1,4 +1,4 @@
-userdir-ldap (0.3.87) UNRELEASED; urgency=medium
+userdir-ldap (0.3.87) unstable; urgency=medium
 
   [ Peter Palfrader ]
   * remove dnsZoneEntry from restricted attributes to match config on db.d.o
@@ -16,7 +16,7 @@ userdir-ldap (0.3.87) UNRELEASED; urgency=medium
   [ Julien Cristau ]
   * Replace dependency on perl5 with perl.
 
- -- Peter Palfrader <weasel@debian.org>  Fri, 05 Feb 2016 19:15:21 +0100
+ -- Julien Cristau <jcristau@debian.org>  Sun, 29 Jan 2017 12:14:50 +0100
 
 userdir-ldap (0.3.86) unstable; urgency=medium
 
