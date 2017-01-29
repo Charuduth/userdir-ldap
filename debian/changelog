@@ -13,6 +13,9 @@ userdir-ldap (0.3.87) UNRELEASED; urgency=medium
   [ Paul Wise ]
   * Update ud-ldapshow and cleanup cruft around the usergroups changes
 
+  [ Julien Cristau ]
+  * Replace dependency on perl5 with perl.
+
  -- Peter Palfrader <weasel@debian.org>  Fri, 05 Feb 2016 19:15:21 +0100
 
 userdir-ldap (0.3.86) unstable; urgency=medium
