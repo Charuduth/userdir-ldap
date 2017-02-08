@@ -51,7 +51,7 @@ def ShouldIgnoreID(uid):
 #      search through all UIDs.
 def GetFreeID(l):
    Attrs = l.search_s(BaseBaseDn,ldap.SCOPE_SUBTREE,
-                      "uidNumber=*",["uidNumber", "gidNumber", "uid"]);
+                      "(|(uidNumber=*)(gidNumber=*))",["uidNumber", "gidNumber", "uid"]);
    HighestUID = 0;
    gids = [];
    uids = [];
