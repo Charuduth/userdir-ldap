@@ -1,6 +1,10 @@
 userdir-ldap (0.3.88) UNRELEASED; urgency=medium
 
+  [ Peter Palfrader ]
   * ud-useradd: When looking for free UIDs/GIDs, also consider groups.
+
+  [ Julien Cristau ]
+  * Update Uploaders list.
 
  -- Peter Palfrader <weasel@debian.org>  Wed, 08 Feb 2017 18:26:49 +0100
 
