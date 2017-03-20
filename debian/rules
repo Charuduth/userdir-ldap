@@ -31,7 +31,7 @@ binary-indep: build
 	dh_installman
 	dh_fixperms
 	dh_compress
-	dh_pysupport
+	dh_python2
 	dh_installdeb
 	dh_gencontrol
 	dh_md5sums
