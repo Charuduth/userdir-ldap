@@ -1,4 +1,4 @@
-userdir-ldap (0.3.88) UNRELEASED; urgency=medium
+userdir-ldap (0.3.88) unstable; urgency=medium
 
   [ Peter Palfrader ]
   * ud-useradd: When looking for free UIDs/GIDs, also consider groups.
@@ -7,7 +7,7 @@ userdir-ldap (0.3.88) UNRELEASED; urgency=medium
   * Update Uploaders list.
   * Use dh-python instead of python-support.
 
- -- Peter Palfrader <weasel@debian.org>  Wed, 08 Feb 2017 18:26:49 +0100
+ -- Peter Palfrader <weasel@debian.org>  Sun, 26 Mar 2017 14:05:57 +0200
 
 userdir-ldap (0.3.87) unstable; urgency=medium
 
