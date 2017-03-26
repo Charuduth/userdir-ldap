@@ -2,7 +2,7 @@ Source: userdir-ldap
 Section: admin
 Priority: optional
 Maintainer: Debian Administration team <debian-admin@lists.debian.org>
-Build-Depends: debhelper (>= 7), dh-python, yodl
+Build-Depends: debhelper (>= 7), dh-python, yodl, python (>= 2.7)
 Standards-Version: 3.7.3
 Uploaders: Peter Palfrader <weasel@debian.org>, Martin Zobel-Helas <zobel@debian.org>, Stephen Gran <sgran@debian.org>
 
