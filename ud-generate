@@ -77,6 +77,7 @@ GitoliteSSHRestrictions = getattr(ConfModule, "gitolitesshrestrictions", None)
 GitoliteSSHCommand = getattr(ConfModule, "gitolitesshcommand", None)
 GitoliteExportHosts = re.compile(getattr(ConfModule, "gitoliteexporthosts", "."))
 MX_remap = json.loads(ConfModule.MX_remap)
+use_mq = getattr(ConfModule, "use_mq", True)
 
 rtc_realm = getattr(ConfModule, "rtc_realm", None)
 rtc_append = getattr(ConfModule, "rtc_append", None)
@@ -1479,7 +1480,8 @@ def ud_generate():
    if need_update or options.force:
       msg = 'Update forced' if options.force else 'Update needed'
       generate_all(generate_dir, l)
-      mq_notify(options, msg)
+      if use_mq:
+         mq_notify(options, msg)
       last_run = int(time.time())
    fd.write("%s\n%s\n%s\n" % (ldap_last_mod, unix_last_mod, last_run))
    fd.close()
