@@ -1,4 +1,4 @@
-userdir-ldap (0.3.89) UNRELEASED; urgency=medium
+userdir-ldap (0.3.89) unstable; urgency=medium
 
   [ Julien Cristau ]
   * Fix half-assed switch away from python-support.
@@ -6,7 +6,7 @@ userdir-ldap (0.3.89) UNRELEASED; urgency=medium
   [ Christoph Berg]
   * Add option "use_mq" to allow disabling the use of mq_notify in ud-generate
 
- -- Peter Palfrader <weasel@debian.org>  Sun, 26 Mar 2017 14:07:15 +0200
+ -- Julien Cristau <jcristau@debian.org>  Mon, 27 Mar 2017 14:03:00 +0200
 
 userdir-ldap (0.3.88) unstable; urgency=medium
 
