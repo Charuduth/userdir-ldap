@@ -1,3 +1,9 @@
+userdir-ldap (0.3.90) UNRELEASED; urgency=medium
+
+  * Switch from /org to /srv
+
+ -- Paul Wise <pabs@debian.org>  Sat, 17 Jun 2017 14:38:00 +0800
+
 userdir-ldap (0.3.89) unstable; urgency=medium
 
   [ Julien Cristau ]
