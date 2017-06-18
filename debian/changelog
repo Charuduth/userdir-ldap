@@ -1,6 +1,11 @@
 userdir-ldap (0.3.90) UNRELEASED; urgency=medium
 
+  [ Paul Wise ]
   * Switch from /org to /srv
+
+  [ Peter Palfrader ]
+  * Replace RSA authentication with public-key authentication in welcome
+    messages.
 
  -- Paul Wise <pabs@debian.org>  Sat, 17 Jun 2017 14:38:00 +0800
 

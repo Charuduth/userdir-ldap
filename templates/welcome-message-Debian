@@ -48,10 +48,10 @@ and ask your fellow DDs if you need any help.
 You need to use ssh to log into the machines; telnet and rlogin are
 disabled for security reasons.  On debian.org servers the only ssh
 authentication method available is publickey.  The LDAP directory is
-able to share RSA ssh keys among machines, please see
+able to share public ssh keys among machines, please see
 <URL:https://db.debian.org/doc-mail.html>.  Please be aware of the
-security implications of using RSA authentication and ssh agents.  The
-SSH fingerprints for all Debian machines can be looked up at
+security implications of using public-key authentication and ssh agents.
+The SSH fingerprints for all Debian machines can be looked up at
 <URL:https://db.debian.org/machines.cgi> or a known_hosts file can be
 downloaded from <URL:https://db.debian.org/debian_known_hosts>.
 

@@ -29,11 +29,11 @@ and ask your mentors if you need any help.
 
 You should use ssh to log into the machines. See the host details on
 db.debian.org for the ssh hostkey fingerprints for the servers you
-access.  Our LDAP directory is able to share ssh RSA keys among
+access.  Our LDAP directory is able to share public ssh keys keys among
 machines, please see <URL:https://db.debian.org/doc-mail.html> for
 general documentation and for how to add ssh keys to the LDAP. Please be
-aware of the security implications of using RSA authentication and ssh
-agents.
+aware of the security implications of using using public-key authentication
+and ssh agents.
 
 Your password to access db.debian.org can be found encrypted with your
 PGP key and appended to this message.  It cannot be used to log into
