@@ -6,6 +6,9 @@ userdir-ldap (0.3.90) UNRELEASED; urgency=medium
   [ Peter Palfrader ]
   * Replace RSA authentication with public-key authentication in welcome
     messages.
+  * ud-generate:  Do not create a global ssh-gitolite.  Instead create
+    them per-host where needed so we can accomodate per-host ssh
+    authorized-keys.
 
  -- Paul Wise <pabs@debian.org>  Sat, 17 Jun 2017 14:38:00 +0800
 

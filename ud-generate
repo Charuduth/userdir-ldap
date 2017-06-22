@@ -1226,7 +1226,6 @@ def generate_all(global_dir, ldap_conn):
    GenMarkers(accounts, global_dir + "markers")
    GenSSHKnown(host_attrs, global_dir + "ssh_known_hosts")
    GenHosts(host_attrs, global_dir + "debianhosts")
-   GenSSHGitolite(accounts, host_attrs, global_dir + "ssh-gitolite")
 
    GenDNS(accounts, global_dir + "dns-zone")
    GenZoneRecords(host_attrs, global_dir + "dns-sshfp")
@@ -1321,7 +1320,7 @@ def generate_host(host, global_dir, all_accounts, all_hosts, ssh_userkeys):
       DoLink(global_dir, OutDir, "debian-private")
 
    if 'GITOLITE' in ExtraList:
-      DoLink(global_dir, OutDir, "ssh-gitolite")
+      GenSSHGitolite(all_accounts, all_hosts, OutDir + "ssh-gitolite", current_host=current_host)
    if 'exportOptions' in host[1]:
       for entry in host[1]['exportOptions']:
          v = entry.split('=',1)
