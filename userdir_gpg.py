@@ -43,7 +43,8 @@ GPGBasicOptions = [
    "--always-trust"];
 GPGKeyRings = [];
 GPGSigOptions = ["--output","-"];
-GPGSearchOptions = ["--dry-run","--with-colons","--fingerprint"];
+GPGSearchOptions = ["--dry-run","--with-colons","--fingerprint",\
+                    "--fingerprint", "--fixed-list-mode"];
 GPGEncryptOptions = ["--output","-","--quiet","--always-trust",\
                      "--armor","--encrypt"];
 GPGEncryptPGP2Options = ["--set-filename","","--rfc1991",\
@@ -453,47 +454,75 @@ class GPGCheckSig2:
 def GPGKeySearch(SearchCriteria):
    Args = [GPGPath] + GPGBasicOptions + GPGKeyRings + GPGSearchOptions + \
           [SearchCriteria," 2> /dev/null"]
-   Strm = None;
-   Result = [];
-   Owner = "";
-   KeyID = "";
+   Strm = None
+   Result = []
+   Validity = None
+   Length = 0
+   KeyID = ""
    Capabilities = ""
-   Expired = None;
-   Hits = {};
+   Fingerprint = ""
+   Owner = ""
+   Hits = {}
 
    dir = os.path.expanduser("~/.gnupg")
    if not os.path.isdir(dir):
       os.mkdir(dir, 0700)
 
    try:
+      # The GPG output will contain zero or more stanza, one stanza per match found.
+      # Each stanza consists of the following records, in order:
+      #   tru : trust database information
+      #   pub : primary key from which we extract
+      #         field  1 - Validity
+      #         field  2 - Length
+      #         field  4 - KeyID
+      #         field 11 - Capabilities
+      #   fpr : fingerprint of primary key from which we extract
+      #         field  9 - Fingerprint
+      #   uid : first User ID attached to primary key from which we extract
+      #         Field  9 - Owner
+      #   uid : (optional) additional multiple User IDs attached to primary key
+      #   sub : (optional) secondary key
+      #   fpr : (opitonal) fingerprint of secondary key if sub is present
       Strm = os.popen(" ".join(Args),"r")
-
+      Want = "pub"
       while(1):
-         # Grab and split up line
-         Line = Strm.readline();
+         Line = Strm.readline()
          if Line == "":
-            break;
+            break
          Split = Line.split(":")
 
-         # Store some of the key fields
-         if Split[0] == 'pub':
-            KeyID = Split[4];
-            Owner = Split[9];
-            Length = int(Split[2])
-            Capabilities = Split[11]
-            Expired = Split[1] == 'e'
+         if Split[0] != Want:
+            continue
 
-         # Output the key
-         if Split[0] == 'fpr':
-            if Hits.has_key(Split[9]):
-               continue;
-            Hits[Split[9]] = None;
-            if not Expired:
-               Result.append( (KeyID,Split[9],Owner,Length,Capabilities) );
+         if Want == 'pub':
+            Validity = Split[1]
+            Length = int(Split[2])
+            KeyID = Split[4]
+            Capabilities = Split[11]
+            Want = 'fpr'
+            continue
+
+         if Want == 'fpr':
+            Fingerprint = Split[9]
+            if Hits.has_key(Fingerprint):
+               Want = 'pub' # already seen, skip to next stanza
+            else:
+               Hits[Fingerprint] = None
+               Want = 'uid'
+            continue
+
+         if Want == 'uid':
+            Owner = Split[9]
+            if Validity != 'e': # if not expired
+               Result.append( (KeyID,Fingerprint,Owner,Length,Capabilities) )
+            Want = 'pub' # finished, skip to next stanza
+            continue
+
    finally:
       if Strm != None:
-         Strm.close();
-   return Result;
+         Strm.close()
+   return Result
 
 # Print the available key information in a format similar to GPG's output
 # We do not know the values of all the feilds so they are just replaced
