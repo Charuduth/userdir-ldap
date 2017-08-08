@@ -10,6 +10,10 @@ userdir-ldap (0.3.90) UNRELEASED; urgency=medium
     them per-host where needed so we can accomodate per-host ssh
     authorized-keys.
 
+  [ Tollef Fog Heen ]
+  * Add totpSeed to LDAP schema.
+  * Add support for changing TOTP seed by mailing ud-mailgate.
+
  -- Paul Wise <pabs@debian.org>  Sat, 17 Jun 2017 14:38:00 +0800
 
 userdir-ldap (0.3.89) unstable; urgency=medium

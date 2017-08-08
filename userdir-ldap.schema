@@ -111,6 +111,7 @@
 #   .43 - webPassword
 #   .44 - rtcPassword
 #   .45 - rebootPolicy
+#   .46 - totpSeed
 #
 # .3 - experimental LDAP objectClasses
 #   .1 - debianDeveloper
@@ -544,6 +545,12 @@ attributetype ( 1.3.6.1.4.1.9586.100.4.4.45
 	SUBSTR caseIgnoreIA5SubstringsMatch
 	SYNTAX 1.3.6.1.4.1.1466.115.121.1.26{256} )
 
+attributetype ( 1.3.6.1.4.1.9586.100.4.4.46
+	NAME 'totpSeed'
+	DESC 'Seed for TOTP authentication'
+	EQUALITY octetStringMatch
+	SYNTAX 1.3.6.1.4.1.1466.115.121.1.40 )
+
 # Public object classes
 
 objectclass ( 1.3.6.1.4.1.9586.100.4.1.1
@@ -551,7 +558,7 @@ objectclass ( 1.3.6.1.4.1.9586.100.4.1.1
 	DESC 'Abstraction of an account with POSIX attributes and UTF8 support'
 	SUP top AUXILIARY
 	MUST ( cn $ uid $ uidNumber $ gidNumber )
-	MAY ( userPassword $ loginShell $ gecos $ homeDirectory $ description $ mailDisableMessage $ sudoPassword $ webPassword $ rtcPassword ) )
+	MAY ( userPassword $ loginShell $ gecos $ homeDirectory $ description $ mailDisableMessage $ sudoPassword $ webPassword $ rtcPassword $ totpSeed ) )
 
 objectclass ( 1.3.6.1.4.1.9586.100.4.1.2
 	NAME 'debianGroup'

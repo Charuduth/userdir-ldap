@@ -11,6 +11,7 @@ import userdir_gpg, userdir_ldap, sys, traceback, time, ldap, os, commands
 import pwd, tempfile
 import subprocess
 import email, email.parser
+import binascii
 
 from userdir_gpg import *
 from userdir_ldap import *
@@ -687,6 +688,28 @@ def HandleChPass(Reply,DnRecord,Key):
 
    return Reply;
 
+def HandleChTOTPSeed(Reply, DnRecord, Key):
+   # Generate a random seed
+   seed = binascii.hexlify(open("/dev/urandom", "r").read(32))
+   msg = GPGEncrypt("Your new TOTP seed is '%s'\n" % (seed,), "0x"+Key[1],Key[4]);
+
+   if msg is None:
+      raise UDFormatError, "Unable to generate the encrypted reply, gpg failed.";
+
+   Subst = {};
+   Subst["__FROM__"] = ChPassFrom
+   Subst["__EMAIL__"] = EmailAddress(DnRecord)
+   Subst["__PASSWORD__"] = msg
+   Subst["__ADMIN__"] = ReplyTo
+   Reply = Reply + TemplateSubst(Subst, open(TemplatesDir+"totp-seed-changed", "r").read())
+
+   l = connect_to_ldap_and_check_if_locked(DnRecord)
+   # Modify the password
+   Rec = [(ldap.MOD_REPLACE, "totpSeed", seed)]
+   Dn = "uid=" + GetAttr(DnRecord,"uid") + "," + BaseDn
+   l.modify_s(Dn,Rec)
+   return Reply;
+
 def HandleChKrbPass(Reply,DnRecord,Key):
    # Connect to the ldap server, will throw an exception if account locked.
    l = connect_to_ldap_and_check_if_locked(DnRecord)
@@ -814,6 +837,8 @@ try:
          Reply = HandleChPass(Reply,Attrs[0],pgp.key_info);
       elif PlainText.strip().find("Please change my Kerberos password") >= 0:
          Reply = HandleChKrbPass(Reply,Attrs[0],pgp.key_info);
+      elif PlainText.strip().find("Please change my TOTP seed") >= 0:
+         Reply = HandleChTOTPSeed(Reply, Attrs[0], pgp.key_info)
       else:
          raise UDFormatError,"Please send a signed message where the first line of text is the string 'Please change my Debian password' or some other string we accept here.";
    elif sys.argv[1] == "change":

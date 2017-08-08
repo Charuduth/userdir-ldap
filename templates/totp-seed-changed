@@ -1,0 +1,14 @@
+From: __FROM__
+MIME-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
+Subject: TOTP seed changed
+
+Hello __EMAIL__!
+
+Your TOTP seed has been updated. Enclosed below is the new seed
+encrypted with your key.
+
+Please email __ADMIN__ if you have any questions.
+
+__PASSWORD__
