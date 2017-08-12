@@ -39,7 +39,7 @@ SeenList = {}
 DNS = {}
 ValidHostNames = [] # will be initialized in later
 
-SSHFingerprint = re.compile('^(\d+) ([0-9a-f\:]{47}) (.+)$')
+SSHFingerprint = re.compile('^(\d+) ([0-9a-f\:]{47}|SHA256:[0-9A-Za-z/+]{43}) (.+)$')
 SSHRSA1Match = re.compile('^^(.* )?\d+ \d+ \d+')
 
 GenderTable = {"male": '1',
@@ -322,6 +322,8 @@ def DoSSH(Str, Attrs, badkeys, uid):
    Subst["__USER__"] = uid
 
    Match = SSHFingerprint.match(output)
+   if Match is None:
+      return "Failed to match SSH fingerprint, has the output of ssh-keygen changed?"
    g = Match.groups()
    key_size = g[0]
    fingerprint = g[1]
