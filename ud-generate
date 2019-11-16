@@ -912,6 +912,8 @@ def ExtractDNSInfo(x):
             Algorithm = 2
          if Split[0] == 'ssh-ed25519':
             Algorithm = 4
+         if Split[0] == 'ssh-xmss':
+            Algorithm = 5
          if Algorithm == None:
             continue
          Fingerprint = hashlib.new('sha1', base64.decodestring(Split[1])).hexdigest()
